@@ -1,0 +1,21 @@
+# build artefacts
+bin
+obj
+
+# VS
+.vs
+*.user
+
+# Rider
+.idea
+
+# macOS
+.DS_Store
+
+# Telega
+Telega/Rpc/Dto/Types
+Telega/Rpc/Dto/Functions
+
+# Telega.Example
+Telega.Example/*.json
+Telega.Example/*.dat

@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telega", "Telega\Telega.csproj", "{400D2544-1CC6-4D8A-A62C-2292D9947A16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telega.Rpc.Dto.Generator", "Telega.Rpc.Dto.Generator\Telega.Rpc.Dto.Generator.csproj", "{07C01294-0DC0-41B9-A92F-0FD165660C3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telega.Example", "Telega.Example\Telega.Example.csproj", "{4F0F6D57-8352-46D6-9F77-537C5BE72724}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{400D2544-1CC6-4D8A-A62C-2292D9947A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{400D2544-1CC6-4D8A-A62C-2292D9947A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{400D2544-1CC6-4D8A-A62C-2292D9947A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{400D2544-1CC6-4D8A-A62C-2292D9947A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07C01294-0DC0-41B9-A92F-0FD165660C3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07C01294-0DC0-41B9-A92F-0FD165660C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07C01294-0DC0-41B9-A92F-0FD165660C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07C01294-0DC0-41B9-A92F-0FD165660C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F0F6D57-8352-46D6-9F77-537C5BE72724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F0F6D57-8352-46D6-9F77-537C5BE72724}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F0F6D57-8352-46D6-9F77-537C5BE72724}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F0F6D57-8352-46D6-9F77-537C5BE72724}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.inheritsSet = VisualStudio
+		$1.inheritsScope = text/plain
+		$1.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $2
+		$2.IndentSwitchBody = True
+		$2.IndentBlocksInsideExpressions = True
+		$2.AnonymousMethodBraceStyle = NextLine
+		$2.PropertyBraceStyle = NextLine
+		$2.PropertyGetBraceStyle = NextLine
+		$2.PropertySetBraceStyle = NextLine
+		$2.EventBraceStyle = NextLine
+		$2.EventAddBraceStyle = NextLine
+		$2.EventRemoveBraceStyle = NextLine
+		$2.StatementBraceStyle = NextLine
+		$2.ElseNewLinePlacement = NewLine
+		$2.CatchNewLinePlacement = NewLine
+		$2.FinallyNewLinePlacement = NewLine
+		$2.WhileNewLinePlacement = DoNotCare
+		$2.ArrayInitializerWrapping = DoNotChange
+		$2.ArrayInitializerBraceStyle = NextLine
+		$2.BeforeMethodDeclarationParentheses = False
+		$2.BeforeMethodCallParentheses = False
+		$2.BeforeConstructorDeclarationParentheses = False
+		$2.NewLineBeforeConstructorInitializerColon = NewLine
+		$2.NewLineAfterConstructorInitializerColon = SameLine
+		$2.BeforeDelegateDeclarationParentheses = False
+		$2.NewParentheses = False
+		$2.SpacesBeforeBrackets = False
+		$2.inheritsSet = Mono
+		$2.inheritsScope = text/x-csharp
+		$2.scope = text/x-csharp
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
