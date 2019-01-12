@@ -1,4 +1,4 @@
-<!--- [![NuGet](https://img.shields.io/nuget/v/Telega.svg)](https://nuget.org/packages/Telega) --->
+[![NuGet](https://img.shields.io/nuget/v/Telega.svg)](https://nuget.org/packages/Telega)
 
 # Introduction
 
