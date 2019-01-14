@@ -197,7 +197,7 @@ namespace Telega
             Wrap(() => RequestWithDcMigration(func ?? throw new ArgumentNullException(nameof(func))));
 
 
-        public async Task<string> SendCodeRequest(Some<string> phoneNumber)
+        public async Task<string> SendCode(Some<string> phoneNumber)
         {
             var resp = await Call(new SendCode(
                 phoneNumber: phoneNumber,
@@ -209,7 +209,7 @@ namespace Telega
             return resp.PhoneCodeHash;
         }
 
-        public async Task<User> MakeAuth(Some<string> phoneNumber, Some<string> phoneCodeHash, Some<string> code)
+        public async Task<User> SignIn(Some<string> phoneNumber, Some<string> phoneCodeHash, Some<string> code)
         {
             var resp = await Call(new SignIn(phoneNumber: phoneNumber, phoneCodeHash: phoneCodeHash, phoneCode: code));
             var user = resp.User;
@@ -217,10 +217,10 @@ namespace Telega
             return user;
         }
 
-        public async Task<Password> GetPasswordSetting() =>
+        public async Task<Password> GetPasswordInfo() =>
             await Call(new GetPassword());
 
-        public async Task<User> MakeAuthWithPassword(Some<Password.Tag> password, Some<string> passwordStr)
+        public async Task<User> CheckPassword(Some<Password.Tag> password, Some<string> passwordStr)
         {
             var passwordBytes = Encoding.UTF8.GetBytes(passwordStr.Value);
             var currentSalt = password.Value.CurrentSalt.ToArrayUnsafe();
@@ -286,7 +286,7 @@ namespace Telega
             return await Call(req);
         }
 
-        public async Task<Dialogs> GetUserDialogs()
+        public async Task<Dialogs> GetDialogs()
         {
             var peer = (InputPeer) new InputPeer.SelfTag();
             return await Call(
@@ -294,7 +294,7 @@ namespace Telega
             );
         }
 
-        public async Task<UpdatesType> SendUploadedPhoto(
+        public async Task<UpdatesType> SendPhoto(
             Some<InputPeer> peer,
             Some<InputFile> file,
             Some<string> message
@@ -312,7 +312,7 @@ namespace Telega
                 silent: false
             ));
 
-        public async Task<UpdatesType> SendUploadedDocument(
+        public async Task<UpdatesType> SendDocument(
             Some<InputPeer> peer,
             Some<InputFile> file,
             Some<string> mimeType,

@@ -14,7 +14,7 @@ namespace Telega.Example
     {
         static async Task SignInViaCode(TelegramClient tg, Config cfg)
         {
-            var codeHash = await tg.SendCodeRequest(cfg.Phone);
+            var codeHash = await tg.SendCode(cfg.Phone);
 
             while (true)
             {
@@ -22,7 +22,7 @@ namespace Telega.Example
                 {
                     Console.WriteLine("Enter the telegram code");
                     var code = Console.ReadLine();
-                    await tg.MakeAuth(cfg.Phone, codeHash, code);
+                    await tg.SignIn(cfg.Phone, codeHash, code);
                 }
                 catch (TgInvalidPhoneCodeException)
                 {
@@ -33,12 +33,12 @@ namespace Telega.Example
 
         static async Task SignInViaPassword(TelegramClient tg, Config cfg)
         {
-            var pwdSettings = await tg.GetPasswordSetting();
-            var pwd = pwdSettings.Match(
+            var pwdInfo = await tg.GetPasswordInfo();
+            var pwd = pwdInfo.Match(
                 tag: identity,
                 noTag: _ => throw new Exception("WTF")
             );
-            await tg.MakeAuthWithPassword(pwd, cfg.Password);
+            await tg.CheckPassword(pwd, cfg.Password);
         }
 
         static async Task EnsureAuthenticated(TelegramClient tg, Config cfg)
@@ -66,7 +66,7 @@ namespace Telega.Example
 
         static async Task SnsExample(TelegramClient tg)
         {
-            var chatsType = await tg.GetUserDialogs();
+            var chatsType = await tg.GetDialogs();
                 var chats = chatsType.Match(
                     tag: identity,
                     _: () => throw new NotImplementedException()
@@ -113,7 +113,7 @@ namespace Telega.Example
             var photo = new WebClient().DownloadData(photoUrl);
 
             var tgPhoto = await tg.UploadFile(photoName, photo.Length, new MemoryStream(photo));
-            await tg.SendUploadedPhoto(
+            await tg.SendPhoto(
                 peer: (InputPeer) new InputPeer.SelfTag(),
                 file: tgPhoto,
                 message: "Telega works"
