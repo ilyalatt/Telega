@@ -25,6 +25,8 @@ namespace Telega.Rpc.Dto.Generator
                 .Apply(SomeExt.ToSome).Apply(TgSchemePatcher.Patch)
                 .Apply(SomeExt.ToSome).Apply(TgSchemeNormalizer.Normalize);
             var files = Gen.GenTypes(scheme).Concat(Gen.GenFunctions(scheme)).Concat(new[] { Gen.GenSchemeInfo(scheme) });
+
+            FileSync.Clear();
             foreach (var file in files.AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount)) await FileSync.Sync(file);
         }
     }
