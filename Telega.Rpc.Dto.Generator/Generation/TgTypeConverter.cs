@@ -11,8 +11,8 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 switch (x.Type)
                 {
                     case PrimitiveType.Bytes: return "Bytes";
-                    case PrimitiveType.Int128: return "Int128";
-                    case PrimitiveType.Int256: return "Int256";
+                    case PrimitiveType.Int128: return "BigMath.Int128";
+                    case PrimitiveType.Int256: return "BigMath.Int256";
                     default: return x.Type.ToString().ToLower();
                 }
             },

@@ -17,7 +17,6 @@ namespace Telega.Rpc.Dto.Generator.Generation
         static readonly NestedText Header = Scope(
             Line("using System;"),
             Line("using System.IO;"),
-            Line("using BigMath;"),
             Line("using LanguageExt;"),
             Line("using static Telega.Rpc.TgMarshal;"),
             Line("using T = Telega.Rpc.Dto.Types;")
