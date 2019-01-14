@@ -23,11 +23,19 @@ namespace Telega.Rpc.Dto.Generator.Generation
             Line("using T = Telega.Rpc.Dto.Types;")
         );
 
-        static NestedText GenTypeTag(Signature tag)
+        static NestedText GenTypeTagBody(string tagName, Signature tag)
         {
-            var tagName = tag.Name;
-            var tagArgsWithoutFlags = tag.Args.Filter(x => x.Kind.Match(_: () => true, flags: _ => false)).ToArr();
-            var tagArgs = tagArgsWithoutFlags
+            var modifiedArgs = tag.Args
+                .Map(x => new Arg(
+                    name: x.Name == tagName ? $"{x.Name}Value" : x.Name, // TODO: move to normalizer
+                    type: x.Type,
+                    kind: x.Kind
+                ))
+                .ToArr();
+            var argsWithoutFlags = modifiedArgs
+                .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
+                .ToArr();
+            var tagArgs = argsWithoutFlags
                 .Map(x => (
                     name: x.Name,
                     type: TgTypeConverter.ConvertArgType(x),
@@ -35,45 +43,54 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 )).ToArray();
 
             return Scope(
+                Scope(
+                    Line($"internal const uint TypeNumber = {Helpers.TypeNumber(tag.TypeNumber)};"),
+                    Line("uint ITgTypeTag.TypeNumber => TypeNumber;"),
+                    Line("")
+                ),
+                tagArgs.Map(arg => Line($"public readonly {arg.type} {arg.name};")).Scope(),
+                Line(""),
+                Scope(
+                    Line($"public {tagName}("),
+                    IndentedScope(1, $",{Environment.NewLine}",
+                        tagArgs.Map(arg => Line($"{arg.someType} {Helpers.LowerFirst(arg.name)}"))
+                    ),
+                    Line(") {"),
+                    IndentedScope(1,
+                        tagArgs.Map(arg => Line($"{arg.name} = {Helpers.LowerFirst(arg.name)};"))
+                    ),
+                    Line("}")
+                ),
+                Line(""),
+                WithGen.GenWith(argsWithoutFlags, tagName),
+                Line(""),
+                RelationsGen.GenRelations(tagName, argsWithoutFlags),
+                Line(""),
+                Line(""),
+                SerializerGen.GenSerializer(modifiedArgs, typeNumber: None, "ITgTypeTag.SerializeTag"),
+                Line(""),
+                SerializerGen.GenTypeTagDeserialize(tagName, modifiedArgs)
+            );
+        }
+
+        static NestedText GenTypeTag(Signature tag)
+        {
+            var tagName = tag.Name;
+
+            return Scope(
                 Line($"public sealed class {tagName} : ITgTypeTag, IEquatable<{tagName}>, IComparable<{tagName}>, IComparable"),
                 Line("{"),
-                IndentedScope(1,
-                    Scope(
-                        Line($"internal const uint TypeNumber = {Helpers.TypeNumber(tag.TypeNumber)};"),
-                        Line("uint ITgTypeTag.TypeNumber => TypeNumber;"),
-                        Line("")
-                    ),
-                    tagArgs.Map(arg => Line($"public readonly {arg.type} {arg.name};")).Scope(),
-                    Line(""),
-                    Scope(
-                        Line($"public {tagName}("),
-                        IndentedScope(1, $",{Environment.NewLine}",
-                            tagArgs.Map(arg => Line($"{arg.someType} {Helpers.LowerFirst(arg.name)}"))
-                        ),
-                        Line(") {"),
-                        IndentedScope(1,
-                            tagArgs.Map(arg => Line($"{arg.name} = {Helpers.LowerFirst(arg.name)};"))
-                        ),
-                        Line("}")
-                    ),
-                    Line(""),
-                    WithGen.GenWith(tagArgsWithoutFlags, tagName),
-                    Line(""),
-                    RelationsGen.GenRelations(tagName, tagArgsWithoutFlags),
-                    Line(""),
-                    Line(""),
-                    SerializerGen.GenSerializer(tag.Args, typeNumber: None, "ITgTypeTag.SerializeTag"),
-                    Line(""),
-                    SerializerGen.GenTypeTagDeserialize(tag.Name, tag.Args)
-                ),
+                Indent(1, GenTypeTagBody(tagName, tag)),
                 Line("}")
             );
         }
 
         static NestedText GenFunc(Signature func, string funcName)
         {
-            var funcArgsWithoutFlags = func.Args.Filter(x => x.Kind.Match(_: () => true, flags: _ => false)).ToArr();
-            var funcArgs = funcArgsWithoutFlags
+            var argsWithoutFlags = func.Args
+                .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
+                .ToArr();
+            var funcArgs = argsWithoutFlags
                 .Map(x => (
                     name: x.Name,
                     type: TgTypeConverter.ConvertArgType(x),
@@ -118,7 +135,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                         Line(""),
                         Line(""),
                         isWrapper ? Scope(new NestedText[0]) : Scope(
-                            RelationsGen.GenRelations(funcName, funcArgsWithoutFlags),
+                            RelationsGen.GenRelations(funcName, argsWithoutFlags),
                             Line("")
                         ),
                         SerializerGen.GenSerializer(func.Args, typeNumber: func.TypeNumber, "ITgSerializable.Serialize"),
@@ -130,7 +147,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
         }
 
-        static NestedText GenType(string typeName, Arr<Signature> typeTags)
+        static NestedText GenTypeWithManyTags(string typeName, Arr<Signature> typeTags)
         {
             var tagsDefs = typeTags.Map(GenTypeTag).Scope(Environment.NewLine + Environment.NewLine);
 
@@ -274,6 +291,67 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
 
             return def;
+        }
+
+        static NestedText GenTypeWithOneTag(string typeName, Signature tag)
+        {
+            var tagBody = GenTypeTagBody(typeName, tag);
+
+            var serializeRef = Scope(
+                Line("void ITgSerializable.Serialize(BinaryWriter bw)"),
+                Line("{"),
+                IndentedScope(1,
+                    Line("WriteUint(bw, TypeNumber);"),
+                    Line("((ITgTypeTag) this).SerializeTag(bw);")
+                ),
+                Line("}")
+            );
+
+            var staticTryDeserializeDef = Scope(
+                Line($"internal static Option<{typeName}> TryDeserialize(uint typeNumber, BinaryReader br) =>"),
+                Indent(1, Line(Concat(
+                    "typeNumber == TypeNumber",
+                    " ? Prelude.Some(DeserializeTag(br))",
+                    " : Prelude.None;"
+                )))
+            );
+
+            var staticDeserializeDef = Scope(
+                Line($"internal static {typeName} Deserialize(BinaryReader br)"),
+                Line("{"),
+                IndentedScope(1,
+                    Line("var typeNumber = ReadUint(br);"),
+                    Line(Concat(
+                        "return TryDeserialize(typeNumber, br).IfNone(() => ",
+                        Concat(
+                            "throw TgRpcDeserializeException.UnexpectedTypeNumber(actual: typeNumber, expected: new[] { ",
+                            "TypeNumber",
+                            " })"
+                        ),
+                        ");"
+                    ))
+                ),
+                Line("}")
+            );
+
+            var bodyDef = Scope(Environment.NewLine + Environment.NewLine,
+                tagBody,
+                serializeRef,
+                staticTryDeserializeDef,
+                staticDeserializeDef
+            );
+
+            return Scope(
+                Line($"public sealed class {typeName} : ITgType, ITgTypeTag, IEquatable<{typeName}>, IComparable<{typeName}>, IComparable"),
+                Line("{"),
+                Indent(1, bodyDef),
+                Line("}")
+            );
+        }
+
+        static NestedText GenType(string typeName, Arr<Signature> tags)
+        {
+            return tags.Count > 1 ? GenTypeWithManyTags(typeName, tags) : GenTypeWithOneTag(typeName, tags[0]);
         }
 
         public static Func<NestedText, NestedText> WrapIntoNamespace(string nameSpace) => def =>Scope(

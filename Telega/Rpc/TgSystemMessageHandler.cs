@@ -91,9 +91,9 @@ namespace Telega.Rpc
 
             switch (innerCode)
             {
-                case RpcError.Tag.TypeNumber:
-                    EnsureTypeNumber(br, RpcError.Tag.TypeNumber);
-                    return RpcError.Tag.DeserializeTag(br)
+                case RpcError.TypeNumber:
+                    EnsureTypeNumber(br, RpcError.TypeNumber);
+                    return RpcError.DeserializeTag(br)
                         .Apply(RpcResultErrorHandler.ToException)
                         .Apply(exc => RpcResult.OfFail(reqMsgId, exc));
                 case GZipPackedTypeNumber:
@@ -125,14 +125,14 @@ namespace Telega.Rpc
         static RpcResult HandlePong(BinaryReader br)
         {
             var msg = br.Apply(Peek(Pong.Deserialize));
-            var msgId = msg.Match(identity).MsgId;
+            var msgId = msg.MsgId;
             return RpcResult.OfSuccess(msgId, br);
         }
 
         static void HandleNewSessionCreated(Session session, BinaryReader messageReader)
         {
             messageReader.ReadInt32();
-            var newSession = NewSession.CreatedTag.DeserializeTag(messageReader);
+            var newSession = NewSession.DeserializeTag(messageReader);
 
             session.Salt = newSession.ServerSalt;
 
@@ -159,21 +159,21 @@ namespace Telega.Rpc
                     return HandleBadMsgNotification(br).Apply(Singleton);
                 case BadMsgNotification.ServerSaltTag.TypeNumber:
                     return HandleBadServerSalt(session, br).Apply(Singleton);
-                case Pong.Tag.TypeNumber:
+                case Pong.TypeNumber:
                     return HandlePong(br).Apply(Singleton);
 
-                case NewSession.CreatedTag.TypeNumber:
+                case NewSession.TypeNumber:
                     HandleNewSessionCreated(session, br);
                     break;
 
-                case MsgsAck.Tag.TypeNumber:
+                case MsgsAck.TypeNumber:
                     // var msg = br.Apply(MsgsAck.Deserialize);
-                    // var ids = msg.Match(identity).MsgIds.Apply(xs => string.Join(", ", xs));
+                    // var ids = msg.MsgIds.Apply(xs => string.Join(", ", xs));
                     // TlTrace.Trace("Ack: " + ids);
                     break;
-                //case FutureSalts.Tag.TypeNumber:
-                //case MsgDetailedInfo.Tag.TypeNumber:
-                //case MsgDetailedInfo.NewTag.TypeNumber:
+                // case FutureSalts.TypeNumber:
+                // case MsgDetailedInfo.Tag.TypeNumber:
+                // case MsgDetailedInfo.NewTag.TypeNumber:
 
                 default:
                     EnsureTypeNumber(br, typeNumber);

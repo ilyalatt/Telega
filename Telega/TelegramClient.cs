@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -35,7 +34,7 @@ namespace Telega
         readonly int _apiId;
         readonly Session _session;
         readonly ISessionStore _sessionSessionStore;
-        List<DcOption.Tag> _dcOptions;
+        Arr<DcOption> _dcOptions;
         readonly TcpClientConnectionHandler _handler;
 
         async Task<System.Net.Sockets.TcpClient> CreateTcpClient()
@@ -115,7 +114,7 @@ namespace Telega
             var invokeWithLayer = new InvokeWithLayer<InitConnection<GetConfig, Config>, Config>(layer: SchemeInfo.LayerVersion, query: request);
             var cfg = await _transport.Call(invokeWithLayer);
 
-            _dcOptions = cfg.Match(identity).DcOptions.Map(x => x.Match(identity)).ToList();
+            _dcOptions = cfg.DcOptions;
             return unit;
         }
 
@@ -157,12 +156,12 @@ namespace Telega
         {
             Helpers.Assert(_dcOptions != null && _dcOptions.Count > 0, "bad dc options");
 
-            ExportedAuthorization.Tag exported = null;
+            ExportedAuthorization exported = null;
             if (IsAuthenticated())
             {
                 var exportAuthorization = new ExportAuthorization(dcId: dcId);
                 var resp = await _transport.Call(exportAuthorization);
-                exported = resp.Match(identity);
+                exported = resp;
             }
 
             var dc = _dcOptions.First(d => d.Id == dcId);
@@ -174,7 +173,7 @@ namespace Telega
             {
                 var importAuthorization = new ImportAuthorization(id: exported.Id, bytes: exported.Bytes);
                 var resp = await _transport.Call(importAuthorization);
-                var user = resp.Match(identity).User;
+                var user = resp.User;
                 await SetAuthenticated(user);
             }
         }
@@ -207,13 +206,13 @@ namespace Telega
                 allowFlashcall: false,
                 currentNumber: None
             ));
-            return resp.Match(identity).PhoneCodeHash;
+            return resp.PhoneCodeHash;
         }
 
         public async Task<User> MakeAuth(Some<string> phoneNumber, Some<string> phoneCodeHash, Some<string> code)
         {
             var resp = await Call(new SignIn(phoneNumber: phoneNumber, phoneCodeHash: phoneCodeHash, phoneCode: code));
-            var user = resp.Match(identity).User;
+            var user = resp.User;
             await SetAuthenticated(user);
             return user;
         }
@@ -234,7 +233,7 @@ namespace Telega
             var request = new CheckPassword(passwordHash: passwordHash.ToBytesUnsafe());
 
             var res = await Call(request);
-            var user = res.Match(identity).User;
+            var user = res.User;
 
             await SetAuthenticated(user);
 
@@ -255,7 +254,7 @@ namespace Telega
                 firstName: firstName,
                 lastName: lastName
             ));
-            var user = res.Match(identity).User;
+            var user = res.User;
             await SetAuthenticated(user);
             return user;
         }

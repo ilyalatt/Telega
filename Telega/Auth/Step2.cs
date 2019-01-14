@@ -24,7 +24,7 @@ namespace Telega.Auth
 
     static class Step2
     {
-        public static async Task<Step2Result> Do(Some<ResPq.Tag> someResPq, Int256 newNonce, Some<MtProtoPlainTransport> transport)
+        public static async Task<Step2Result> Do(Some<ResPq> someResPq, Int256 newNonce, Some<MtProtoPlainTransport> transport)
         {
             var resPq = someResPq.Value;
 

@@ -22,7 +22,7 @@ namespace Telega.Rpc
 
     static class RpcResultErrorHandler
     {
-        public static TgException ToException(RpcError.Tag error)
+        public static TgException ToException(RpcError error)
         {
             var code = error.ErrorCode;
             var msg = error.ErrorMessage;

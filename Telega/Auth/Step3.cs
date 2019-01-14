@@ -56,7 +56,7 @@ namespace Telega.Auth
             var dhParams = someServerDhParams.Value;
             var key = Aes.GenerateKeyDataFromNonces(dhParams.ServerNonce.ToBytes(true), newNonce.ToBytes(true));
             var plaintextAnswer = Aes.DecryptAES(key, dhParams.EncryptedAnswer.ToArrayUnsafe());
-            var dh = plaintextAnswer.Apply(Deserialize(SkipHashSum(ServerDhInnerData.Deserialize))).Match(identity);
+            var dh = plaintextAnswer.Apply(Deserialize(SkipHashSum(ServerDhInnerData.Deserialize)));
 
             Helpers.Assert(dh.Nonce == dhParams.Nonce, "auth step3: invalid nonce in encrypted answer");
             Helpers.Assert(dh.ServerNonce == dhParams.ServerNonce, "auth step3: invalid server nonce in encrypted answer");
@@ -72,13 +72,13 @@ namespace Telega.Auth
             var gb = BigInteger.ValueOf(g).ModPow(b, dhPrime);
             var gab = ga.ModPow(b, dhPrime);
 
-            var dhInnerData = new ClientDhInnerData.Tag(
+            var dhInnerData = new ClientDhInnerData(
                 nonce: dh.Nonce,
                 serverNonce: dh.ServerNonce,
                 retryId: 0,
                 gb: gb.ToByteArrayUnsigned().ToBytesUnsafe()
             );
-            var dhInnerDataBts = Serialize((ClientDhInnerData) dhInnerData);
+            var dhInnerDataBts = Serialize(dhInnerData);
 
             var dhInnerDataHashedBts = WithHash(dhInnerDataBts);
             var dhInnerDataHashedEncryptedBytes = Aes.EncryptAES(key, dhInnerDataHashedBts);

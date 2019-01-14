@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Internal;
@@ -66,7 +65,7 @@ namespace Telega.Rpc
 
             try
             {
-                var ack = (MsgsAck) new MsgsAck.Tag(ids.ToArr());
+                var ack = new MsgsAck(ids.ToArr());
                 var msgId = _session.GetNewMessageId();
                 await _transport.Send(messageId: msgId, incSeqNum: false, dto: ack);
             }
