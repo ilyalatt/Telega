@@ -31,7 +31,7 @@ namespace Telega.Auth
             var pqBts = resPq.Pq.ToArrayUnsafe();
             Helpers.Assert(pqBts.Length <= 8, "auth step2: pq is too big");
             var pq = new BigInteger(1, pqBts);
-            var (pLong, qLong) = Factorizer.Factorize(pq.LongValue);
+            var (pLong, qLong) = Factorizer.Factorize((ulong) pq.LongValue);
             var p = new BigInteger(pLong);
             var q = new BigInteger(qLong);
 
