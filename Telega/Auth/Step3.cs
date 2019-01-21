@@ -68,7 +68,7 @@ namespace Telega.Auth
             var dhPrime = new BigInteger(1, dh.DhPrime.ToArrayUnsafe());
             var ga = new BigInteger(1, dh.Ga.ToArrayUnsafe());
 
-            var b = new BigInteger(2048, new Random());
+            var b = new BigInteger(Rnd.NextBytes(2048));
             var gb = BigInteger.ValueOf(g).ModPow(b, dhPrime);
             var gab = ga.ModPow(b, dhPrime);
 

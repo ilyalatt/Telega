@@ -91,7 +91,7 @@ namespace Telega.Internal
             Some<string> name,
             int fileLength,
             Some<Stream> stream
-        ) => UploadFile(tg, name, Helpers.GenerateRandomLong(), fileLength, stream);
+        ) => UploadFile(tg, name, Rnd.NextInt64(), fileLength, stream);
 
         public static async Task<InputFile> UploadFile(
             this TelegramClient tg,

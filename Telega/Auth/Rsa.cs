@@ -19,8 +19,7 @@ namespace Telega.Auth
 
                 if (data.Length >= 235) return;
 
-                var padding1 = new byte[235 - data.Length];
-                new Random().NextBytes(padding1);
+                var padding1 = Rnd.NextBytes(235 - data.Length);
                 bw.Write(padding1);
             });
 

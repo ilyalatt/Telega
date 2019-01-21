@@ -23,7 +23,7 @@ namespace Telega
 
         public static Session New() => new Session
         {
-            Id = Helpers.GenerateRandomLong()
+            Id = Rnd.NextInt64()
         };
 
         public long GetNewMessageId() =>

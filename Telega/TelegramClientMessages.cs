@@ -49,7 +49,7 @@ namespace Telega
             await _tg.Call(new SendMessage(
                 peer: peer,
                 message: message,
-                randomId: Helpers.GenerateRandomLong(),
+                randomId: Rnd.NextInt64(),
                 noWebpage: true,
                 silent: false,
                 background: false,
@@ -65,7 +65,7 @@ namespace Telega
             Some<string> message
         ) =>
             await _tg.Call(new SendMedia(
-                randomId: Helpers.GenerateRandomLong(),
+                randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
                 media: (InputMedia) new InputMedia.UploadedPhotoTag(file: file, stickers: None, ttlSeconds: None),
@@ -85,7 +85,7 @@ namespace Telega
             Some<string> message
         ) =>
             await _tg.Call(new SendMedia(
-                randomId: Helpers.GenerateRandomLong(),
+                randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
                 media: (InputMedia) new InputMedia.UploadedDocumentTag(
