@@ -18,7 +18,6 @@ namespace Telega.Rpc.Dto
 
     public interface ITgFunc<out TRes> : ITgSerializable
     {
-        // TODO: Option
         TRes DeserializeResult(BinaryReader br);
     }
 }

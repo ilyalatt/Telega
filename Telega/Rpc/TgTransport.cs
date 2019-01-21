@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Internal;
@@ -53,6 +55,36 @@ namespace Telega.Rpc
         public void Dispose() => _transport.Dispose();
 
 
+        // it is not supported at least for the layer 82
+        const uint GZipPackedTypeNumber = 0x3072cfa1;
+        static byte[] GZip(byte[] data)
+        {
+            var ms = new MemoryStream();
+            var gzip = new GZipStream(ms, CompressionLevel.Fastest);
+            gzip.Write(data, 0, data.Length);
+            return ms.ToArray();
+        }
+        static byte[] TryPack(byte[] data)
+        {
+            return data;
+            /*
+            var gzip = BtHelpers.UsingMemBinWriter(bw =>
+            {
+                TgMarshal.WriteUint(bw, GZipPackedTypeNumber);
+                TgMarshal.WriteBytes(bw, GZip(data).ToBytesUnsafe());
+            });
+
+            return gzip.Length < data.Length ? gzip : data;
+            */
+        }
+
+        static byte[] Serialize(ITgSerializable dto)
+        {
+            var bts = BtHelpers.UsingMemBinWriter(dto.Serialize);
+            var isFile = dto is Dto.Functions.Upload.SaveFilePart || dto is Dto.Functions.Upload.SaveBigFilePart;
+            return isFile ? bts : TryPack(bts);
+        }
+
         // TODO: send in a container
         async Task SendConfirmations()
         {
@@ -67,13 +99,14 @@ namespace Telega.Rpc
             {
                 var ack = new MsgsAck(ids.ToArr());
                 var msgId = _session.GetNewMessageId();
-                await _transport.Send(messageId: msgId, incSeqNum: false, dto: ack);
+                await _transport.Send(messageId: msgId, incSeqNum: false, message: Serialize(ack));
             }
             finally
             {
                 _unconfirmedMsgIds.PushRange(ids.ToArray());
             }
         }
+
 
         public async Task<T> Call<T>(ITgFunc<T> request)
         {
@@ -94,7 +127,7 @@ namespace Telega.Rpc
                     var tcs = new TaskCompletionSource<RpcResult>();
                     _rpcFlow[msgId] = tcs;
 
-                    await _transport.Send(messageId: msgId, incSeqNum: true, dto: request);
+                    await _transport.Send(messageId: msgId, incSeqNum: true, message: Serialize(request));
                     return tcs.Task;
                 });
 

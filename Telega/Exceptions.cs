@@ -32,7 +32,7 @@ namespace Telega
 
     sealed class TgProtocolViolation : TgInternalException
     {
-        public TgProtocolViolation() : base("The protocol is violated and now your session is doomed.", None) { }
+        public TgProtocolViolation() : base("The protocol is violated.", None) { }
     }
 
     public sealed class TgNotAuthenticatedException : TgException

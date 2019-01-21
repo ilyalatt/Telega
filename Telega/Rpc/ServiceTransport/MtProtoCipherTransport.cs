@@ -108,10 +108,9 @@ namespace Telega.Rpc.ServiceTransport
             }).Apply(_transport.Send);
         }
 
-        public async Task Send(long messageId, bool incSeqNum, ITgSerializable dto)
+        public async Task Send(long messageId, bool incSeqNum, byte[] message)
         {
-            var bts = BtHelpers.UsingMemBinWriter(dto.Serialize);
-            await SendMsgBody(messageId, incSeqNum, bts);
+            await SendMsgBody(messageId, incSeqNum, message);
         }
 
 
