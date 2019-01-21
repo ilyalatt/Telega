@@ -13,7 +13,7 @@ namespace Telega
     {
         public long Id { get; set; }
         public AuthKey AuthKey { get; set; }
-        public bool IsAuthenticated { get; set; }
+        public bool IsAuthorized { get; set; }
         public int Sequence { get; set; }
         public long Salt { get; set; }
         public int TimeOffset { get; set; }
@@ -40,7 +40,7 @@ namespace Telega
             TgMarshal.WriteBytes(bw, Endpoint.Address.GetAddressBytes().ToBytesUnsafe());
             TgMarshal.WriteInt(bw, Endpoint.Port);
             TgMarshal.WriteBytes(bw, AuthKey.Key);
-            TgMarshal.WriteBool(bw, IsAuthenticated);
+            TgMarshal.WriteBool(bw, IsAuthorized);
         }
 
         public static Session Deserialize(BinaryReader br)
@@ -67,7 +67,7 @@ namespace Telega
                 TimeOffset = timeOffset,
                 Endpoint = ep,
                 AuthKey = AuthKey.Deserialize(authData),
-                IsAuthenticated = isAuthenticated
+                IsAuthorized = isAuthenticated
             };
         }
     }
