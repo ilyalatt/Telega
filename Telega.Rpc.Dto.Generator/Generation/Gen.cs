@@ -45,6 +45,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             return Scope(
                 Scope(
                     Line($"internal const uint TypeNumber = {Helpers.TypeNumber(tag.TypeNumber)};"),
+                    Line("[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]"),
                     Line("uint ITgTypeTag.TypeNumber => TypeNumber;"),
                     Line("")
                 ),
@@ -279,6 +280,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                     Line("}")
                 ),
                 Line("}"),
+                Line("[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]"),
                 Line(Concat("(int, object) ", cmpPairName, " => (GetTagOrder(), _tag);"))
             );
 

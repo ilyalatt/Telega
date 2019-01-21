@@ -81,6 +81,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             var argsTupleType = ArgsTuple(true, x => TgTypeConverter.ConvertArgType(x));
 
             var cmpTuple = Scope(
+                Line("[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]"),
                 Line(Concat(argsTupleType, " ", cmpTupleName, " =>")),
                 Indent(1, Line(Concat(argsTuple, ";")))
             );
