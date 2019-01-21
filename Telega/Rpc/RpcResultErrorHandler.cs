@@ -6,7 +6,7 @@ using static LanguageExt.Prelude;
 
 namespace Telega.Rpc
 {
-    class TgRpcResultUnknownErrorException : TgInternalException
+    class TgRpcResultUnknownErrorException : TgRpcException
     {
         public int ErrorCode { get; }
         public string ErrorMessage { get; }

@@ -4,7 +4,7 @@ using static LanguageExt.Prelude;
 
 namespace Telega.Rpc
 {
-    public abstract class TgRpcException : TgException
+    abstract class TgRpcException : TgInternalException
     {
         internal TgRpcException(Some<string> message, Option<Exception> innerException) : base(
             message,
@@ -12,7 +12,7 @@ namespace Telega.Rpc
         ) { }
     }
 
-    public class TgRpcDeserializeException : TgRpcException
+    class TgRpcDeserializeException : TgRpcException
     {
         internal TgRpcDeserializeException(Some<string> message) : base(message, None) { }
 

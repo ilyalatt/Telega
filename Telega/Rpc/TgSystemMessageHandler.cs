@@ -12,7 +12,7 @@ using static LanguageExt.Prelude;
 
 namespace Telega.Rpc
 {
-    class TgSystemMessageHandler
+    static class TgSystemMessageHandler
     {
         const uint MsgContainerTypeNumber = 0x73f1f8dc;
         const uint RpcResultTypeNumber = 0xf35c6d01;

@@ -4,7 +4,7 @@ using static LanguageExt.Prelude;
 
 namespace Telega.Rpc
 {
-    class TgRpcBadMsgException : TgInternalException
+    class TgRpcBadMsgException : TgRpcException
     {
         public int ErrorCode { get; }
 
