@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Rpc.Dto;
@@ -27,40 +28,49 @@ namespace Telega.Rpc.ServiceTransport
         int GetSeqNum(bool inc) => inc ? _session.Sequence++ * 2 + 1 : _session.Sequence * 2;
 
 
-        public static AesKeyData CalcKey(byte[] sharedKey, byte[] msgKey, bool client)
+        static byte[] Sha256(params ArraySegment<byte>[] btsArr)
         {
-            var x = client ? 0 : 8;
-            var buffer = new byte[48];
+            using (var sha = SHA256.Create())
+            {
+                btsArr.SkipLast(1).Iter(bts => sha.TransformBlock(bts.Array, bts.Offset, bts.Count, null, 0));
+                btsArr.Last().Apply(bts => sha.TransformFinalBlock(bts.Array, bts.Offset, bts.Count));
+                return sha.Hash;
+            }
+        }
 
-            Array.Copy(msgKey, 0, buffer, 0, 16); // buffer[0:16] = msgKey
-            Array.Copy(sharedKey, x, buffer, 16, 32); // buffer[16:48] = authKey[x:x+32]
-            var sha1a = Helpers.Sha1(buffer); // sha1a = sha1(buffer)
+        static ArraySegment<byte> Slice(byte[] buffer, int offset, int count) =>
+            new ArraySegment<byte>(buffer, offset, count);
 
-            Array.Copy(sharedKey, 32 + x, buffer, 0, 16); // buffer[0:16] = authKey[x+32:x+48]
-            Array.Copy(msgKey, 0, buffer, 16, 16); // buffer[16:32] = msgKey
-            Array.Copy(sharedKey, 48 + x, buffer, 32, 16); // buffer[32:48] = authKey[x+48:x+64]
-            var sha1b = Helpers.Sha1(buffer); // sha1b = sha1(buffer)
+        static ArraySegment<byte> AsSlice(byte[] buffer) =>
+            new ArraySegment<byte>(buffer, 0, buffer.Length);
 
-            Array.Copy(sharedKey, 64 + x, buffer, 0, 32); // buffer[0:32] = authKey[x+64:x+96]
-            Array.Copy(msgKey, 0, buffer, 32, 16); // buffer[32:48] = msgKey
-            var sha1c = Helpers.Sha1(buffer); // sha1c = sha1(buffer)
+        static byte[] Concat(params ArraySegment<byte>[] btsArr)
+        {
+            var res = new byte[btsArr.Sum(x => x.Count)];
+            btsArr.Scan(0, (a, x) => a + x.Count).Zip(btsArr).Iter(t =>
+                Buffer.BlockCopy(t.Item2.Array, t.Item2.Offset, res, t.Item1, t.Item2.Count)
+            );
+            return res;
+        }
 
-            Array.Copy(msgKey, 0, buffer, 0, 16); // buffer[0:16] = msgKey
-            Array.Copy(sharedKey, 96 + x, buffer, 16, 32); // buffer[16:48] = authKey[x+96:x+128]
-            var sha1d = Helpers.Sha1(buffer); // sha1d = sha1(buffer)
+        static int Offset(bool isClient) =>
+            isClient ? 0 : 8;
 
-            var key = new byte[32]; // key = sha1a[0:8] + sha1b[8:20] + sha1c[4:16]
-            Array.Copy(sha1a, 0, key, 0, 8);
-            Array.Copy(sha1b, 8, key, 8, 12);
-            Array.Copy(sha1c, 4, key, 20, 12);
+        public static byte[] CalcMsgKey(byte[] authKey, byte[] plainText, bool isClient)
+        {
+            var x = Offset(isClient);
+            var msgKeyLarge = Sha256(Slice(authKey, 88 + x, 32), AsSlice(plainText));
+            return Concat(Slice(msgKeyLarge, 8, 16));
+        }
 
-            var iv = new byte[32]; // iv = sha1a[8:20] + sha1b[0:8] + sha1c[16:20] + sha1d[0:8]
-            Array.Copy(sha1a, 8, iv, 0, 12);
-            Array.Copy(sha1b, 0, iv, 12, 8);
-            Array.Copy(sha1c, 16, iv, 20, 4);
-            Array.Copy(sha1d, 0, iv, 24, 8);
-
-            return new AesKeyData(key, iv);
+        public static AesKeyData CalcAesKey(byte[] authKey, byte[] msgKey, bool isClient)
+        {
+            var x = Offset(isClient);
+            var sha256A = Sha256(AsSlice(msgKey), Slice(authKey, x, 36));
+            var sha256B = Sha256(Slice(authKey, 40 + x, 36), AsSlice(msgKey));
+            var aesKey = Concat(Slice(sha256A, 0, 8), Slice(sha256B, 8, 16), Slice(sha256A, 24, 8));
+            var aesIv = Concat(Slice(sha256B, 0, 8), Slice(sha256A, 8, 16), Slice(sha256B, 24, 8));
+            return new AesKeyData(aesKey, aesIv);
         }
 
         async Task SendMsgBody(long messageId, bool incSeqNum, byte[] msg)
@@ -77,13 +87,18 @@ namespace Telega.Rpc.ServiceTransport
 
                 bw.Write(msg.Length);
                 bw.Write(msg);
+
+                var bs = bw.BaseStream;
+                var requiredPadding = (16 - (int) bs.Position % 16).Apply(x => x == 16 ? 0 : x);
+                var randomPadding = (Rnd.NextInt32() & 15) * 16;
+                var padding = 16 + requiredPadding + randomPadding;
+                bw.Write(Rnd.NextBytes(padding));
             });
 
-            var msgKey = Helpers.CalcMsgKey(plainText);
-            var cipherText = Aes.EncryptAES(
-                CalcKey(_session.AuthKey.Key.ToArray(), msgKey, true),
-                plainText
-            );
+            var authKey = _session.AuthKey.Key.ToArrayUnsafe();
+            var msgKey = CalcMsgKey(authKey, plainText, true);
+            var aesKey = CalcAesKey(authKey, msgKey, true);
+            var cipherText = Aes.EncryptAES(aesKey, plainText);
 
             await BtHelpers.UsingMemBinWriter(bw =>
             {
@@ -114,9 +129,10 @@ namespace Telega.Rpc.ServiceTransport
             {
                 var authKeyId = br.ReadUInt64(); // TODO: check auth key id
                 var msgKey = br.ReadBytes(16); // TODO: check msg_key correctness
-                var keyData = CalcKey(_session.AuthKey.Key.ToArray(), msgKey, false);
+                var keyData = CalcAesKey(_session.AuthKey.Key.ToArrayUnsafe(), msgKey, false);
 
-                var cipherTextLen = (int) (br.BaseStream.Length - br.BaseStream.Position);
+                var bs = br.BaseStream;
+                var cipherTextLen = (int) (bs.Length - bs.Position);
                 var cipherText = br.ReadBytes(cipherTextLen);
                 var plainText = Aes.DecryptAES(keyData, cipherText);
 

@@ -46,6 +46,7 @@ The root of Telega is TLSharp. However the library is designed completely differ
 * session atomic-like updates (with a backup file usage)
 * enhanced exceptions (no more InvalidOperationException)
 * enhanced factorization via [Pollard's rho algorithm](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm)
+* MTProto 2.0
 * major refactoring of the whole library
 
 ## Versioning

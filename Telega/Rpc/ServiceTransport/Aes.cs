@@ -116,7 +116,7 @@ namespace Telega.Rpc.ServiceTransport
             {
                 for (int i = 0; i < 16; i++)
                 {
-                    ciphertextBlock[i] = (byte)(ciphertext[blockIndex * 16 + i] ^ iv2[i]);
+                    ciphertextBlock[i] = (byte) (ciphertext[blockIndex * 16 + i] ^ iv2[i]);
                 }
 
                 aes.ProcessBlock(ciphertextBlock, 0, plaintextBlock, 0);
@@ -135,23 +135,8 @@ namespace Telega.Rpc.ServiceTransport
             return plaintext;
         }
 
-        public static byte[] EncryptIGE(byte[] originPlaintext, byte[] key, byte[] iv)
+        public static byte[] EncryptIGE(byte[] plaintext, byte[] key, byte[] iv)
         {
-
-            byte[] plaintext;
-            using (MemoryStream plaintextBuffer = new MemoryStream(originPlaintext.Length + 40))
-            {
-                //using(SHA1 hash = new SHA1Managed()) {
-                //byte[] hashsum = hash.ComputeHash(originPlaintext);
-                //plaintextBuffer.Write(hashsum, 0, hashsum.Length);
-                plaintextBuffer.Write(originPlaintext, 0, originPlaintext.Length);
-                while (plaintextBuffer.Position % 16 != 0)
-                {
-                    plaintextBuffer.WriteByte(0); // TODO: random padding
-                }
-                plaintext = plaintextBuffer.ToArray();
-            }
-
             var iv1 = new byte[iv.Length / 2];
             var iv2 = new byte[iv.Length / 2];
 
@@ -206,8 +191,6 @@ namespace Telega.Rpc.ServiceTransport
                 result[i] = (byte)(buffer1[i] ^ buffer2[i]);
             return result;
         }
-
-
     }
 
 

@@ -5,13 +5,6 @@ namespace Telega.Utils
 {
     class Helpers
     {
-        public static byte[] CalcMsgKey(byte[] data)
-        {
-            var msgKey = new byte[16];
-            Array.Copy(Sha1(data), 4, msgKey, 0, 16);
-            return msgKey;
-        }
-
         public static byte[] Sha1(byte[] data)
         {
             using (SHA1 sha1 = new SHA1Managed())

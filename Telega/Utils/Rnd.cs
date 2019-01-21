@@ -26,6 +26,8 @@ namespace Telega.Utils
             }
         }
 
+        public static int NextInt32() => UsingBts(4, bts => BitConverter.ToInt32(bts.Array, bts.Offset));
+
         public static uint NextUInt32() => UsingBts(4, bts => BitConverter.ToUInt32(bts.Array, bts.Offset));
 
         public static long NextInt64() => UsingBts(8, bts => BitConverter.ToInt64(bts.Array, bts.Offset));
