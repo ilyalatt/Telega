@@ -67,26 +67,19 @@ namespace Telega.Example
         static async Task SnsExample(TelegramClient tg)
         {
             var chatsType = await tg.Messages.GetDialogs();
-                var chats = chatsType.Match(
-                    tag: identity,
-                    _: () => throw new NotImplementedException()
-                );
-            var channels = chats.Chats.Choose(chat => chat.Match(_: () => None, channelTag: Some));
+            var chats = chatsType.AsTag().IfNone(() => throw new NotImplementedException());
+            var channels = chats.Chats.Choose(Chat.AsChannelTag);
 
             var sns = channels
                 .Find(channel => channel.Username == "startupneversleeps")
                 .IfNone(() => throw new Exception("The channel is not found"));
-            var snsPhoto = sns.Photo.Match(
-                tag: identity,
-                emptyTag: _ => throw new Exception("The channel does not have a photo")
-            );
-            var snsBigPhotoFile = snsPhoto.PhotoBig.Match(
-                tag: identity,
-                unavailableTag: _ => throw new Exception("The channel photo is unavailable")
-            );
+            var snsPhoto = sns.Photo
+                .AsTag().IfNone(() => throw new Exception("The channel does not have a photo"));
+            var snsBigPhotoFile = snsPhoto.PhotoBig
+                .AsTag().IfNone(() => throw new Exception("The channel photo is unavailable"));
 
             InputFileLocation ToInput(FileLocation.Tag location) =>
-                (InputFileLocation) new InputFileLocation.Tag(
+                new InputFileLocation.Tag(
                     volumeId: location.VolumeId,
                     localId: location.LocalId,
                     secret: location.Secret
@@ -114,7 +107,7 @@ namespace Telega.Example
 
             var tgPhoto = await tg.UploadFile(photoName, photo.Length, new MemoryStream(photo));
             await tg.Messages.SendPhoto(
-                peer: (InputPeer) new InputPeer.SelfTag(),
+                peer: new InputPeer.SelfTag(),
                 file: tgPhoto,
                 message: "Telega works"
             );

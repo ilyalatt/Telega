@@ -17,7 +17,7 @@ namespace Telega
         public async Task<Dialogs> GetDialogs() =>
             await _tg.Call(new GetDialogs(
                 offsetDate: 0,
-                offsetPeer: (InputPeer) new InputPeer.SelfTag(),
+                offsetPeer: new InputPeer.SelfTag(),
                 limit: 100,
                 excludePinned: false,
                 offsetId: 0,
@@ -25,7 +25,7 @@ namespace Telega
             ));
 
         public async Task<Messages> GetHistory(
-            Some<InputPeer> peer,
+            InputPeer peer,
             int offsetId = 0,
             int offsetDate = 0,
             int addOffset = 0,
@@ -45,7 +45,7 @@ namespace Telega
                 hash
             ));
 
-        public async Task<UpdatesType> SendMessage(Some<InputPeer> peer, Some<string> message) =>
+        public async Task<UpdatesType> SendMessage(InputPeer peer, Some<string> message) =>
             await _tg.Call(new SendMessage(
                 peer: peer,
                 message: message,
@@ -60,15 +60,15 @@ namespace Telega
             ));
 
         public async Task<UpdatesType> SendPhoto(
-            Some<InputPeer> peer,
-            Some<InputFile> file,
+            InputPeer peer,
+            InputFile file,
             Some<string> message
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
-                media: (InputMedia) new InputMedia.UploadedPhotoTag(file: file, stickers: None, ttlSeconds: None),
+                media: new InputMedia.UploadedPhotoTag(file: file, stickers: None, ttlSeconds: None),
                 peer: peer,
                 entities: None,
                 replyToMsgId: None,
@@ -78,17 +78,17 @@ namespace Telega
             ));
 
         public async Task<UpdatesType> SendDocument(
-            Some<InputPeer> peer,
-            Some<InputFile> file,
+            InputPeer peer,
+            InputFile file,
             Some<string> mimeType,
-            Some<Arr<DocumentAttribute>> attributes,
+            Arr<DocumentAttribute> attributes,
             Some<string> message
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
-                media: (InputMedia) new InputMedia.UploadedDocumentTag(
+                media: new InputMedia.UploadedDocumentTag(
                     nosoundVideo: false,
                     file: file,
                     mimeType: mimeType,
@@ -105,9 +105,9 @@ namespace Telega
                 message: message
             ));
 
-        public async Task<bool> SendTyping(Some<InputPeer> peer) =>
+        public async Task<bool> SendTyping(InputPeer peer) =>
             await _tg.Call(new SetTyping(
-                action: (SendMessageAction) new SendMessageAction.TypingTag(),
+                action: new SendMessageAction.TypingTag(),
                 peer: peer
             ));
     }

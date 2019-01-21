@@ -11,7 +11,6 @@ using Telega.Rpc.Dto.Functions;
 using Telega.Rpc.Dto.Functions.Auth;
 using Telega.Rpc.Dto.Functions.Help;
 using Telega.Rpc.Dto.Types;
-using Telega.Rpc.Dto.Types.Auth;
 using Telega.Rpc.ServiceTransport;
 using Helpers = Telega.Utils.Helpers;
 using static LanguageExt.Prelude;

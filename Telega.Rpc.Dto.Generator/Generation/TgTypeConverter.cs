@@ -38,9 +38,6 @@ namespace Telega.Rpc.Dto.Generator.Generation
             flags: _ => false
         );
 
-        public static string WrapArgTypeWithSome(Arg arg) => ConvertArgType(arg)
-            .Apply(x => IsRefArgType(arg) ? $"Some<{x}>" : x);
-
         public static string WrapArgTypeWithNullable(Arg arg) => ConvertArgType(arg)
             .Apply(x => !IsRefArgType(arg) ? $"{x}?" : x);
     }

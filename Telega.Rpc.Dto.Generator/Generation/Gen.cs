@@ -37,8 +37,9 @@ namespace Telega.Rpc.Dto.Generator.Generation
             var tagArgs = argsWithoutFlags
                 .Map(x => (
                     name: x.Name,
+                    lowerName: Helpers.LowerFirst(x.Name),
                     type: TgTypeConverter.ConvertArgType(x),
-                    someType: TgTypeConverter.WrapArgTypeWithSome(x)
+                    isRef: TgTypeConverter.IsRefArgType(x)
                 )).ToArray();
 
             return Scope(
@@ -52,11 +53,14 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 Scope(
                     Line($"public {tagName}("),
                     IndentedScope(1, $",{Environment.NewLine}",
-                        tagArgs.Map(arg => Line($"{arg.someType} {Helpers.LowerFirst(arg.name)}"))
+                        tagArgs.Map(arg => Line($"{arg.type} {arg.lowerName}"))
                     ),
                     Line(") {"),
                     IndentedScope(1,
-                        tagArgs.Map(arg => Line($"{arg.name} = {Helpers.LowerFirst(arg.name)};"))
+                        tagArgs.Map(arg => Line(
+                            $"{arg.name} = {arg.lowerName}" +
+                            $"{(arg.isRef ? $" ?? throw new ArgumentNullException(nameof({arg.lowerName}))" : "")};"
+                        ))
                     ),
                     Line("}")
                 ),
@@ -92,8 +96,9 @@ namespace Telega.Rpc.Dto.Generator.Generation
             var funcArgs = argsWithoutFlags
                 .Map(x => (
                     name: x.Name,
+                    lowerName: Helpers.LowerFirst(x.Name),
                     type: TgTypeConverter.ConvertArgType(x),
-                    someType: TgTypeConverter.WrapArgTypeWithSome(x)
+                    isRef: TgTypeConverter.IsRefArgType(x)
                 )).ToArray();
 
             // usually it is a higher-order function, i am too lazy to modify the scheme just for this case
@@ -102,7 +107,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             var classAccess = isWrapper ? "" : "public ";
             var classTemplates = isWrapper ? "<TFunc, TFuncRes>" : "";
             var classAnnotations = isWrapper
-                ? $": ITgFunc<{resType}> where TFunc : ITgFunc<{resType}>"
+                ? $": ITgFunc<{resType}> where TFunc : class, ITgFunc<{resType}>"
                 : $": ITgFunc<{resType}>, IEquatable<{funcName}>, IComparable<{funcName}>, IComparable";
 
             var resDes = isWrapper
@@ -123,11 +128,14 @@ namespace Telega.Rpc.Dto.Generator.Generation
                         Scope(
                             Line($"public {funcName}("),
                             IndentedScope(1, $",{Environment.NewLine}",
-                                funcArgs.Map(arg => Line($"{arg.someType} {Helpers.LowerFirst(arg.name)}"))
+                                funcArgs.Map(arg => Line($"{arg.type} {arg.lowerName}"))
                             ),
                             Line(") {"),
                             IndentedScope(1,
-                                funcArgs.Map(arg => Line($"{arg.name} = {Helpers.LowerFirst(arg.name)};"))
+                                funcArgs.Map(arg => Line(
+                                    $"{arg.name} = {arg.lowerName}" +
+                                    $"{(arg.isRef ? $" ?? throw new ArgumentNullException(nameof({arg.lowerName}))" : "")};"
+                                ))
                             ),
                             Line("}")
                         ),
@@ -156,7 +164,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
 
             var tagCreateDef = typeTags.Map(tag =>
-                Line($"public static explicit operator {typeName}({tag.Name} tag) => new {typeName}(tag);")
+                Line($"public static implicit operator {typeName}({tag.Name} tag) => new {typeName}(tag);")
             ).Scope();
 
 
@@ -249,6 +257,14 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 Line(");")
             );
 
+            var castHelpersDef = Scope(
+                typeTags.Map(tag => $"public Option<{tag.Name}> As{tag.Name}() => _tag is {tag.Name} x ? Prelude.Some(x) : Prelude.None;").Map(Line)
+            );
+
+            var staticCastHelpersDef = Scope(
+                typeTags.Map(tag => $"public static Option<{tag.Name}> As{tag.Name}({typeName} type) => type.As{tag.Name}();").Map(Line)
+            );
+
             var cmpPairName = String("CmpPair");
             var helpersDef = Scope(
                 Line("int GetTagOrder()"),
@@ -275,6 +291,8 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 staticDeserializeDef,
                 matchOptDef,
                 matchDef,
+                castHelpersDef,
+                staticCastHelpersDef,
                 helpersDef,
                 RelationsGen.GenEqRelations(typeName, cmpPairName),
                 RelationsGen.GenCmpRelations(typeName, cmpPairName),
