@@ -41,11 +41,11 @@ namespace Telega.Example
             await tg.Auth.CheckPassword(pwd, cfg.Password);
         }
 
-        static async Task EnsureAuthenticated(TelegramClient tg, Config cfg)
+        static async Task EnsureAuthorized(TelegramClient tg, Config cfg)
         {
             if (tg.IsAuthorized)
             {
-                Console.WriteLine("Already authenticated");
+                Console.WriteLine("Already authorized");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace Telega.Example
                 await SignInViaPassword(tg, cfg);
             }
 
-            Console.WriteLine("Authentication completed");
+            Console.WriteLine("Authorization completed");
         }
 
         static Task<Config> ReadConfig() =>
@@ -128,8 +128,7 @@ namespace Telega.Example
             var cfg = await ReadConfig();
             using (var tg = await TelegramClient.Connect(cfg.ApiId, cfg.ApiHash))
             {
-                return;
-                await EnsureAuthenticated(tg, cfg);
+                await EnsureAuthorized(tg, cfg);
 
                 await SendOnePavelDurovPictureToMeExample(tg);
             }
