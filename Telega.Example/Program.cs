@@ -34,11 +34,7 @@ namespace Telega.Example
         static async Task SignInViaPassword(TelegramClient tg, Config cfg)
         {
             var pwdInfo = await tg.Auth.GetPasswordInfo();
-            var pwd = pwdInfo.Match(
-                tag: identity,
-                noTag: _ => throw new Exception("WTF")
-            );
-            await tg.Auth.CheckPassword(pwd, cfg.Password);
+            await tg.Auth.CheckPassword(pwdInfo, cfg.Password);
         }
 
         static async Task EnsureAuthorized(TelegramClient tg, Config cfg)
