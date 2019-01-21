@@ -64,19 +64,19 @@ namespace Telega.Example
         static Task<Config> ReadConfig() =>
             File.ReadAllTextAsync("config.json").Map(JsonConvert.DeserializeObject<Config>);
 
-        static async Task SnsExample(TelegramClient tg)
+        static async Task DownloadFirstChannelPictureExample(TelegramClient tg)
         {
             var chatsType = await tg.Messages.GetDialogs();
             var chats = chatsType.AsTag().IfNone(() => throw new NotImplementedException());
             var channels = chats.Chats.Choose(Chat.AsChannelTag);
 
             var sns = channels
-                .Find(channel => channel.Username == "startupneversleeps")
-                .IfNone(() => throw new Exception("The channel is not found"));
-            var snsPhoto = sns.Photo
-                .AsTag().IfNone(() => throw new Exception("The channel does not have a photo"));
-            var snsBigPhotoFile = snsPhoto.PhotoBig
-                .AsTag().IfNone(() => throw new Exception("The channel photo is unavailable"));
+                .HeadOrNone()
+                .IfNone(() => throw new Exception("A channel is not found"));
+            var photo = sns.Photo
+                .AsTag().IfNone(() => throw new Exception("The first channel does not have a photo"));
+            var bigPhotoFile = photo.PhotoBig
+                .AsTag().IfNone(() => throw new Exception("The first channel photo is unavailable"));
 
             InputFileLocation ToInput(FileLocation.Tag location) =>
                 new InputFileLocation.Tag(
@@ -85,7 +85,7 @@ namespace Telega.Example
                     secret: location.Secret
                 );
 
-            var photoLoc = ToInput(snsBigPhotoFile);
+            var photoLoc = ToInput(bigPhotoFile);
             var fileType = await tg.GetFileType(photoLoc);
             var fileTypeExt = fileType.Match(
                 pngTag: _ => ".png",
@@ -93,7 +93,7 @@ namespace Telega.Example
                 _: () => throw new NotImplementedException()
             );
 
-            using (var fs = File.OpenWrite($"sns-photo{fileTypeExt}"))
+            using (var fs = File.OpenWrite($"channel-photo{fileTypeExt}"))
             {
                 await tg.DownloadFile(fs, photoLoc);
             }
@@ -109,7 +109,7 @@ namespace Telega.Example
             await tg.Messages.SendPhoto(
                 peer: new InputPeer.SelfTag(),
                 file: tgPhoto,
-                message: "Telega works"
+                message: "Sent from Telega"
             );
         }
 
