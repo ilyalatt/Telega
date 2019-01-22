@@ -13,7 +13,7 @@
     <Description>Telegram client</Description>
     <Authors>ilyalatt</Authors>
 
-    <VersionPrefix>0.2.0</VersionPrefix>
+    <VersionPrefix>0.2.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
