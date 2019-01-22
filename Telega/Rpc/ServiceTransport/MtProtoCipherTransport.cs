@@ -104,13 +104,6 @@ namespace Telega.Rpc.ServiceTransport
         async Task<byte[]> ReceivePlainText()
         {
             var body = await _transport.Receive();
-
-            const uint protocolViolationCode = 0xfffffe6c;
-            if (body.Length == 4 && BitConverter.ToUInt32(body, 0) ==  protocolViolationCode)
-            {
-                throw new TgProtocolViolation();
-            }
-
             return body.Apply(BtHelpers.Deserialize(br =>
             {
                 var authKeyId = br.ReadUInt64(); // TODO: check auth key id

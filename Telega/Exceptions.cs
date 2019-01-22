@@ -65,7 +65,7 @@ namespace Telega
             Some<string> additionalMessage,
             Option<Exception> innerException
         ) : base(
-            "Telega internal exception, " + additionalMessage,
+            "Telega internal exception. " + additionalMessage,
             innerException
         ) { }
     }

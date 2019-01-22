@@ -107,7 +107,13 @@ namespace Telega.Rpc.ServiceTransport
         {
             try
             {
-                return await ReceiveImpl();
+                var body = await ReceiveImpl();
+
+                const uint protocolViolationCode = 0xfffffe6c;
+                var isProtocolViolated = body.Length == 4 && BitConverter.ToUInt32(body, 0) == protocolViolationCode;
+                if (isProtocolViolated) throw new TgProtocolViolation();
+
+                return body;
             }
             catch (IOException exc)
             {
