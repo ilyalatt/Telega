@@ -25,9 +25,6 @@ namespace Telega.Rpc.ServiceTransport
         public void Dispose() => _transport.Dispose();
 
 
-        int GetSeqNum(bool inc) => inc ? _session.Sequence++ * 2 + 1 : _session.Sequence * 2;
-
-
         static byte[] Sha256(params ArraySegment<byte>[] btsArr)
         {
             using (var sha = SHA256.Create())
@@ -73,19 +70,14 @@ namespace Telega.Rpc.ServiceTransport
             return new AesKeyData(aesKey, aesIv);
         }
 
-        async Task SendMsgBody(long messageId, bool incSeqNum, byte[] msg)
+        public async Task Send(byte[] msg)
         {
-            var msgSeqNum = GetSeqNum(incSeqNum);
             await _sessionStore.Save(_session);
 
             var plainText = BtHelpers.UsingMemBinWriter(bw =>
             {
                 bw.Write(_session.Salt);
                 bw.Write(_session.Id);
-                bw.Write(messageId);
-                bw.Write(msgSeqNum);
-
-                bw.Write(msg.Length);
                 bw.Write(msg);
 
                 var bs = bw.BaseStream;
@@ -106,11 +98,6 @@ namespace Telega.Rpc.ServiceTransport
                 bw.Write(msgKey);
                 bw.Write(cipherText);
             }).Apply(_transport.Send);
-        }
-
-        public async Task Send(long messageId, bool incSeqNum, byte[] message)
-        {
-            await SendMsgBody(messageId, incSeqNum, message);
         }
 
 

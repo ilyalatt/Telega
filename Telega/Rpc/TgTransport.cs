@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Internal;
@@ -56,6 +55,7 @@ namespace Telega.Rpc
 
 
         // it is not supported at least for the layer 82
+        /*
         const uint GZipPackedTypeNumber = 0x3072cfa1;
         static byte[] GZip(byte[] data)
         {
@@ -67,7 +67,6 @@ namespace Telega.Rpc
         static byte[] TryPack(byte[] data)
         {
             return data;
-            /*
             var gzip = BtHelpers.UsingMemBinWriter(bw =>
             {
                 TgMarshal.WriteUint(bw, GZipPackedTypeNumber);
@@ -75,40 +74,57 @@ namespace Telega.Rpc
             });
 
             return gzip.Length < data.Length ? gzip : data;
-            */
         }
+        */
 
-        static byte[] Serialize(ITgSerializable dto)
+
+        Arr<long> PopUnconfirmedMsgIds()
         {
-            var bts = BtHelpers.UsingMemBinWriter(dto.Serialize);
-            var isFile = dto is Dto.Functions.Upload.SaveFilePart || dto is Dto.Functions.Upload.SaveBigFilePart;
-            return isFile ? bts : TryPack(bts);
-        }
-
-        // TODO: send in a container
-        async Task SendConfirmations()
-        {
-            var cnt = _unconfirmedMsgIds.Count;
-            if (cnt == 0) return;
-
             const int magic = 3;
-            var ids = new List<long>(cnt + magic);
+            var ids = new List<long>(_unconfirmedMsgIds.Count + magic);
             while (_unconfirmedMsgIds.TryPop(out var id)) ids.Add(id);
-
-            try
-            {
-                var ack = new MsgsAck(ids.ToArr());
-                var msgId = _session.GetNewMessageId();
-                await _transport.Send(messageId: msgId, incSeqNum: false, message: Serialize(ack));
-            }
-            finally
-            {
-                _unconfirmedMsgIds.PushRange(ids.ToArray());
-            }
+            return ids.ToArr();
         }
 
 
-        public async Task<T> Call<T>(ITgFunc<T> request)
+        int GetSeqNum(bool inc) => inc ? _session.Sequence++ * 2 + 1 : _session.Sequence * 2;
+        byte[] CreateMsg(byte[] msg, bool isContentRelated, long? msgId = null) => BtHelpers.UsingMemBinWriter(bw =>
+        {
+            bw.Write(msgId ?? _session.GetNewMessageId());
+            bw.Write(GetSeqNum(isContentRelated));
+            bw.Write(msg.Length);
+            bw.Write(msg);
+        });
+        byte[] CreateMsg(ITgSerializable dto, bool isContentRelated, long? msgId = null) =>
+            CreateMsg(BtHelpers.UsingMemBinWriter(dto.Serialize), isContentRelated, msgId);
+
+
+        const uint MsgContainerTypeNumber = 0x73f1f8dc;
+        (byte[], long) WithAck(ITgSerializable dto)
+        {
+            var unconfirmedIds = PopUnconfirmedMsgIds();
+            var shouldAck = unconfirmedIds.Count != 0;
+            if (!shouldAck)
+            {
+                var singleDtoMsgId = _session.GetNewMessageId();
+                return (CreateMsg(dto, isContentRelated: true, msgId: singleDtoMsgId), singleDtoMsgId);
+            }
+
+            var ack = CreateMsg(new MsgsAck(unconfirmedIds.ToArr()), isContentRelated: false);
+            var msgId = _session.GetNewMessageId();
+            var dtoBts = CreateMsg(dto, isContentRelated: true, msgId: msgId);
+
+            return BtHelpers.UsingMemBinWriter(bw =>
+            {
+                bw.Write(MsgContainerTypeNumber);
+                bw.Write(2);
+                bw.Write(ack);
+                bw.Write(dtoBts);
+            }).Apply(bts => CreateMsg(bts, isContentRelated: false)).Apply(bts => (bts, msgId));
+        }
+
+
+        public async Task<T> Call<T>(ITgFunc<T> func)
         {
             async Task CheckReceiveLoop()
             {
@@ -121,13 +137,11 @@ namespace Telega.Rpc
 
                 var respTask = await _rpcQueue.Put(async () =>
                 {
-                    await SendConfirmations();
-
-                    var msgId = _session.GetNewMessageId();
+                    var (container, msgId) = WithAck(func);
                     var tcs = new TaskCompletionSource<RpcResult>();
                     _rpcFlow[msgId] = tcs;
 
-                    await _transport.Send(messageId: msgId, incSeqNum: true, message: Serialize(request));
+                    await _transport.Send(container);
                     return tcs.Task;
                 });
 
@@ -136,7 +150,7 @@ namespace Telega.Rpc
 
 
                 var resp = await respTask;
-                if (resp.IsSuccess) return resp.Body.Apply(request.DeserializeResult);
+                if (resp.IsSuccess) return resp.Body.Apply(func.DeserializeResult);
 
                 if (!resp.IsFail) throw new Exception("WTF");
                 var exc = resp.Exception;
