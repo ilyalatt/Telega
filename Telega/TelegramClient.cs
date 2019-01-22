@@ -144,6 +144,12 @@ namespace Telega
         }
 
 
+        IPEndPoint FindDcEndpoint(int dcId) => _dcOptions
+            .Filter(x => x.Id == dcId)
+            .Map(dc => new IPEndPoint(IPAddress.Parse(dc.IpAddress), dc.Port))
+            .Find(x => x.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
+            .IfNone(() => throw new TgInternalException($"Can not find an IPv4 endpoint for DC {dcId}.", None));
+
         // TODO: fix
         internal async Task SetAuthorized(User user)
         {
@@ -161,8 +167,7 @@ namespace Telega
 
             var exported = !IsAuthorized ? null : await _transport.Call(new ExportAuthorization(dcId: dcId));
 
-            var dc = _dcOptions.First(d => d.Id == dcId);
-            _session.Endpoint = new IPEndPoint(IPAddress.Parse(dc.IpAddress), dc.Port);
+            _session.Endpoint = FindDcEndpoint(dcId);
             _session.AuthKey = null;
             await Connect();
 
@@ -202,16 +207,11 @@ namespace Telega
                     var dcId = e.Dc;
                     if (!_fileClients.TryGetValue(dcId, out var fileClient))
                     {
-                       var ep = _dcOptions
-                            .Find(x => x.Id == dcId)
-                            .IfNone(() => throw new TgInternalException($"can not find DC {dcId}", None))
-                            .Apply(dc => new IPEndPoint(IPAddress.Parse(dc.IpAddress), dc.Port));
-
                        fileClient = await Connect(
                            apiId: _apiId,
                            apiHash: _apiHash,
                            store: new FakeSessionStore(),
-                           endpoint: ep
+                           endpoint: FindDcEndpoint(dcId)
                        );
 
                        var exported = await Call(new ExportAuthorization(dcId: dcId));
