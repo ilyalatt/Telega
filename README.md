@@ -9,7 +9,7 @@ You can see the library usage example [here](https://github.com/ilyalatt/Telega/
 ## Quick start
 
 * Clone the repository.
-* Run `Telega.Rpc.Dto.Generator` to generate DTOs (.NET Core 2.2 is used).
+* Run `Telega.Rpc.Dto.Generator` to generate DTOs. You can use `./generate-dto.sh`. NET Core 2.2 is used.
 * Create config.json in `Telega.Example`. It should look like
 
 ```json
