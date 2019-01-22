@@ -106,15 +106,17 @@ namespace Telega.Internal
         }
 
 
+        static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new GetFile(
+            location: location,
+            limit: 4 * 1024,
+            offset: 0
+        );
+
         public static async Task<FileType> GetFileType(
             this TelegramClient tg,
             Some<InputFileLocation> location
         ) {
-            var resp = await tg.Call(new GetFile(
-                location: location,
-                limit: 4 * 1024,
-                offset: 0
-            )).ConfigureAwait(false);
+            var resp = await tg.Call(GenSmallestGetFileRequest(location)).ConfigureAwait(false);
             var res = resp.Match(
                 tag: identity,
                 cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
@@ -122,10 +124,12 @@ namespace Telega.Internal
             return res.Type;
         }
 
-        public static async Task<FileType> DownloadFile(this TelegramClient tg,
+        public static async Task<FileType> DownloadFile(this TelegramClient originalTg,
             Some<Stream> someStream,
             Some<InputFileLocation> location
         ) {
+            var tg = await originalTg.GetFileClient(GenSmallestGetFileRequest(location));
+
             var stream = someStream.Value;
             var offset = 0;
             var prevFile = default(File.Tag);

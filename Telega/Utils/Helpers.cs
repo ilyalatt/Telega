@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 
 namespace Telega.Utils
 {
-    class Helpers
+    static class Helpers
     {
         public static byte[] Sha1(byte[] data)
         {

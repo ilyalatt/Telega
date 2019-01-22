@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,8 +25,10 @@ namespace Telega
         internal int _apiId; // TODO: fix
         readonly Session _session;
         readonly ISessionStore _sessionSessionStore;
-        Arr<DcOption> _dcOptions;
+        Arr<DcOption> _dcOptions; // TODO: fix
         readonly TcpClientConnectionHandler _handler;
+
+        readonly Dictionary<int, TelegramClient> _fileClients = new Dictionary<int, TelegramClient>(); // TODO: fix
 
         public readonly TelegramClientAuth Auth;
         public readonly TelegramClientContacts Contacts;
@@ -36,7 +39,7 @@ namespace Telega
             var ep = _session.Endpoint;
             if (_handler != null) return await _handler(ep);
 
-            var res = new System.Net.Sockets.TcpClient();
+            var res = new System.Net.Sockets.TcpClient(ep.AddressFamily);
             await res.ConnectAsync(ep.Address, ep.Port);
             return res;
         }
@@ -178,9 +181,53 @@ namespace Telega
                 {
                     return await _transport.Call(func);
                 }
-                catch (TgDataCenterMigrationException e)
+                catch (TgDataCenterMigrationException e) when (e.Reason != DcMigrationReason.File)
                 {
                     await ReconnectToDc(e.Dc);
+                }
+            }
+        }
+
+        internal async Task<TelegramClient> GetFileClient<T>(ITgFunc<T> func)
+        {
+            while (true)
+            {
+                try
+                {
+                    await CallWithDcMigration(func);
+                    return this;
+                }
+                catch (TgDataCenterMigrationException e) when (e.Reason == DcMigrationReason.File)
+                {
+                    var dcId = e.Dc;
+                    if (!_fileClients.TryGetValue(dcId, out var fileClient))
+                    {
+                       var ep = _dcOptions
+                            .Find(x => x.Id == dcId)
+                            .IfNone(() => throw new TgInternalException($"can not find DC {dcId}", None))
+                            .Apply(dc => new IPEndPoint(IPAddress.Parse(dc.IpAddress), dc.Port));
+
+                       fileClient = await Connect(
+                           apiId: _apiId,
+                           apiHash: _apiHash,
+                           store: new FakeSessionStore(),
+                           endpoint: ep
+                       );
+
+                       var exported = await Call(new ExportAuthorization(dcId: dcId));
+                       await fileClient.Call(new ImportAuthorization(id: exported.Id, bytes: exported.Bytes));
+                       _fileClients[dcId] = fileClient;
+                    }
+
+                    try
+                    {
+                        await fileClient.Call(func);
+                    }
+                    catch (TgClosedConnectionException)
+                    {
+                        await fileClient.Connect();
+                    }
+                    return fileClient;
                 }
             }
         }
