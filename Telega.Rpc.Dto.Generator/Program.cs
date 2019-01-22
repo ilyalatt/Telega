@@ -13,8 +13,8 @@ namespace Telega.Rpc.Dto.Generator
     {
         // https://github.com/telegramdesktop/tdesktop/commits/dev/Telegram/Resources/scheme.tl
 
-        // layer 84
-        const string SchemeUrl = "https://raw.githubusercontent.com/telegramdesktop/tdesktop/bdab4770409cfa6eb15380ecff0504dd7577105f/Telegram/Resources/scheme.tl";
+        // layer 93
+        const string SchemeUrl = "https://raw.githubusercontent.com/telegramdesktop/tdesktop/d2d6b319b649e7e07e172cea18a814e3a17395f3/Telegram/Resources/scheme.tl";
         static string DownloadLatestTgScheme() =>
             new WebClient().DownloadString(SchemeUrl);
 

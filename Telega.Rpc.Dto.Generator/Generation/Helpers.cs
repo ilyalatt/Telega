@@ -12,7 +12,8 @@ namespace Telega.Rpc.Dto.Generator.Generation
             "public",
             "static",
             "true",
-            "params"
+            "params",
+            "default"
         };
 
         public static string LowerFirst(string s) => s[0]

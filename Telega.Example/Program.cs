@@ -78,7 +78,8 @@ namespace Telega.Example
                 new InputFileLocation.Tag(
                     volumeId: location.VolumeId,
                     localId: location.LocalId,
-                    secret: location.Secret
+                    secret: location.Secret,
+                    fileReference: location.FileReference
                 );
 
             var photoLoc = ToInput(bigPhotoFile);
