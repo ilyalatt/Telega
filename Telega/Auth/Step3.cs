@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BigMath;
@@ -30,21 +31,27 @@ namespace Telega.Auth
 
     static class Step3
     {
-        static Func<BinaryReader, T> SkipHashSum<T>(Func<BinaryReader, T> func) => br =>
+        static Func<BinaryReader, T> WithHashSumCheck<T>(Func<BinaryReader, T> func) => br =>
         {
-            br.ReadBytes(20);
-            return func(br);
-        };
+            var hash = br.ReadBytes(20);
+            var bs = br.BaseStream;
 
-        static byte[] ComputeHash(byte[] bts)
-        {
-            using (SHA1 sha1 = new SHA1Managed())
-                return sha1.ComputeHash(bts, 0, bts.Length);
-        }
+            var firstPos = bs.Position;
+            var res = func(br);
+            var secondPos = bs.Position;
+
+            bs.Position = firstPos;
+            var body = br.ReadBytes((int) (secondPos - firstPos));
+            var computedHash = Helpers.Sha1(body);
+
+            Helpers.Assert(hash.SequenceEqual(computedHash), "auth step3: invalid hash of encrypted answer");
+
+            return res;
+        };
 
         static byte[] WithHashAndPadding(byte[] bts) => UsingMemBinWriter(bw =>
         {
-            bw.Write(ComputeHash(bts));
+            bw.Write(Helpers.Sha1(bts));
             bw.Write(bts);
             var padding = (16 - (int) bw.BaseStream.Position % 16).Apply(x => x == 16 ? 0 : x);
             bw.Write(Rnd.NextBytes(padding));
@@ -58,7 +65,7 @@ namespace Telega.Auth
             var dhParams = someServerDhParams.Value;
             var key = Aes.GenerateKeyDataFromNonces(dhParams.ServerNonce.ToBytes(true), newNonce.ToBytes(true));
             var plaintextAnswer = Aes.DecryptAES(key, dhParams.EncryptedAnswer.ToArrayUnsafe());
-            var dh = plaintextAnswer.Apply(Deserialize(SkipHashSum(ServerDhInnerData.Deserialize)));
+            var dh = plaintextAnswer.Apply(Deserialize(WithHashSumCheck(ServerDhInnerData.Deserialize)));
 
             Helpers.Assert(dh.Nonce == dhParams.Nonce, "auth step3: invalid nonce in encrypted answer");
             Helpers.Assert(dh.ServerNonce == dhParams.ServerNonce, "auth step3: invalid server nonce in encrypted answer");
