@@ -42,10 +42,12 @@ namespace Telega.Auth
                 return sha1.ComputeHash(bts, 0, bts.Length);
         }
 
-        static byte[] WithHash(byte[] bts) => UsingMemBinWriter(bw =>
+        static byte[] WithHashAndPadding(byte[] bts) => UsingMemBinWriter(bw =>
         {
             bw.Write(ComputeHash(bts));
             bw.Write(bts);
+            var padding = (16 - (int) bw.BaseStream.Position % 16).Apply(x => x == 16 ? 0 : x);
+            bw.Write(Rnd.NextBytes(padding));
         });
 
         public static async Task<Step3Res> Do(
@@ -80,7 +82,7 @@ namespace Telega.Auth
             );
             var dhInnerDataBts = Serialize(dhInnerData);
 
-            var dhInnerDataHashedBts = WithHash(dhInnerDataBts);
+            var dhInnerDataHashedBts = WithHashAndPadding(dhInnerDataBts);
             var dhInnerDataHashedEncryptedBytes = Aes.EncryptAES(key, dhInnerDataHashedBts);
 
             var resp = await transport.Value.Call(new SetClientDhParams(
