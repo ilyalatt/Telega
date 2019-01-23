@@ -154,10 +154,10 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
             });
 
 
-        public static Scheme Parse(Some<string> TgScheme)
+        public static Scheme Parse(Some<string> tgScheme)
         {
-            var sections = SplitBySections(TgScheme.Value);
-            var version = ExtractLayerVersion(TgScheme);
+            var sections = SplitBySections(tgScheme.Value);
+            var version = ExtractLayerVersion(tgScheme);
             var signatures = sections
                 .Map(t => (t.Item1, t.Item2
                     .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)

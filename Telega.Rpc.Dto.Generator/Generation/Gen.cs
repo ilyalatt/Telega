@@ -201,11 +201,9 @@ namespace Telega.Rpc.Dto.Generator.Generation
                     Line("var typeNumber = ReadUint(br);"),
                     Line(Concat(
                         "return TryDeserialize(typeNumber, br).IfNone(() => ",
-                        Concat(
-                            "throw TgRpcDeserializeException.UnexpectedTypeNumber(actual: typeNumber, expected: new[] { ",
-                            typeTags.Map(x => $"{x.Name}.TypeNumber").Map(String).Apply(xs => Join(", ", xs)),
-                            " })"
-                        ),
+                        "throw TgRpcDeserializeException.UnexpectedTypeNumber(actual: typeNumber, expected: new[] { ",
+                        typeTags.Map(x => $"{x.Name}.TypeNumber").Map(String).Apply(xs => Join(", ", xs)),
+                        " })",
                         ");"
                     ))
                 ),
