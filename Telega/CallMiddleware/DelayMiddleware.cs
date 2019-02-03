@@ -7,7 +7,7 @@ using Telega.Utils;
 namespace Telega.CallMiddleware
 {
     // TODO: DC-specific via context
-    sealed class DelayCallMiddleware : ITgCallMiddleware
+    sealed class DelayMiddleware : ITgCallMiddleware
     {
         public readonly int MinMsDelay;
         public readonly int MaxMsDelay;
@@ -15,13 +15,13 @@ namespace Telega.CallMiddleware
         readonly TaskQueue _taskQueue = new TaskQueue();
         DateTime _lastReqTimestamp;
 
-        public DelayCallMiddleware(int minMsDelay, int maxMsDelay)
+        public DelayMiddleware(int minMsDelay, int maxMsDelay)
         {
             MinMsDelay = minMsDelay;
             MaxMsDelay = maxMsDelay;
         }
 
-        public DelayCallMiddleware() : this(700, 1000) { }
+        public DelayMiddleware() : this(700, 1200) { }
 
         static bool IsIgnored<T>(ITgFunc<T> func) =>
             func is GetFile ||

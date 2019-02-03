@@ -27,7 +27,8 @@ namespace Telega.CallMiddleware
         );
 
         public static TgCallMiddlewareChain Default => Empty
-            .Add(new DelayCallMiddleware()); // mutable
+            .Add(new FloodMiddleware())
+            .Add(new DelayMiddleware());
 
 
         public TgCallHandler<T> Apply<T>(TgCallHandler<T> handler) =>
