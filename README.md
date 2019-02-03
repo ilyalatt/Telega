@@ -2,9 +2,9 @@
 
 [![NuGet version](https://badge.fury.io/nu/Telega.svg)](https://www.nuget.org/packages/Telega)
 
-TODO: user-friendly introduction.
-
 You can see the library usage example [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Example/Program.cs).
+
+Also you can read [the introduction](https://github.com/ilyalatt/Telega/wiki/Introduction).
 
 ## Quick start
 
