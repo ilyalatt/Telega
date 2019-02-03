@@ -28,12 +28,17 @@ namespace Telega.Rpc
             {
                 var msgBody = await _transport.Receive();
                 var msg = TgSystemMessageHandler.ReadMsg(msgBody);
-                _unconfirmedMsgIds.Push(msg.Id);
+                var ctx = new TgSystemMessageHandlerContext();
+                msg.Apply(TgSystemMessageHandler.Handle(ctx));
+
+                ctx.NewSalt.Iter(salt =>
+                    _session.SetWith(x => x.With(salt: salt))
+                );
+                ctx.Ack.Iter(_unconfirmedMsgIds.Push);
 
                 Option<TaskCompletionSource<RpcResult>> CaptureFlow(long id) =>
                     _rpcFlow.TryRemove(id, out var flow) ? Some(flow) : None;
-                var callResults = msg.Apply(TgSystemMessageHandler.Handle(_session));
-                callResults.Iter(res => CaptureFlow(res.Id).Match(
+                ctx.RpcResults.Iter(res => CaptureFlow(res.Id).Match(
                     flow => flow.SetResult(res),
                     () => TgTrace.Trace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
                 ));

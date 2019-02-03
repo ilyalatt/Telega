@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using LanguageExt;
 using Telega.Internal;
 using Telega.Rpc.Dto;
@@ -112,12 +111,12 @@ namespace Telega.Rpc
                 .Apply(exc => RpcResult.OfFail(badMsg.BadMsgId, exc));
         }
 
-        static RpcResult HandleBadServerSalt(Var<Session> session, BinaryReader br)
+        static RpcResult HandleBadServerSalt(BinaryReader br, TgSystemMessageHandlerContext ctx)
         {
             br.ReadInt32();
             var msg = BadMsgNotification.ServerSaltTag.DeserializeTag(br);
 
-            session.SetWith(x => x.With(salt: msg.NewServerSalt));
+            ctx.NewSalt = msg.NewServerSalt;
 
             return RpcResult.OfFail(msg.BadMsgId, new TgBadSaltException());
         }
@@ -129,66 +128,83 @@ namespace Telega.Rpc
             return RpcResult.OfSuccess(msgId, br);
         }
 
-        static void HandleNewSessionCreated(Var<Session> session, BinaryReader messageReader)
+        static void HandleNewSessionCreated(BinaryReader messageReader, TgSystemMessageHandlerContext ctx)
         {
             messageReader.ReadInt32();
             var newSession = NewSession.DeserializeTag(messageReader);
 
-            session.SetWith(x => x.With(salt: newSession.ServerSalt));
+            ctx.NewSalt = newSession.ServerSalt;
 
             TgTrace.Trace("NewSession: " + newSession);
         }
 
-        public static Func<Message, IEnumerable<RpcResult>> Handle(Var<Session> session) => message =>
+
+
+        public static Func<Message, Unit> Handle(TgSystemMessageHandlerContext ctx) => message =>
         {
             var br = message.Body;
+            var msgId = message.Id;
             var typeNumber = PeekTypeNumber(br);
-
-            IEnumerable<RpcResult> Singleton(RpcResult res) => Enumerable.Repeat(res, 1);
 
             switch (typeNumber)
             {
                 case GZipPackedTypeNumber:
-                    return message.Apply(ReadGZipPacked(br).Apply(Message.WithBody)).Apply(Handle(session));
+                    return message.Apply(ReadGZipPacked(br).Apply(Message.WithBody)).Apply(Handle(ctx));
                 case MsgContainerTypeNumber:
-                    return ReadContainer(br).Collect(Handle(session));
+                    return ReadContainer(br).Iter(Handle(ctx));
 
                 case RpcResultTypeNumber:
-                    return HandleRpcResult(br).Apply(Singleton);
+                    ctx.Ack.Add(msgId);
+                    ctx.RpcResults.Add(HandleRpcResult(br));
+                    return unit;
                 case BadMsgNotification.Tag.TypeNumber:
-                    return HandleBadMsgNotification(br).Apply(Singleton);
+                    ctx.RpcResults.Add(HandleBadMsgNotification(br));
+                    return unit;
                 case BadMsgNotification.ServerSaltTag.TypeNumber:
-                    return HandleBadServerSalt(session, br).Apply(Singleton);
+                    ctx.RpcResults.Add(HandleBadServerSalt(br, ctx));
+                    return unit;
                 case Pong.TypeNumber:
-                    return HandlePong(br).Apply(Singleton);
+                    ctx.RpcResults.Add(HandlePong(br));
+                    return unit;
 
                 case NewSession.TypeNumber:
-                    HandleNewSessionCreated(session, br);
-                    break;
+                    ctx.Ack.Add(msgId);
+                    HandleNewSessionCreated(br, ctx);
+                    return unit;
 
                 case MsgsAck.TypeNumber:
                     // var msg = br.Apply(MsgsAck.Deserialize);
                     // var ids = msg.MsgIds.Apply(xs => string.Join(", ", xs));
                     // TlTrace.Trace("Ack: " + ids);
-                    break;
-                // case FutureSalts.TypeNumber:
-                // case MsgDetailedInfo.Tag.TypeNumber:
-                // case MsgDetailedInfo.NewTag.TypeNumber:
+                    return unit;
+
+                case FutureSalts.TypeNumber:
+                    return unit;
+
+                case MsgDetailedInfo.Tag.TypeNumber:
+                    return unit;
+
+                case MsgDetailedInfo.NewTag.TypeNumber:
+                    EnsureTypeNumber(br, typeNumber);
+                    MsgDetailedInfo.NewTag.DeserializeTag(br).AnswerMsgId.With(ctx.Ack.Add);
+                    return unit;
+
 
                 default:
                     EnsureTypeNumber(br, typeNumber);
-                    var updatesOpt = UpdatesType.TryDeserialize(typeNumber, br);
-                    if (updatesOpt.IsSome)
+
+                    UpdatesType.TryDeserialize(typeNumber, br).Match(updates =>
                     {
+                        ctx.Ack.Add(msgId);
                         // TgTrace.Trace("Updates " + updatesOpt.ToString());
-                        break;
-                    }
+                    },
+                    () =>
+                    {
+                        TgTrace.Trace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8"));
+                    });
 
-                    TgTrace.Trace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8"));
-                    break;
+                    return unit;
             }
-
-            return Enumerable.Empty<RpcResult>();
         };
     }
 }
