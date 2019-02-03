@@ -4,17 +4,22 @@ using System.Net;
 using System.Threading.Tasks;
 using LanguageExt;
 using Newtonsoft.Json;
-using Telega.Internal;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
 
 namespace Telega.Example
 {
+    static class Exts
+    {
+        public static T AssertSome<T>(this Option<T> opt) =>
+            opt.IfNone(() => throw new ApplicationException("Should be Some, but got None."));
+    }
+
     static class Program
     {
         static async Task SignInViaCode(TelegramClient tg, Config cfg)
         {
-            var codeHash = await tg.Auth.SendCode(cfg.Phone);
+            var codeHash = await tg.Auth.SendCode(cfg.ApiHash, cfg.Phone);
 
             while (true)
             {
@@ -39,7 +44,7 @@ namespace Telega.Example
 
         static async Task EnsureAuthorized(TelegramClient tg, Config cfg)
         {
-            if (tg.IsAuthorized)
+            if (tg.Auth.IsAuthorized)
             {
                 Console.WriteLine("Already authorized");
                 return;
@@ -66,10 +71,10 @@ namespace Telega.Example
             var chats = chatsType.AsTag().IfNone(() => throw new NotImplementedException());
             var channels = chats.Chats.Choose(Chat.AsChannelTag);
 
-            var sns = channels
+            var firstChannel = channels
                 .HeadOrNone()
                 .IfNone(() => throw new Exception("A channel is not found"));
-            var photo = sns.Photo
+            var photo = firstChannel.Photo
                 .AsTag().IfNone(() => throw new Exception("The first channel does not have a photo"));
             var bigPhotoFile = photo.PhotoBig
                 .AsTag().IfNone(() => throw new Exception("The first channel photo is unavailable"));
@@ -83,7 +88,7 @@ namespace Telega.Example
                 );
 
             var photoLoc = ToInput(bigPhotoFile);
-            var fileType = await tg.GetFileType(photoLoc);
+            var fileType = await tg.Upload.GetFileType(photoLoc);
             var fileTypeExt = fileType.Match(
                 pngTag: _ => ".png",
                 jpegTag: _ => ".jpeg",
@@ -92,8 +97,30 @@ namespace Telega.Example
 
             using (var fs = File.OpenWrite($"channel-photo{fileTypeExt}"))
             {
-                await tg.DownloadFile(fs, photoLoc);
+                await tg.Upload.DownloadFile(fs, photoLoc);
             }
+        }
+
+        static async Task PrintFirstChannelTop100MessagesExample(TelegramClient tg)
+        {
+            var chatsType = await tg.Messages.GetDialogs();
+            var chats = chatsType.AsTag().AssertSome();
+            var channels = chats.Chats.Choose(Chat.AsChannelTag);
+
+            var firstChannel = channels
+                .HeadOrNone()
+                .IfNone(() => throw new Exception("A channel is not found"));
+
+            var inputPeer = new InputPeer.ChannelTag(
+                channelId: firstChannel.Id,
+                accessHash: firstChannel.AccessHash.AssertSome()
+            );
+            var top100Messages = await tg.Messages.GetHistory(inputPeer, limit: 100);
+            top100Messages.AsChannelTag().AssertSome().Messages.Iter(msg =>
+            {
+                Console.WriteLine(msg);
+                Console.WriteLine();
+            });
         }
 
         static async Task SendOnePavelDurovPictureToMeExample(TelegramClient tg)
@@ -102,7 +129,7 @@ namespace Telega.Example
             var photoName = Path.GetFileName(photoUrl);
             var photo = new WebClient().DownloadData(photoUrl);
 
-            var tgPhoto = await tg.UploadFile(photoName, photo.Length, new MemoryStream(photo));
+            var tgPhoto = await tg.Upload.UploadFile(photoName, photo.Length, new MemoryStream(photo));
             await tg.Messages.SendPhoto(
                 peer: new InputPeer.SelfTag(),
                 file: tgPhoto,
@@ -116,10 +143,12 @@ namespace Telega.Example
             Internal.TgTrace.IsEnabled = false;
 
             var cfg = await ReadConfig();
-            using (var tg = await TelegramClient.Connect(cfg.ApiId, cfg.ApiHash))
+            using (var tg = await TelegramClient.Connect(cfg.ApiId))
             {
                 await EnsureAuthorized(tg, cfg);
 
+                // await DownloadFirstChannelPictureExample(tg);
+                // await PrintFirstChannelTop100MessagesExample(tg);
                 await SendOnePavelDurovPictureToMeExample(tg);
             }
         }

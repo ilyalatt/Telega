@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Internal;
@@ -15,9 +14,8 @@ namespace Telega.Rpc
 {
     class TgTransport : IDisposable
     {
+        readonly Var<Session> _session;
         readonly MtProtoCipherTransport _transport;
-        readonly Session _session;
-        readonly ISessionStore _sessionStore;
         readonly TaskQueue _rpcQueue = new TaskQueue();
         readonly ConcurrentStack<long> _unconfirmedMsgIds = new ConcurrentStack<long>(); // such a bad design
 
@@ -35,7 +33,6 @@ namespace Telega.Rpc
                 Option<TaskCompletionSource<RpcResult>> CaptureFlow(long id) =>
                     _rpcFlow.TryRemove(id, out var flow) ? Some(flow) : None;
                 var callResults = msg.Apply(TgSystemMessageHandler.Handle(_session));
-                await _sessionStore.Save(_session);
                 callResults.Iter(res => CaptureFlow(res.Id).Match(
                     flow => flow.SetResult(res),
                     () => TgTrace.Trace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
@@ -43,18 +40,17 @@ namespace Telega.Rpc
             }
         }
 
-        public TgTransport(MtProtoCipherTransport transport, Session session, ISessionStore sessionStore)
+        public TgTransport(MtProtoCipherTransport transport, Var<Session> session)
         {
             _transport = transport;
             _session = session;
-            _sessionStore = sessionStore;
             _receiveLoopTask = Task.Run(ReceiveLoop);
         }
 
         public void Dispose() => _transport.Dispose();
 
 
-        // it is not supported at least for the layer 82
+        // it is not supported
         /*
         const uint GZipPackedTypeNumber = 0x3072cfa1;
         static byte[] GZip(byte[] data)
@@ -87,10 +83,16 @@ namespace Telega.Rpc
         }
 
 
-        int GetSeqNum(bool inc) => inc ? _session.Sequence++ * 2 + 1 : _session.Sequence * 2;
+        int GetSeqNum(bool inc)
+        {
+            var seqNum = _session.Get().Sequence * 2 + (inc ? 1 : 0);
+            if (inc) _session.SetWith(x => x.With(sequence: x.Sequence + 1));
+            return seqNum;
+        }
+
         byte[] CreateMsg(byte[] msg, bool isContentRelated, long? msgId = null) => BtHelpers.UsingMemBinWriter(bw =>
         {
-            bw.Write(msgId ?? _session.GetNewMessageId());
+            bw.Write(msgId ?? Session.GetNewMessageId(_session));
             bw.Write(GetSeqNum(isContentRelated));
             bw.Write(msg.Length);
             bw.Write(msg);
@@ -106,12 +108,12 @@ namespace Telega.Rpc
             var shouldAck = unconfirmedIds.Count != 0;
             if (!shouldAck)
             {
-                var singleDtoMsgId = _session.GetNewMessageId();
+                var singleDtoMsgId = Session.GetNewMessageId(_session);
                 return (CreateMsg(dto, isContentRelated: true, msgId: singleDtoMsgId), singleDtoMsgId);
             }
 
             var ack = CreateMsg(new MsgsAck(unconfirmedIds.ToArr()), isContentRelated: false);
-            var msgId = _session.GetNewMessageId();
+            var msgId = Session.GetNewMessageId(_session);
             var dtoBts = CreateMsg(dto, isContentRelated: true, msgId: msgId);
 
             return BtHelpers.UsingMemBinWriter(bw =>
@@ -124,7 +126,7 @@ namespace Telega.Rpc
         }
 
 
-        public async Task<T> Call<T>(ITgFunc<T> func)
+        public async Task<Task<T>> Call<T>(ITgFunc<T> func)
         {
             async Task CheckReceiveLoop()
             {
@@ -145,18 +147,19 @@ namespace Telega.Rpc
                     return tcs.Task;
                 });
 
-                await Task.WhenAny(_receiveLoopTask, respTask);
-                await CheckReceiveLoop();
+                async Task<T> AwaitResult()
+                {
+                    await Task.WhenAny(_receiveLoopTask, respTask);
+                    await CheckReceiveLoop();
 
+                    var resp = await respTask;
+                    if (resp.IsSuccess) return resp.Body.Apply(func.DeserializeResult);
 
-                var resp = await respTask;
-                if (resp.IsSuccess) return resp.Body.Apply(func.DeserializeResult);
+                    if (!resp.IsFail) throw new Exception("WTF");
+                    throw resp.Exception;
+                }
 
-                if (!resp.IsFail) throw new Exception("WTF");
-                var exc = resp.Exception;
-
-                if (exc is TgBadSalt) continue;
-                throw exc;
+                return AwaitResult();
             }
         }
     }

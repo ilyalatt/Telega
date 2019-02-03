@@ -112,14 +112,14 @@ namespace Telega.Rpc
                 .Apply(exc => RpcResult.OfFail(badMsg.BadMsgId, exc));
         }
 
-        static RpcResult HandleBadServerSalt(Session session, BinaryReader br)
+        static RpcResult HandleBadServerSalt(Var<Session> session, BinaryReader br)
         {
             br.ReadInt32();
             var msg = BadMsgNotification.ServerSaltTag.DeserializeTag(br);
 
-            session.Salt = msg.NewServerSalt;
+            session.SetWith(x => x.With(salt: msg.NewServerSalt));
 
-            return RpcResult.OfFail(msg.BadMsgId, new TgBadSalt());
+            return RpcResult.OfFail(msg.BadMsgId, new TgBadSaltException());
         }
 
         static RpcResult HandlePong(BinaryReader br)
@@ -129,17 +129,17 @@ namespace Telega.Rpc
             return RpcResult.OfSuccess(msgId, br);
         }
 
-        static void HandleNewSessionCreated(Session session, BinaryReader messageReader)
+        static void HandleNewSessionCreated(Var<Session> session, BinaryReader messageReader)
         {
             messageReader.ReadInt32();
             var newSession = NewSession.DeserializeTag(messageReader);
 
-            session.Salt = newSession.ServerSalt;
+            session.SetWith(x => x.With(salt: newSession.ServerSalt));
 
             TgTrace.Trace("NewSession: " + newSession);
         }
 
-        public static Func<Message, IEnumerable<RpcResult>> Handle(Session session) => message =>
+        public static Func<Message, IEnumerable<RpcResult>> Handle(Var<Session> session) => message =>
         {
             var br = message.Body;
             var typeNumber = PeekTypeNumber(br);

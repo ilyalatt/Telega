@@ -21,10 +21,9 @@ namespace Telega
         ) : base(message, innerException) { }
     }
 
-    // TODO: make a client disposable-only after this
-    public sealed class TgClosedConnectionException : TgTransportException
+    public sealed class TgBrokenConnectionException : TgTransportException
     {
-        internal TgClosedConnectionException() : base(
+        internal TgBrokenConnectionException() : base(
             "The connection is closed.",
             None
         ) { }
@@ -87,9 +86,9 @@ namespace Telega
         }
     }
 
-    sealed class TgBadSalt : TgInternalException
+    sealed class TgBadSaltException : TgInternalException
     {
-        public TgBadSalt() : base("bad_server_salt is received.", None) { }
+        public TgBadSaltException() : base("bad_server_salt is received.", None) { }
     }
 
     public sealed class TgInvalidPhoneCodeException : TgException

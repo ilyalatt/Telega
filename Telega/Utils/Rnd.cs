@@ -28,6 +28,18 @@ namespace Telega.Utils
 
         public static int NextInt32() => UsingBts(4, bts => BitConverter.ToInt32(bts.Array, bts.Offset));
 
+        public static int NextInt32(int minValue, int maxValue)
+        {
+            if (minValue > maxValue) throw new ArgumentException("minValue > maxValue", nameof(minValue));
+
+            // Cast to long is easier then magic with uint
+            var diff = (long) maxValue - minValue;
+            if (diff == 0) return minValue;
+
+            var shift = NextUInt32() % (diff + 1);
+            return (int) (minValue + shift);
+        }
+
         public static uint NextUInt32() => UsingBts(4, bts => BitConverter.ToUInt32(bts.Array, bts.Offset));
 
         public static long NextInt64() => UsingBts(8, bts => BitConverter.ToInt64(bts.Array, bts.Offset));

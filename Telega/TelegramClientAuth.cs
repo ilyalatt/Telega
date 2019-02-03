@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using LanguageExt;
+using Telega.Connect;
+using Telega.Internal;
 using Telega.Rpc.Dto.Functions.Account;
 using Telega.Rpc.Dto.Functions.Auth;
 using Telega.Rpc.Dto.Types;
@@ -11,28 +13,42 @@ namespace Telega
 {
     public sealed class TelegramClientAuth
     {
-        readonly TelegramClient _tg;
-        internal TelegramClientAuth(Some<TelegramClient> tg) => _tg = tg;
+        readonly TgBellhop _tg;
+        internal TelegramClientAuth(Some<TgBellhop> tg) => _tg = tg;
 
 
-        public async Task<string> SendCode(Some<string> phoneNumber)
+        User SetAuthorized(User user)
         {
-            var resp = await _tg.Call(new SendCode(
+            TgTrace.Trace("Authorized: " + user);
+            _tg.SetSession(x => x.With(isAuthorized: true));
+            return user;
+        }
+
+        public bool IsAuthorized =>
+            _tg.Session.IsAuthorized;
+
+
+        public async Task<string> SendCode(Some<string> apiHash, Some<string> phoneNumber)
+        {
+            var res = await _tg.Call(new SendCode(
                 phoneNumber: phoneNumber,
-                apiId: _tg._apiId,
-                apiHash: _tg._apiHash,
+                apiId: _tg.Session.ApiId,
+                apiHash: apiHash,
                 allowFlashcall: false,
                 currentNumber: None
-            ));
-            return resp.PhoneCodeHash;
+            )).ConfigureAwait(false);
+            return res.PhoneCodeHash;
         }
 
         public async Task<User> SignIn(Some<string> phoneNumber, Some<string> phoneCodeHash, Some<string> code)
         {
-            var resp = await _tg.Call(new SignIn(phoneNumber: phoneNumber, phoneCodeHash: phoneCodeHash, phoneCode: code));
-            var user = resp.User;
-            await _tg.SetAuthorized(user);
-            return user;
+            var res = await _tg.Call(new SignIn(
+                phoneNumber: phoneNumber,
+                phoneCodeHash: phoneCodeHash,
+                phoneCode: code
+            )).ConfigureAwait(false);
+
+            return SetAuthorized(res.User);
         }
 
         public async Task<Password> GetPasswordInfo() =>
@@ -48,13 +64,11 @@ namespace Telega
                 .AsSha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPowTag()
                 .IfNone(() => throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo)));
 
-            var request = PasswordCheckHelper.GenRequest(pwdInfo, algo, passwordStr);
-            var res = await _tg.Call(request);
-            var user = res.User;
-
-            await _tg.SetAuthorized(user);
-
-            return user;
+            var request = await TaskWrapper.Wrap(() =>
+                PasswordCheckHelper.GenRequest(pwdInfo, algo, passwordStr)
+            ).ConfigureAwait(false);
+            var res = await _tg.Call(request).ConfigureAwait(false);
+            return SetAuthorized(res.User);
         }
 
         public async Task<User> SignUp(
@@ -66,14 +80,12 @@ namespace Telega
         ) {
             var res = await _tg.Call(new SignUp(
                 phoneNumber: phoneNumber,
-                phoneCode: code,
                 phoneCodeHash: phoneCodeHash,
+                phoneCode: code,
                 firstName: firstName,
                 lastName: lastName
-            ));
-            var user = res.User;
-            await _tg.SetAuthorized(user);
-            return user;
+            )).ConfigureAwait(false);
+            return SetAuthorized(res.User);
         }
     }
 }

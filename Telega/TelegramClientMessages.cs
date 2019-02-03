@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using LanguageExt;
+using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Messages;
@@ -10,8 +11,8 @@ namespace Telega
 {
     public sealed class TelegramClientMessages
     {
-        readonly TelegramClient _tg;
-        internal TelegramClientMessages(Some<TelegramClient> tg) => _tg = tg;
+        readonly TgBellhop _tg;
+        internal TelegramClientMessages(Some<TgBellhop> tg) => _tg = tg;
 
 
         public async Task<Dialogs> GetDialogs() =>

@@ -74,7 +74,7 @@ namespace Telega.Rpc.ServiceTransport
             while (totalReceived < count)
             {
                 var received = await stream.ReadAsync(res, totalReceived, count - totalReceived);
-                if (received == 0) throw new TgClosedConnectionException();
+                if (received == 0) throw new TgBrokenConnectionException();
                 totalReceived += received;
             }
 

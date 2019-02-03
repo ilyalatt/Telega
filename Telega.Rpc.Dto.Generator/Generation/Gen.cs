@@ -143,6 +143,8 @@ namespace Telega.Rpc.Dto.Generator.Generation
                         Line(""),
                         Line(""),
                         isWrapper ? Scope(new NestedText[0]) : Scope(
+                            WithGen.GenWith(argsWithoutFlags, funcName),
+                            Line(""),
                             RelationsGen.GenRelations(funcName, argsWithoutFlags),
                             Line("")
                         ),

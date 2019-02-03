@@ -14,6 +14,13 @@ namespace Telega.Rpc
         }
     }
 
+    static class TgRpcBadMsgCodes
+    {
+        public const int MsgSeqNoLow = 32;
+        public const int MsgSeqNoHigh = 33;
+
+    }
+
     static class RpcBadMsgNotificationHandler
     {
         public static TgRpcBadMsgException ToException(BadMsgNotification.Tag error)
@@ -43,13 +50,13 @@ namespace Telega.Rpc
                     return Ex(
                         "message too old, and it cannot be verified whether the server has received a message with this msg_id or not"
                     );
-                case 32:
+                case TgRpcBadMsgCodes.MsgSeqNoLow:
                     return Ex(
                         "msg_seqno too low (the server has already received a message with a lower msg_id but with either a higher or an equal and odd seqno)"
                     );
-                case 33:
+                case TgRpcBadMsgCodes.MsgSeqNoHigh:
                     return Ex(
-                        " msg_seqno too high (similarly, there is a message with a higher msg_id but with either a lower or an equal and odd seqno)"
+                        "msg_seqno too high (similarly, there is a message with a higher msg_id but with either a lower or an equal and odd seqno)"
                     );
                 case 34:
                     return Ex(

@@ -12,14 +12,12 @@ namespace Telega.Rpc.ServiceTransport
     class MtProtoCipherTransport : IDisposable
     {
         readonly TcpTransport _transport;
-        readonly Session _session;
-        readonly ISessionStore _sessionStore;
+        readonly IVarGetter<Session> _session;
 
-        public MtProtoCipherTransport(TcpTransport transport, Session session, ISessionStore sessionStore)
+        public MtProtoCipherTransport(TcpTransport transport, IVarGetter<Session> session)
         {
             _transport = transport;
             _session = session;
-            _sessionStore = sessionStore;
         }
 
         public void Dispose() => _transport.Dispose();
@@ -72,12 +70,12 @@ namespace Telega.Rpc.ServiceTransport
 
         public async Task Send(byte[] msg)
         {
-            await _sessionStore.Save(_session);
+            var session = _session.Get();
 
             var plainText = BtHelpers.UsingMemBinWriter(bw =>
             {
-                bw.Write(_session.Salt);
-                bw.Write(_session.Id);
+                bw.Write(session.Salt);
+                bw.Write(session.Id);
                 bw.Write(msg);
 
                 var bs = bw.BaseStream;
@@ -87,14 +85,14 @@ namespace Telega.Rpc.ServiceTransport
                 bw.Write(Rnd.NextBytes(padding));
             });
 
-            var authKey = _session.AuthKey.Key.ToArrayUnsafe();
+            var authKey = session.AuthKey.Key.ToArrayUnsafe();
             var msgKey = CalcMsgKey(authKey, plainText, true);
             var aesKey = CalcAesKey(authKey, msgKey, true);
             var cipherText = Aes.EncryptAES(aesKey, plainText);
 
             await BtHelpers.UsingMemBinWriter(bw =>
             {
-                bw.Write(_session.AuthKey.KeyId);
+                bw.Write(session.AuthKey.KeyId);
                 bw.Write(msgKey);
                 bw.Write(cipherText);
             }).Apply(_transport.Send);
@@ -108,7 +106,7 @@ namespace Telega.Rpc.ServiceTransport
             {
                 var authKeyId = br.ReadUInt64(); // TODO: check auth key id
                 var msgKey = br.ReadBytes(16); // TODO: check msg_key correctness
-                var keyData = CalcAesKey(_session.AuthKey.Key.ToArrayUnsafe(), msgKey, false);
+                var keyData = CalcAesKey(_session.Get().AuthKey.Key.ToArrayUnsafe(), msgKey, false);
 
                 var bs = br.BaseStream;
                 var cipherTextLen = (int) (bs.Length - bs.Position);
