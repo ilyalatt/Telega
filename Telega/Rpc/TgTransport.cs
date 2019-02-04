@@ -110,14 +110,14 @@ namespace Telega.Rpc
         (byte[], long) WithAck(ITgSerializable dto)
         {
             var unconfirmedIds = PopUnconfirmedMsgIds();
-            var shouldAck = unconfirmedIds.Count != 0;
-            if (!shouldAck)
+            var shouldNotAck = unconfirmedIds.Count == 0;
+            if (shouldNotAck)
             {
                 var singleDtoMsgId = Session.GetNewMessageId(_session);
                 return (CreateMsg(dto, isContentRelated: true, msgId: singleDtoMsgId), singleDtoMsgId);
             }
 
-            var ack = CreateMsg(new MsgsAck(unconfirmedIds.ToArr()), isContentRelated: false);
+            var ackBts = CreateMsg(new MsgsAck(unconfirmedIds.ToArr()), isContentRelated: false);
             var msgId = Session.GetNewMessageId(_session);
             var dtoBts = CreateMsg(dto, isContentRelated: true, msgId: msgId);
 
@@ -125,7 +125,7 @@ namespace Telega.Rpc
             {
                 bw.Write(MsgContainerTypeNumber);
                 bw.Write(2);
-                bw.Write(ack);
+                bw.Write(ackBts);
                 bw.Write(dtoBts);
             }).Apply(bts => CreateMsg(bts, isContentRelated: false)).Apply(bts => (bts, msgId));
         }
