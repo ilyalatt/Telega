@@ -34,8 +34,12 @@ namespace Telega
                 phoneNumber: phoneNumber,
                 apiId: _tg.Session.ApiId,
                 apiHash: apiHash,
-                allowFlashcall: false,
-                currentNumber: None
+                new CodeSettings(
+                    allowFlashcall: false,
+                    currentNumber: false,
+                    appHashPersistent: false,
+                    appHash: None
+                )
             )).ConfigureAwait(false);
             return res.PhoneCodeHash;
         }
