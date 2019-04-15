@@ -18,6 +18,7 @@ namespace Telega
         public readonly TelegramClientContacts Contacts;
         public readonly TelegramClientMessages Messages;
         public readonly TelegramClientUpload Upload;
+        public readonly TelegramClientUpdates Updates;
 
         static readonly IPEndPoint DefaultEndpoint = new IPEndPoint(IPAddress.Parse("149.154.167.50"), 443);
 
@@ -32,6 +33,7 @@ namespace Telega
             Contacts = new TelegramClientContacts(_bellhop);
             Messages = new TelegramClientMessages(_bellhop);
             Upload = new TelegramClientUpload(_bellhop);
+            Updates = new TelegramClientUpdates(_bellhop);
         }
 
         public void Dispose()

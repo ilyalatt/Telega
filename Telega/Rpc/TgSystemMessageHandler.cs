@@ -196,7 +196,7 @@ namespace Telega.Rpc
                     UpdatesType.TryDeserialize(typeNumber, br).Match(updates =>
                     {
                         ctx.Ack.Add(msgId);
-                        // TgTrace.Trace("Updates " + updatesOpt.ToString());
+                        ctx.Updates.Add(updates);
                     },
                     () =>
                     {

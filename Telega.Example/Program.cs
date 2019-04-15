@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using LanguageExt;
 using Newtonsoft.Json;
+using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
 
@@ -137,6 +139,35 @@ namespace Telega.Example
             );
         }
 
+        static async Task PrintUserInfo(TelegramClient tg)
+        {
+            var myInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
+            Console.WriteLine(myInfo);
+        }
+
+        static async Task ListenUpdates(TelegramClient tg)
+        {
+            tg.Updates.Stream.Subscribe(
+                onNext: updatesType =>
+                {
+                    var messageText = updatesType.Match(
+                        updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
+                        updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
+                        updateShortTag: update => update.Update.Match(
+                            newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
+                            editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
+                            editChannelMessageTag: msg => msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                            _: () => None
+                        ),
+                        _: () => None
+                    );
+                    messageText.Iter(Console.WriteLine);
+                },
+                onError: Console.WriteLine
+            );
+            await Task.Delay(Timeout.Infinite);
+        }
+
         static async Task Main()
         {
             // it is disabled by default
@@ -147,9 +178,11 @@ namespace Telega.Example
             {
                 await EnsureAuthorized(tg, cfg);
 
+                // await PrintUserInfo(tg);
                 // await DownloadFirstChannelPictureExample(tg);
                 // await PrintFirstChannelTop100MessagesExample(tg);
                 await SendOnePavelDurovPictureToMeExample(tg);
+                await ListenUpdates(tg);
             }
         }
     }

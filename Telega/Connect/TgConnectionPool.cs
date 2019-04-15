@@ -83,7 +83,7 @@ namespace Telega.Connect
         public void Dispose()
         {
             _isDisposed = true;
-            _conns.Values.Iter(x => x.Transport.Transport.Dispose());
+            _conns.Values.Iter(x => x.Dispose());
         }
 
         public TgConnectionPool(

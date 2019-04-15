@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Rpc;
@@ -5,7 +6,7 @@ using Telega.Rpc.Dto;
 
 namespace Telega.CallMiddleware
 {
-    sealed class TgCustomizedTransport
+    sealed class TgCustomizedTransport : IDisposable
     {
         public readonly TgTransport Transport;
         public readonly TgCallMiddlewareChain CallMiddlewareChain;
@@ -15,6 +16,8 @@ namespace Telega.CallMiddleware
             Transport = transport;
             CallMiddlewareChain = callMiddlewareChain;
         }
+
+        public void Dispose() => Transport.Dispose();
 
         public async Task<T> Call<T>(ITgFunc<T> func)
         {

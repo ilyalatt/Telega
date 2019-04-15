@@ -1,3 +1,4 @@
+using System;
 using LanguageExt;
 using Telega.CallMiddleware;
 using Telega.Rpc.Dto.Types;
@@ -5,7 +6,7 @@ using Telega.Utils;
 
 namespace Telega.Connect
 {
-    sealed class TgConnection
+    sealed class TgConnection : IDisposable
     {
         public readonly Var<Session> Session;
         public readonly TgCustomizedTransport Transport;
@@ -17,5 +18,7 @@ namespace Telega.Connect
             Transport = transport;
             Config = config;
         }
+
+        public void Dispose() => Transport.Dispose();
     }
 }

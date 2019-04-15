@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LanguageExt;
+using Telega.Connect;
 using Telega.Internal;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
@@ -22,7 +23,10 @@ namespace Telega.Rpc
         readonly Task _receiveLoopTask;
         readonly ConcurrentDictionary<long, TaskCompletionSource<RpcResult>> _rpcFlow =
             new ConcurrentDictionary<long, TaskCompletionSource<RpcResult>>();
-        async Task ReceiveLoop()
+
+        public readonly CustomObservable<UpdatesType> Updates = new CustomObservable<UpdatesType>();
+
+        async Task ReceiveLoopImpl()
         {
             while (true)
             {
@@ -42,6 +46,21 @@ namespace Telega.Rpc
                     flow => flow.SetResult(res),
                     () => TgTrace.Trace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
                 ));
+
+                ctx.Updates.Iter(Updates.OnNext);
+            }
+        }
+
+        async Task ReceiveLoop()
+        {
+            try
+            {
+                await ReceiveLoopImpl();
+            }
+            catch (TgTransportException e)
+            {
+                // Updates.OnError(e);
+                throw;
             }
         }
 
@@ -148,7 +167,16 @@ namespace Telega.Rpc
                     var tcs = new TaskCompletionSource<RpcResult>();
                     _rpcFlow[msgId] = tcs;
 
-                    await _transport.Send(container);
+                    try
+                    {
+                        await _transport.Send(container);
+                    }
+                    catch (TgTransportException e)
+                    {
+                        // Updates.OnError(e);
+                        throw;
+                    }
+
                     return tcs.Task;
                 });
 

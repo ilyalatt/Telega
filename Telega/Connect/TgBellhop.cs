@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.CallMiddleware;
+using Telega.Rpc;
 using Telega.Rpc.Dto;
+using Telega.Rpc.Dto.Types;
 using Telega.Utils;
 
 namespace Telega.Connect
@@ -11,6 +13,7 @@ namespace Telega.Connect
     {
         public readonly TgConnectionPool ConnectionPool;
         public readonly Var<TgConnection> CurrentConnection;
+        public readonly CustomObservable<UpdatesType> Updates = new CustomObservable<UpdatesType>();
 
         public IVarGetter<Session> SessionVar =>
             CurrentConnection.Bind(x => x.Session);
@@ -19,11 +22,21 @@ namespace Telega.Connect
         public void SetSession(Func<Session, Session> func) =>
             CurrentConnection.Get().Session.SetWith(func);
 
+        void MirrorUpdates(TgConnection conn)
+        {
+            conn.Transport.Transport.Updates.Subscribe(
+                onNext: Updates.OnNext,
+                onError: Updates.OnError,
+                onCompleted: Updates.OnCompleted
+            );
+        }
+
         async Task<TgConnection> ChangeConn(Func<TgConnection, Task<TgConnection>> f)
         {
             var oldConn = CurrentConnection.Get();
             var newConn = await f(oldConn);
             CurrentConnection.Set(newConn);
+            MirrorUpdates(newConn);
             return newConn;
         }
 
@@ -31,6 +44,7 @@ namespace Telega.Connect
         {
             ConnectionPool = connectionPool;
             CurrentConnection = currentConnection.Value.AsVar();
+            MirrorUpdates(currentConnection);
         }
 
         public TgBellhop Fork() =>
@@ -57,8 +71,11 @@ namespace Telega.Connect
                 var conn = CurrentConnection.Get();
                 return await conn.Transport.Call(func);
             }
-            catch (TgBrokenConnectionException)
+            catch (TgTransportException)
             {
+                var oldConn = CurrentConnection.Get();
+                oldConn.Dispose();
+
                 var conn = await ChangeConn(x => ConnectionPool.ReConnect(x.Config.ThisDc));
                 return await conn.Transport.Call(func);
             }
