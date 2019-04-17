@@ -37,7 +37,7 @@ If you are not familiar with LanguageExt you can read [LanguageExt readme](https
 The root of Telega is TLSharp. However the library is designed completely different.
 
 * netstandard 2.0 target
-* layer 95
+* layer 98
 * a new DTO generator which is based on .tl scheme
 * completely redesigned DTOs
 * elimination of all reflection usages (even in deserialization)

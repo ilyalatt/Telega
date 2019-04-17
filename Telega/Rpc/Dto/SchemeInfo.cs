@@ -8,6 +8,6 @@ namespace Telega.Rpc.Dto
 {
     static class SchemeInfo
     {
-        public const int LayerVersion = 95;
+        public const int LayerVersion = 98;
     }
 }
