@@ -22,7 +22,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             Line("using T = Telega.Rpc.Dto.Types;")
         );
 
-        static NestedText GenTypeTagBody(string tagName, Signature tag)
+        static NestedText GenTypeTagBody(string typeName, string tagName, Signature tag)
         {
             var modifiedArgs = tag.Args
                 .Map(x => new Arg(
@@ -68,6 +68,11 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 Line(""),
                 WithGen.GenWith(argsWithoutFlags, tagName),
                 Line(""),
+                typeName != tagName ? Scope(
+                    Line($"public static implicit operator {typeName}({tagName} tag) => new {typeName}(tag);"),
+                    Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new {typeName}(tag);"),
+                    Line("")
+                ) : EmptyScope(),
                 RelationsGen.GenRelations(tagName, argsWithoutFlags),
                 Line(""),
                 Line(""),
@@ -77,14 +82,14 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
         }
 
-        static NestedText GenTypeTag(Signature tag)
+        static NestedText GenTypeTag(string typeName, Signature tag)
         {
             var tagName = tag.Name;
 
             return Scope(
                 Line($"public sealed class {tagName} : ITgTypeTag, IEquatable<{tagName}>, IComparable<{tagName}>, IComparable"),
                 Line("{"),
-                Indent(1, GenTypeTagBody(tagName, tag)),
+                Indent(1, GenTypeTagBody(typeName, tagName, tag)),
                 Line("}")
             );
         }
@@ -159,17 +164,12 @@ namespace Telega.Rpc.Dto.Generator.Generation
 
         static NestedText GenTypeWithManyTags(string typeName, Arr<Signature> typeTags)
         {
-            var tagsDefs = typeTags.Map(GenTypeTag).Scope(Environment.NewLine + Environment.NewLine);
+            var tagsDefs = typeTags.Map(x => GenTypeTag(typeName, x)).Scope(Environment.NewLine + Environment.NewLine);
 
             var tagDef = Scope(
                 Line("readonly ITgTypeTag _tag;"),
                 Line($"{typeName}(ITgTypeTag tag) => _tag = tag ?? throw new ArgumentNullException(nameof(tag));")
             );
-
-            var tagCreateDef = typeTags.Map(tag =>
-                Line($"public static implicit operator {typeName}({tag.Name} tag) => new {typeName}(tag);")
-            ).Scope();
-
 
             var serializeRef = Scope(
                 Line("void ITgSerializable.Serialize(BinaryWriter bw)"),
@@ -287,7 +287,6 @@ namespace Telega.Rpc.Dto.Generator.Generation
             var bodyDef = Scope(Environment.NewLine + Environment.NewLine,
                 tagsDefs,
                 tagDef,
-                tagCreateDef,
                 serializeRef,
                 staticTryDeserializeDef,
                 staticDeserializeDef,
@@ -314,7 +313,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
 
         static NestedText GenTypeWithOneTag(string typeName, Signature tag)
         {
-            var tagBody = GenTypeTagBody(typeName, tag);
+            var tagBody = GenTypeTagBody(typeName, typeName, tag);
 
             var serializeRef = Scope(
                 Line("void ITgSerializable.Serialize(BinaryWriter bw)"),

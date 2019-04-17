@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LanguageExt;
 using static LanguageExt.Prelude;
 
 namespace Telega.Rpc.Dto.Generator.TextModel
@@ -9,6 +10,7 @@ namespace Telega.Rpc.Dto.Generator.TextModel
         public static NestedText Line(Text text) => NestedText.CreateLine(text);
         public static NestedText Line(string s) => Line((Text) s);
         public static NestedText Indent(int offset, NestedText text) => NestedText.CreateIndent(offset, text);
+        public static NestedText EmptyScope() => NestedText.CreateScope(Arr<NestedText>.Empty, (Text) Environment.NewLine);
         public static NestedText Scope(this IEnumerable<NestedText> xs, Text separator = null) => NestedText.CreateScope(xs.ToArr(), separator ?? Environment.NewLine);
         public static NestedText Scope(Text separator, params NestedText[] xs) => xs.Scope(separator);
         public static NestedText Scope(Text separator, params IEnumerable<NestedText>[] xs) => xs.Bind(identity).Scope(separator);

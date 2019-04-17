@@ -78,18 +78,14 @@ namespace Telega.Example
                 .IfNone(() => throw new Exception("A channel is not found"));
             var photo = firstChannel.Photo
                 .AsTag().IfNone(() => throw new Exception("The first channel does not have a photo"));
-            var bigPhotoFile = photo.PhotoBig
-                .AsTag().IfNone(() => throw new Exception("The first channel photo is unavailable"));
+            var bigPhotoFile = photo.PhotoBig;
 
-            InputFileLocation ToInput(FileLocation.Tag location) =>
-                new InputFileLocation.Tag(
-                    volumeId: location.VolumeId,
-                    localId: location.LocalId,
-                    secret: location.Secret,
-                    fileReference: location.FileReference
-                );
-
-            var photoLoc = ToInput(bigPhotoFile);
+            var photoLoc = new InputFileLocation.PeerPhotoTag(
+                peer: new InputPeer.ChannelTag(firstChannel.Id, firstChannel.AccessHash.AssertSome()),
+                volumeId: bigPhotoFile.VolumeId,
+                localId: bigPhotoFile.LocalId,
+                big: true
+            );
             var fileType = await tg.Upload.GetFileType(photoLoc);
             var fileTypeExt = fileType.Match(
                 pngTag: _ => ".png",

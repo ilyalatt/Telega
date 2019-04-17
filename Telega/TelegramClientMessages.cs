@@ -26,7 +26,7 @@ namespace Telega
             ));
 
         public async Task<Messages> GetHistory(
-            InputPeer peer,
+            Some<InputPeer> peer,
             int offsetId = 0,
             int offsetDate = 0,
             int addOffset = 0,
@@ -46,7 +46,7 @@ namespace Telega
                 hash
             ));
 
-        public async Task<UpdatesType> SendMessage(InputPeer peer, Some<string> message) =>
+        public async Task<UpdatesType> SendMessage(Some<InputPeer> peer, Some<string> message) =>
             await _tg.Call(new SendMessage(
                 peer: peer,
                 message: message,
@@ -61,8 +61,8 @@ namespace Telega
             ));
 
         public async Task<UpdatesType> SendPhoto(
-            InputPeer peer,
-            InputFile file,
+            Some<InputPeer> peer,
+            Some<InputFile> file,
             Some<string> message
         ) =>
             await _tg.Call(new SendMedia(
@@ -79,8 +79,8 @@ namespace Telega
             ));
 
         public async Task<UpdatesType> SendDocument(
-            InputPeer peer,
-            InputFile file,
+            Some<InputPeer> peer,
+            Some<InputFile> file,
             Some<string> mimeType,
             Arr<DocumentAttribute> attributes,
             Some<string> message
@@ -106,7 +106,7 @@ namespace Telega
                 message: message
             ));
 
-        public async Task<bool> SendTyping(InputPeer peer) =>
+        public async Task<bool> SendTyping(Some<InputPeer> peer) =>
             await _tg.Call(new SetTyping(
                 action: new SendMessageAction.TypingTag(),
                 peer: peer
