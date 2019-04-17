@@ -12,10 +12,16 @@ namespace Telega.Connect
         readonly TgCallMiddlewareChain _callMiddlewareChain;
         readonly TcpClientConnectionHandler _connHandler;
 
-        static async Task ExportAuth(TgConnection src, TgConnection dst)
+        static async Task TryExportAuth(TgConnection src, TgConnection dst)
         {
-            var auth = await src.Transport.Call(new ExportAuthorization(dst.Config.ThisDc));
-            await dst.Transport.Call(new ImportAuthorization(auth.Id, auth.Bytes));
+            if (!src.Session.Get().IsAuthorized) return;
+
+            try
+            {
+                var auth = await src.Transport.Call(new ExportAuthorization(dst.Config.ThisDc));
+                await dst.Transport.Call(new ImportAuthorization(auth.Id, auth.Bytes));
+            }
+            catch (TgNotAuthenticatedException) { }
         }
 
         async Task<TgConnection> EstablishForkConnection(TgConnection srcConn, int dcId)
@@ -23,7 +29,7 @@ namespace Telega.Connect
             var ep = DcInfoKeeper.FindEndpoint(dcId);
             var connectInfo = ConnectInfo.FromInfo(srcConn.Session.Get().ApiId, ep);
             var dstConn = await TgConnectionEstablisher.EstablishConnection(connectInfo, _callMiddlewareChain, _connHandler);
-            await ExportAuth(srcConn, dstConn);
+            await TryExportAuth(srcConn, dstConn);
             return dstConn;
         }
 
