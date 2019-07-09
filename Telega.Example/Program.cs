@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using LanguageExt;
 using Newtonsoft.Json;
+using Telega.Rpc.Dto.Functions.Contacts;
 using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
@@ -161,7 +164,44 @@ namespace Telega.Example
                 },
                 onError: Console.WriteLine
             );
+
+            tg.Updates.Stream.Subscribe(
+                onNext: updatesType =>
+                {
+                    updatesType.AsUpdateShortTag().Bind(x => x.Update.AsNewMessageTag()).IfSome(msg => { });
+                    var messageText = updatesType.Match(
+                        updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
+                        updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
+                        updateShortTag: update => update.Update.Match(
+                            newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
+                            editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
+                            editChannelMessageTag: msg => msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                            _: () => None
+                        ),
+                        _: () => None
+                    );
+                    messageText.Iter(Console.WriteLine);
+                },
+                onError: Console.WriteLine
+            );
+
             await Task.Delay(Timeout.Infinite);
+        }
+
+        static async Task<Arr<(int userIdx, User.Tag user)>> ImportUsers(
+            TelegramClient tg,
+            IEnumerable<(string phone, string firstName, string lastName)> users
+        ) {
+            var resp = await tg.Call(new ImportContacts(
+                contacts: users.Map((userIdx, user) => new InputContact(
+                    clientId: userIdx,
+                    phone: user.phone,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                )).ToArr()
+            ));
+            var usersMap = resp.Users.Choose(User.AsTag).ToDictionary(x => x.Id);
+            return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
         }
 
         static async Task Main()
