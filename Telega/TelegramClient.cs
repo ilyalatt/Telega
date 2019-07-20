@@ -46,8 +46,8 @@ namespace Telega
         static async Task<TelegramClient> Connect(
             ConnectInfo connectInfo,
             ISessionStore store,
-            TgCallMiddlewareChain callMiddlewareChain = null,
-            TcpClientConnectionHandler tcpClientConnectionHandler = null
+            TgCallMiddlewareChain? callMiddlewareChain = null,
+            TcpClientConnectionHandler? tcpClientConnectionHandler = null
         ) {
             var bellhop = await TgBellhop.Connect(
                 connectInfo,
@@ -59,12 +59,12 @@ namespace Telega
 
         public static async Task<TelegramClient> Connect(
             int apiId,
-            ISessionStore store = null,
-            IPEndPoint endpoint = null,
-            TgCallMiddlewareChain callMiddlewareChain = null,
-            TcpClientConnectionHandler tcpClientConnectionHandler = null
+            ISessionStore? store = null,
+            IPEndPoint? endpoint = null,
+            TgCallMiddlewareChain? callMiddlewareChain = null,
+            TcpClientConnectionHandler? tcpClientConnectionHandler = null
         ) {
-            store = store ?? new FileSessionStore("session.dat");
+            store ??= new FileSessionStore("session.dat");
             var ep = endpoint ?? DefaultEndpoint;
             var connectInfo = (await store.Load().ConfigureAwait(false))
                 .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
@@ -75,11 +75,11 @@ namespace Telega
 
         public static async Task<TelegramClient> Connect(
             Some<Session> session,
-            ISessionStore store = null,
-            TgCallMiddlewareChain callMiddlewareChain = null,
-            TcpClientConnectionHandler tcpClientConnectionHandler = null
+            ISessionStore? store = null,
+            TgCallMiddlewareChain? callMiddlewareChain = null,
+            TcpClientConnectionHandler? tcpClientConnectionHandler = null
         ) {
-            store = store ?? new FileSessionStore("session.dat");
+            store ??= new FileSessionStore("session.dat");
             var connectInfo = ConnectInfo.FromSession(session);
 
             return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler);

@@ -48,13 +48,13 @@ namespace Telega
         public Session With(
             int? apiId = null,
             long? id = null,
-            AuthKey authKey = null,
+            AuthKey? authKey = null,
             bool? isAuthorized = null,
             int? sequence = null,
             long? salt = null,
             int? timeOffset = null,
             long? lastMessageId = null,
-            IPEndPoint endpoint = null
+            IPEndPoint? endpoint = null
         ) => new Session(
             apiId ?? ApiId,
             id ?? Id,

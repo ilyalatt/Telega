@@ -13,18 +13,18 @@ namespace Telega.Rpc.Dto.Generator.Generation
         {
             var equality = Concat(
                 "public bool Equals(",
-                typeName,
+                $"{typeName}?",
                 " other) => !ReferenceEquals(other, null) && (ReferenceEquals(this, other) || ",
-                cmpBy, " == other.", cmpBy, ");"
+                cmpBy, " == other!.", cmpBy, ");"
             ).Apply(Line);
             var equalityLegacy = Concat(
-                "public override bool Equals(object other) => other is ",
-                typeName,
+                "public override bool Equals(object? other) => other is ",
+                $"{typeName}",
                 " x && Equals(x);"
             ).Apply(Line);
             var equalityOps = Scope(
-                Line($"public static bool operator ==({typeName} x, {typeName} y) => x?.Equals(y) ?? ReferenceEquals(y, null);"),
-                Line($"public static bool operator !=({typeName} x, {typeName} y) => !(x == y);")
+                Line($"public static bool operator ==({typeName}? x, {typeName}? y) => x?.Equals(y) ?? ReferenceEquals(y, null);"),
+                Line($"public static bool operator !=({typeName}? x, {typeName}? y) => !(x == y);")
             );
             return Scope(equality, equalityLegacy, equalityOps);
         }
@@ -41,7 +41,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 " : ", cmpBy, ".CompareTo(other.", cmpBy, ")", ";"
             ).Apply(Line);
             var cmpLegacy = Concat(
-                "int IComparable.CompareTo(object other) => other is ",
+                "int IComparable.CompareTo(object? other) => other is ",
                 typeName,
                 " x ? CompareTo(x) : throw new ArgumentException(\"bad type\", nameof(other));"
             ).Apply(Line);

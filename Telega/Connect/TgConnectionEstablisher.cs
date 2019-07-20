@@ -17,7 +17,7 @@ namespace Telega.Connect
     {
         static async Task<System.Net.Sockets.TcpClient> CreateTcpClient(
             IPEndPoint endpoint,
-            TcpClientConnectionHandler connHandler = null
+            TcpClientConnectionHandler? connHandler = null
         ) {
             if (connHandler != null) return await connHandler(endpoint);
 
@@ -29,9 +29,12 @@ namespace Telega.Connect
         public static async Task<TgConnection> EstablishConnection(
             ConnectInfo connectInfo,
             TgCallMiddlewareChain callMiddlewareChain,
-            TcpClientConnectionHandler connHandler = null
-        ) {
-            var tcpClient = await CreateTcpClient(connectInfo.Endpoint, connHandler);
+            TcpClientConnectionHandler? connHandler = null
+        )
+        {
+            var endpoint = connectInfo.Endpoint;
+            Helpers.Assert(endpoint != null, "endpoint == null");
+            var tcpClient = await CreateTcpClient(endpoint!, connHandler);
             var tcpTransport = new TcpTransport(tcpClient);
 
             if (connectInfo.NeedsInAuth)

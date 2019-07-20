@@ -9,7 +9,7 @@ namespace Telega
     {
         internal TgException(Some<string> message, Option<Exception> innerException) : base(
             message,
-            innerException.IfNoneUnsafe(() => null)
+            innerException.IfNoneUnsafe(() => null!)
         ) { }
     }
 

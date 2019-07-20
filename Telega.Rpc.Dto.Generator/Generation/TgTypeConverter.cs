@@ -39,6 +39,6 @@ namespace Telega.Rpc.Dto.Generator.Generation
         );
 
         public static string WrapArgTypeWithNullable(Arg arg) => ConvertArgType(arg)
-            .Apply(x => !IsRefArgType(arg) ? $"{x}?" : x);
+            .Apply(x => $"{x}?");
     }
 }

@@ -186,10 +186,10 @@ namespace Telega.Rpc
                     await CheckReceiveLoop();
 
                     var resp = await respTask;
-                    if (resp.IsSuccess) return resp.Body.Apply(func.DeserializeResult);
+                    if (resp.IsSuccess) return resp.Body!.Apply(func.DeserializeResult);
 
                     if (!resp.IsFail) throw new Exception("WTF");
-                    throw resp.Exception;
+                    throw resp.Exception!;
                 }
 
                 return AwaitResult();

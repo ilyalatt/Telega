@@ -394,7 +394,7 @@ namespace Telega.Rpc.ServiceTransport
 
         uint C0, C1, C2, C3;
         int ROUNDS;
-        uint[,] WorkingKey;
+        uint[,]? WorkingKey;
         bool forEncryption;
 
         public string AlgorithmName

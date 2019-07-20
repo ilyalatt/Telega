@@ -214,7 +214,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
 
             var matchArgFns =
                 typeTags.Map(tag => tag.Name).Map(tagName =>
-                    $"Func<{tagName}, T> {Helpers.LowerFirst(tagName)}"
+                    $"Func<{tagName}, T>? {Helpers.LowerFirst(tagName)}"
                 );
 
             var matchOptDef = Scope(

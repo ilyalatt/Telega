@@ -10,7 +10,7 @@ namespace Telega.Connect
     sealed class TgConnectionPool : IDisposable
     {
         readonly TgCallMiddlewareChain _callMiddlewareChain;
-        readonly TcpClientConnectionHandler _connHandler;
+        readonly TcpClientConnectionHandler? _connHandler;
 
         static async Task TryExportAuth(TgConnection src, TgConnection dst)
         {
@@ -95,7 +95,7 @@ namespace Telega.Connect
         public TgConnectionPool(
             TgConnection mainConn,
             TgCallMiddlewareChain callMiddlewareChain,
-            TcpClientConnectionHandler connHandler = null
+            TcpClientConnectionHandler? connHandler = null
         ) {
             _conns[mainConn.Config.ThisDc] = mainConn;
             _callMiddlewareChain = callMiddlewareChain;

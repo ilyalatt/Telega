@@ -52,10 +52,10 @@ namespace Telega.Connect
 
         public static async Task<TgBellhop> Connect(
             ConnectInfo connectInfo,
-            TgCallMiddlewareChain callMiddlewareChain = null,
-            TcpClientConnectionHandler connHandler = null
+            TgCallMiddlewareChain? callMiddlewareChain = null,
+            TcpClientConnectionHandler? connHandler = null
         ) {
-            callMiddlewareChain = callMiddlewareChain ?? TgCallMiddlewareChain.Default;
+            callMiddlewareChain ??= TgCallMiddlewareChain.Default;
             var conn = await TaskWrapper.Wrap(() =>
                 TgConnectionEstablisher.EstablishConnection(connectInfo, callMiddlewareChain, connHandler)
             ).ConfigureAwait(false);

@@ -24,7 +24,7 @@ namespace Telega.Example
     {
         static async Task SignInViaCode(TelegramClient tg, Config cfg)
         {
-            var codeHash = await tg.Auth.SendCode(cfg.ApiHash, cfg.Phone);
+            var codeHash = await tg.Auth.SendCode(cfg.ApiHash!, cfg.Phone!);
 
             while (true)
             {
@@ -32,7 +32,7 @@ namespace Telega.Example
                 {
                     Console.WriteLine("Enter the telegram code");
                     var code = Console.ReadLine();
-                    await tg.Auth.SignIn(cfg.Phone, codeHash, code);
+                    await tg.Auth.SignIn(cfg.Phone!, codeHash, code);
                 }
                 catch (TgInvalidPhoneCodeException)
                 {
@@ -44,7 +44,7 @@ namespace Telega.Example
         static async Task SignInViaPassword(TelegramClient tg, Config cfg)
         {
             var pwdInfo = await tg.Auth.GetPasswordInfo();
-            await tg.Auth.CheckPassword(pwdInfo, cfg.Password);
+            await tg.Auth.CheckPassword(pwdInfo, cfg.Password!);
         }
 
         static async Task EnsureAuthorized(TelegramClient tg, Config cfg)

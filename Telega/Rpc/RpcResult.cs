@@ -5,10 +5,10 @@ namespace Telega.Rpc
     struct RpcResult
     {
         public readonly long Id;
-        public readonly BinaryReader Body;
-        public readonly TgException Exception;
+        public readonly BinaryReader? Body;
+        public readonly TgException? Exception;
 
-        public RpcResult(long id, BinaryReader body, TgException exception)
+        public RpcResult(long id, BinaryReader? body, TgException? exception)
         {
             Id = id;
             Body = body;
