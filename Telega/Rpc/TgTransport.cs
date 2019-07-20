@@ -53,15 +53,14 @@ namespace Telega.Rpc
 
         async Task ReceiveLoop()
         {
-            try
-            {
-                await ReceiveLoopImpl();
-            }
-            catch (TgTransportException e)
-            {
-                // Updates.OnError(e);
-                throw;
-            }
+//            try
+//            {
+            await ReceiveLoopImpl();
+//            }
+//            catch (TgTransportException e)
+//            {
+//                // Updates.OnError(e);
+//            }
         }
 
         public TgTransport(MtProtoCipherTransport transport, Var<Session> session)
@@ -167,15 +166,14 @@ namespace Telega.Rpc
                     var tcs = new TaskCompletionSource<RpcResult>();
                     _rpcFlow[msgId] = tcs;
 
-                    try
-                    {
-                        await _transport.Send(container);
-                    }
-                    catch (TgTransportException e)
-                    {
-                        // Updates.OnError(e);
-                        throw;
-                    }
+//                    try
+//                    {
+                    await _transport.Send(container);
+//                    }
+//                    catch (TgTransportException e)
+//                    {
+//                        Updates.OnError(e);
+//                    }
 
                     return tcs.Task;
                 });
