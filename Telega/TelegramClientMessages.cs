@@ -22,7 +22,8 @@ namespace Telega
                 limit: 100,
                 excludePinned: false,
                 offsetId: 0,
-                hash: 0
+                hash: 0,
+                folderId: 0
             ));
 
         public async Task<Messages> GetHistory(
