@@ -32,7 +32,8 @@ namespace Telega.Connect
 
         public Session ToSession()
         {
-            Helpers.Assert(_endpoint != null, "_endpoint == null");
+            // TODO: fix it
+            // Helpers.Assert(_endpoint != null, "_endpoint == null");
             return _original ?? Session.New(_apiId, _endpoint!, _auth.AuthKey, _auth.TimeOffset);
         }
     }
