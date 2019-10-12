@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using LanguageExt;
 using Newtonsoft.Json;
 using Telega.Rpc.Dto.Functions.Contacts;
+using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
@@ -202,6 +203,82 @@ namespace Telega.Example
             ));
             var usersMap = resp.Users.Choose(User.AsTag).ToDictionary(x => x.Id);
             return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
+        }
+        
+        static async Task DownloadGroupImages(TelegramClient tg)
+        {
+            const string groupName = "Amsterdam";
+            const string counterFormat = "000";
+
+            var dialogs = await tg.Messages.GetDialogs();
+            var chat = dialogs.AsTag().AssertSome().Chats.Choose(Chat.AsTag).Single(x => x.Title == groupName);
+            var chatPeer = new InputPeer.ChatTag(chatId: chat.Id);
+
+            const int batchLimit = 100;
+            async Task<IEnumerable<Photo.Tag>> GetHistory(int offset = 0)
+            {
+                var resp = await tg.Call(new GetHistory(
+                    peer: chatPeer,
+                    addOffset: offset,
+                    limit: batchLimit,
+                    minId: 0,
+                    maxId: 0,
+                    hash: 0,
+                    offsetDate: 0,
+                    offsetId: 0
+                ));
+                var messages = resp.AsSliceTag().AssertSome().Messages;
+                var photos = messages
+                    .Reverse()
+                    .Choose(Message.AsTag)
+                    .Choose(message => message.Media)
+                    .Choose(MessageMedia.AsPhotoTag)
+                    .Choose(x => x.Photo)
+                    .Choose(Photo.AsTag);
+                return messages.Count == 0
+                    ? photos
+                    : (await GetHistory(offset + batchLimit)).Concat(photos);
+            }
+
+            Console.WriteLine("Scraping chat messages");
+            var allPhotos = (await GetHistory()).ToArr();
+            
+            const string photosDir = groupName;
+            if (!Directory.Exists(photosDir)) Directory.CreateDirectory(photosDir);
+
+            Console.WriteLine("Downloading images");
+            var counter = 1;
+            foreach (var photo in allPhotos) 
+            {
+                var biggestSize = photo.Sizes.Choose(PhotoSize.AsTag).OrderByDescending(x => x.Size).First();
+                var location = biggestSize.Location;
+
+                var photoFileLocation = new InputFileLocation.PhotoTag(
+                    id: photo.Id,
+                    accessHash: photo.AccessHash,
+                    fileReference: photo.FileReference,
+                    thumbSize: biggestSize.Type
+                );
+
+                var fileType = await tg.Upload.GetFileType(photoFileLocation);
+                var fileTypeExt = fileType.Match(
+                    pngTag: _ => ".png",
+                    jpegTag: _ => ".jpg",
+                    _: () => throw new NotImplementedException()
+                );
+
+                var counterStr = counter++.ToString(counterFormat);
+                var photoName = $"{counterStr}{fileTypeExt}";
+                var photoPath = Path.Combine(photosDir, photoName);
+
+                using (var fileStream = File.OpenWrite(photoPath))
+                {
+                    var ms = new MemoryStream();
+                    await tg.Upload.DownloadFile(fileStream, photoFileLocation);
+                }
+
+                Console.WriteLine($"{counterStr}/{allPhotos.Count} downloaded");
+            }
         }
 
         static async Task Main()
