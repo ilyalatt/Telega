@@ -165,6 +165,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
                     .Filter(x => !string.IsNullOrEmpty(x))
                     .Filter(x => !x.StartsWith("//"))
                     .Filter(x => !x.EndsWith("Vector t;"))
+                    .Filter(x => !x.StartsWith("tls"))
                     .Map(ParseSignature)
                 ))
                 .GroupBy(t => t.Item1).ToDictionary(g => g.Key, g => g.Bind(x => x.Item2).ToArr());
