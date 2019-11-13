@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Connect;
@@ -52,7 +53,7 @@ namespace Telega
                 phoneCode: code
             )).ConfigureAwait(false);
 
-            return SetAuthorized(res.User);
+            return SetAuthorized(res.AsTag().Single().User);
         }
 
         public async Task<Password> GetPasswordInfo() =>
@@ -72,24 +73,22 @@ namespace Telega
                 PasswordCheckHelper.GenRequest(pwdInfo, algo, passwordStr)
             ).ConfigureAwait(false);
             var res = await _tg.Call(request).ConfigureAwait(false);
-            return SetAuthorized(res.User);
+            return SetAuthorized(res.AsTag().Single().User);
         }
 
         public async Task<User> SignUp(
             Some<string> phoneNumber,
             Some<string> phoneCodeHash,
-            Some<string> code,
             Some<string> firstName,
             Some<string> lastName
         ) {
             var res = await _tg.Call(new SignUp(
                 phoneNumber: phoneNumber,
                 phoneCodeHash: phoneCodeHash,
-                phoneCode: code,
                 firstName: firstName,
                 lastName: lastName
             )).ConfigureAwait(false);
-            return SetAuthorized(res.User);
+            return SetAuthorized(res.AsTag().Single().User);
         }
     }
 }
