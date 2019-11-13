@@ -22,7 +22,6 @@
     <Authors>ilyalatt</Authors>
 
     <VersionPrefix>0.3.2</VersionPrefix>
-    <VersionSuffix>preview002</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
