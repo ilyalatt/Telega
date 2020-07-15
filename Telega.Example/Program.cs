@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -101,6 +101,55 @@ namespace Telega.Example
             using (var fs = File.OpenWrite($"channel-photo{fileTypeExt}"))
             {
                 await tg.Upload.DownloadFile(fs, photoLoc);
+            }
+        }
+
+        static async Task DownloadLastMovieFromSavedMessagesExample(TelegramClient tg)
+        {
+            var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
+            var userInfo = fullUserInfo.User.AsTag().AssertSome();
+            
+            var chatPeer = (InputPeer) new InputPeer.UserTag(
+                userId: userInfo.Id,
+                accessHash: userInfo.AccessHash.AssertSome()
+            );
+            const int batchLimit = 100;
+            async Task<IEnumerable<Document.Tag>> GetHistory(int offset = 0)
+            {
+                var resp = await tg.Call(new GetHistory(
+                    peer: chatPeer,
+                    addOffset: offset,
+                    limit: batchLimit,
+                    minId: 0,
+                    maxId: 0,
+                    hash: 0,
+                    offsetDate: 0,
+                    offsetId: 0
+                ));
+                var messages = resp.AsSliceTag().AssertSome().Messages;
+                var docs = messages
+                    .Reverse()
+                    .Choose(Message.AsTag)
+                    .Choose(message => message.Media)
+                    .Choose(MessageMedia.AsDocumentTag)
+                    .Choose(x => x.Document)
+                    .Choose(Document.AsTag);
+                return messages.Count == 0
+                    ? docs
+                    : (await GetHistory(offset + batchLimit)).Concat(docs);
+            }
+
+            var history = await GetHistory();
+            var video = history.Last(x => x.Attributes.Choose(DocumentAttribute.AsVideoTag).Any());
+            var videoName = video.Attributes.Choose(DocumentAttribute.AsFilenameTag).Single().FileName;
+
+            var videoLocation = new InputFileLocation.EncryptedTag(
+                id: video.Id,
+                accessHash: video.AccessHash
+            );
+            using (var fs = File.OpenWrite(videoName))
+            {
+                await tg.Upload.DownloadFile(fs, videoLocation);
             }
         }
 
