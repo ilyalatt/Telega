@@ -152,14 +152,6 @@ namespace Telega
                     cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
                 );
 
-                if (prevFile != null)
-                {
-                    Helpers.Assert(prevFile.Type == res.Type, "prevFile.Type != res.Type");
-                    Helpers.Assert(prevFile.Mtime == res.Mtime, "prevFile.Mtime != res.Mtime");
-                }
-
-                prevFile = res;
-
                 var bts = res.Bytes.ToArrayUnsafe();
                 await stream.WriteAsync(bts, 0, bts.Length).ConfigureAwait(false);
                 offset += bts.Length;
