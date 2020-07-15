@@ -21,7 +21,7 @@
     <Description>Telegram client</Description>
     <Authors>ilyalatt</Authors>
 
-    <VersionPrefix>0.3.2</VersionPrefix>
+    <VersionPrefix>0.3.3</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
