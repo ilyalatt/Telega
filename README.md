@@ -32,12 +32,16 @@ If you are not familiar with LanguageExt you can read [LanguageExt readme](https
 * `Telega.Rpc.Dto` - a directory in Telega project that contains generated Types and Functions (they are excluded from git because the size is ~5MB). Based on [LanguageExt](https://github.com/louthy/language-ext). DTOs handle serialization without reflection.
 * `Telega` - the main project that contains [MTProto](https://core.telegram.org/mtproto) and [Telegram API](https://core.telegram.org/api#telegram-api) implementations, TelegramClient and other auxiliary classes.
 
+## Project status
+
+Telega is not actively developed. But it is supported. Feel free to open issues and text me in Telegram :)
+
 ## Difference from TLSharp
 
 The root of Telega is TLSharp. However the library is designed completely different.
 
 * netstandard 2.0 target
-* layer 104
+* layer 114
 * a new DTO generator which is based on .tl scheme
 * completely redesigned DTOs
 * elimination of all reflection usages (even in deserialization)
@@ -51,4 +55,4 @@ The root of Telega is TLSharp. However the library is designed completely differ
 
 ## Versioning
 
-Telega is being actively developed. It will have breaking changes. After the 1.0.0 version it will folow [SemVer](https://semver.org/) except `Telega.Rpc.Dto` and `Telega.Internal` changes. Before the 1.0.0 version a minor increment can have breaking changes and patch can have a new functionality (so minor is used like major and patch is used like minor).
+Telega uses customized [SemVer](https://semver.org/). Before 1.0.0 version is released Minor increments can break compatibility.
