@@ -38,8 +38,7 @@ namespace Telega
                 new CodeSettings(
                     allowFlashcall: false,
                     currentNumber: false,
-                    appHashPersistent: false,
-                    appHash: None
+                    allowAppHash: false
                 )
             )).ConfigureAwait(false);
             return res.PhoneCodeHash;

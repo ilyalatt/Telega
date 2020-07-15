@@ -110,9 +110,11 @@ namespace Telega
 
 
         static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new GetFile(
+            precise: true,
+            cdnSupported: false,
             location: location,
-            limit: 4 * 1024,
-            offset: 0
+            offset: 0,
+            limit: 4 * 1024
         );
 
         public async Task<FileType> GetFileType(
@@ -139,11 +141,13 @@ namespace Telega
             while (true)
             {
                 var resp = await tg.Call(new GetFile(
+                    precise: true,
+                    cdnSupported: false,
                     location: location,
-                    limit: ChunkSize,
-                    offset: offset
+                    offset: offset,
+                    limit: ChunkSize
                 )).ConfigureAwait(false);
-                var res = resp.Match(
+                var res = prevFile = resp.Match(
                     tag: identity,
                     cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
                 );

@@ -23,7 +23,7 @@ namespace Telega
                 excludePinned: false,
                 offsetId: 0,
                 hash: 0,
-                folderId: 0
+                folderId: None
             ));
 
         public async Task<Messages> GetHistory(
@@ -58,7 +58,8 @@ namespace Telega
                 clearDraft: false,
                 replyToMsgId: None,
                 replyMarkup: None,
-                entities: None
+                entities: None,
+                scheduleDate: None
             ));
 
         public async Task<UpdatesType> SendPhoto(
@@ -76,7 +77,8 @@ namespace Telega
                 replyToMsgId: None,
                 replyMarkup: None,
                 message: message,
-                silent: false
+                silent: false,
+                scheduleDate: None
             ));
 
         public async Task<UpdatesType> SendDocument(
@@ -104,7 +106,8 @@ namespace Telega
                 replyToMsgId: None,
                 replyMarkup: None,
                 entities: None,
-                message: message
+                message: message,
+                scheduleDate: None
             ));
 
         public async Task<bool> SendTyping(Some<InputPeer> peer) =>
