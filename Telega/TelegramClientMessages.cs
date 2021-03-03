@@ -115,5 +115,19 @@ namespace Telega
                 action: new SendMessageAction.TypingTag(),
                 peer: peer
             ));
+
+        public async Task<MessageMedia> UploadMediaAsPhoto(Some<InputPeer> peer,
+            Some<InputFile> file,
+            Option<Arr<InputDocument>> stickers,
+            Option<int> ttlSeconds) =>
+            await _tg.Call(func: new UploadMedia(
+                peer: peer,
+                media: new InputMedia.UploadedPhotoTag(
+                    file: file,
+                    stickers: stickers,
+                    ttlSeconds: ttlSeconds
+                )));
+
+        
     }
 }

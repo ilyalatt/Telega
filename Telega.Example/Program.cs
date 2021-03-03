@@ -108,12 +108,13 @@ namespace Telega.Example
         {
             var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
             var userInfo = fullUserInfo.User.AsTag().AssertSome();
-            
+
             var chatPeer = (InputPeer) new InputPeer.UserTag(
                 userId: userInfo.Id,
                 accessHash: userInfo.AccessHash.AssertSome()
             );
             const int batchLimit = 100;
+
             async Task<IEnumerable<Document.Tag>> GetHistory(int offset = 0)
             {
                 var resp = await tg.Call(new GetHistory(
@@ -189,6 +190,39 @@ namespace Telega.Example
             );
         }
 
+        static async Task SendMultiMedia(TelegramClient tg)
+        {
+            const string photoUrl = "https://cdn1.img.jp.sputniknews.com/images/406/99/4069980.png";
+            var photoName = Path.GetFileName(photoUrl);
+            var photo = new WebClient().DownloadData(photoUrl);
+
+            InputFile? tgPhoto = await tg.Upload.UploadFile(photoName, photo.Length, new MemoryStream(photo));
+            InputPeer.SelfTag? peer = new InputPeer.SelfTag();
+            
+            MessageMedia? sentImage = await tg.Messages.UploadMediaAsPhoto(
+                peer: peer,
+                file: tgPhoto,
+                stickers: Option<Arr<InputDocument>>.None,
+                ttlSeconds: Option<int>.None);
+            
+            SendMultiMedia request = new SendMultiMedia(
+                false,
+                false,
+                false,
+                peer,
+                Option<int>.None,
+                new Arr<InputSingleMedia>()
+                {
+                    new InputSingleMedia(
+                        sentImage.AsPhotoTag(), 
+                        Int64.MaxValue, 
+                        "", 
+                        Option<Arr<MessageEntity>>.None)
+                }, Option<int>.None
+
+            );
+        }
+
         static async Task PrintUserInfo(TelegramClient tg)
         {
             var myInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
@@ -206,7 +240,8 @@ namespace Telega.Example
                         updateShortTag: update => update.Update.Match(
                             newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
                             editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
-                            editChannelMessageTag: msg => msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                            editChannelMessageTag: msg =>
+                                msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
                             _: () => None
                         ),
                         _: () => None
@@ -226,7 +261,8 @@ namespace Telega.Example
                         updateShortTag: update => update.Update.Match(
                             newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
                             editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
-                            editChannelMessageTag: msg => msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                            editChannelMessageTag: msg =>
+                                msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
                             _: () => None
                         ),
                         _: () => None
@@ -242,7 +278,8 @@ namespace Telega.Example
         static async Task<Arr<(int userIdx, User.Tag user)>> ImportUsers(
             TelegramClient tg,
             IEnumerable<(string phone, string firstName, string lastName)> users
-        ) {
+        )
+        {
             var resp = await tg.Call(new ImportContacts(
                 contacts: users.Map((userIdx, user) => new InputContact(
                     clientId: userIdx,
@@ -254,7 +291,7 @@ namespace Telega.Example
             var usersMap = resp.Users.Choose(User.AsTag).ToDictionary(x => x.Id);
             return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
         }
-        
+
         static async Task DownloadGroupImages(TelegramClient tg)
         {
             const string groupName = "Amsterdam";
@@ -265,6 +302,7 @@ namespace Telega.Example
             var chatPeer = new InputPeer.ChatTag(chatId: chat.Id);
 
             const int batchLimit = 100;
+
             async Task<IEnumerable<Photo.Tag>> GetHistory(int offset = 0)
             {
                 var resp = await tg.Call(new GetHistory(
@@ -292,13 +330,13 @@ namespace Telega.Example
 
             Console.WriteLine("Scraping chat messages");
             var allPhotos = (await GetHistory()).ToArr();
-            
+
             const string photosDir = groupName;
             if (!Directory.Exists(photosDir)) Directory.CreateDirectory(photosDir);
 
             Console.WriteLine("Downloading images");
             var counter = 1;
-            foreach (var photo in allPhotos) 
+            foreach (var photo in allPhotos)
             {
                 var biggestSize = photo.Sizes.Choose(PhotoSize.AsTag).OrderByDescending(x => x.Size).First();
                 var location = biggestSize.Location;
@@ -344,7 +382,8 @@ namespace Telega.Example
                 // await PrintUserInfo(tg);
                 // await DownloadFirstChannelPictureExample(tg);
                 // await PrintFirstChannelTop100MessagesExample(tg);
-                await SendOnePavelDurovPictureToMeExample(tg);
+                //await SendOnePavelDurovPictureToMeExample(tg);
+                await SendMultiMedia(tg);
                 await ListenUpdates(tg);
             }
         }
