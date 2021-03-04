@@ -108,12 +108,13 @@ namespace Telega.Example
         {
             var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
             var userInfo = fullUserInfo.User.AsTag().AssertSome();
-            
+
             var chatPeer = (InputPeer) new InputPeer.UserTag(
                 userId: userInfo.Id,
                 accessHash: userInfo.AccessHash.AssertSome()
             );
             const int batchLimit = 100;
+
             async Task<IEnumerable<Document.Tag>> GetHistory(int offset = 0)
             {
                 var resp = await tg.Call(new GetHistory(
@@ -185,9 +186,64 @@ namespace Telega.Example
             await tg.Messages.SendPhoto(
                 peer: new InputPeer.SelfTag(),
                 file: tgPhoto,
-                message: "Sent from Telega"
+                message: "Sent from Telega",
+                scheduleDate: None
             );
         }
+
+        static async Task SendMultiMedia(TelegramClient tg)
+        {
+            async Task<MessageMedia> UploadPhoto(string photoName, byte[] bytes, Some<InputPeer> peer)
+            {
+                InputFile? tgPhoto = await tg.Upload.UploadFile(name: photoName, fileLength: bytes.Length,
+                    stream: new MemoryStream(buffer: bytes));
+
+                MessageMedia? messageMedia = await tg.Messages.UploadMediaAsPhoto(
+                    peer: peer,
+                    file: tgPhoto);
+                return messageMedia;
+            }
+
+            async Task<MessageMedia> UploadVideo(string videoName, byte[] bytes, Some<InputPeer> peer,
+                Some<string> mimeType)
+            {
+                InputFile? tgPhoto = await tg.Upload.UploadFile(name: videoName, fileLength: bytes.Length,
+                    stream: new MemoryStream(buffer: bytes));
+
+                MessageMedia? messageMedia = await tg.Messages.UploadMediaAsDocument(
+                    peer: peer,
+                    file: tgPhoto,
+                    mimeType,
+                    Empty
+                );
+                return messageMedia;
+            }
+
+
+            const string photoUrl = "https://cdn1.img.jp.sputniknews.com/images/406/99/4069980.png";
+            var photoName = Path.GetFileName(path: photoUrl);
+            var photo = new WebClient().DownloadData(address: photoUrl);
+
+            const string videoUrl = "http://techslides.com/demos/sample-videos/small.mp4";
+            var videoName = Path.GetFileName(path: videoUrl);
+            var video = new WebClient().DownloadData(address: videoUrl);
+
+            var inputPeer = new InputPeer.SelfTag();
+
+            MessageMedia sentImage = await UploadPhoto(photoName, photo, inputPeer);
+            MessageMedia sentVideo = await UploadVideo(videoName, video, inputPeer, "video/mp4");
+
+            await tg.Messages.SendMultimedia(
+                peer: inputPeer,
+                message: "Sent from Telega",
+                attachments: new[]
+                {
+                    sentImage,
+                    sentVideo,
+                },
+                scheduleDate: None);
+        }
+
 
         static async Task PrintUserInfo(TelegramClient tg)
         {
@@ -206,7 +262,8 @@ namespace Telega.Example
                         updateShortTag: update => update.Update.Match(
                             newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
                             editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
-                            editChannelMessageTag: msg => msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                            editChannelMessageTag: msg =>
+                                msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
                             _: () => None
                         ),
                         _: () => None
@@ -226,7 +283,8 @@ namespace Telega.Example
                         updateShortTag: update => update.Update.Match(
                             newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
                             editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
-                            editChannelMessageTag: msg => msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                            editChannelMessageTag: msg =>
+                                msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
                             _: () => None
                         ),
                         _: () => None
@@ -242,7 +300,8 @@ namespace Telega.Example
         static async Task<Arr<(int userIdx, User.Tag user)>> ImportUsers(
             TelegramClient tg,
             IEnumerable<(string phone, string firstName, string lastName)> users
-        ) {
+        )
+        {
             var resp = await tg.Call(new ImportContacts(
                 contacts: users.Map((userIdx, user) => new InputContact(
                     clientId: userIdx,
@@ -254,7 +313,7 @@ namespace Telega.Example
             var usersMap = resp.Users.Choose(User.AsTag).ToDictionary(x => x.Id);
             return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
         }
-        
+
         static async Task DownloadGroupImages(TelegramClient tg)
         {
             const string groupName = "Amsterdam";
@@ -265,6 +324,7 @@ namespace Telega.Example
             var chatPeer = new InputPeer.ChatTag(chatId: chat.Id);
 
             const int batchLimit = 100;
+
             async Task<IEnumerable<Photo.Tag>> GetHistory(int offset = 0)
             {
                 var resp = await tg.Call(new GetHistory(
@@ -292,13 +352,13 @@ namespace Telega.Example
 
             Console.WriteLine("Scraping chat messages");
             var allPhotos = (await GetHistory()).ToArr();
-            
+
             const string photosDir = groupName;
             if (!Directory.Exists(photosDir)) Directory.CreateDirectory(photosDir);
 
             Console.WriteLine("Downloading images");
             var counter = 1;
-            foreach (var photo in allPhotos) 
+            foreach (var photo in allPhotos)
             {
                 var biggestSize = photo.Sizes.Choose(PhotoSize.AsTag).OrderByDescending(x => x.Size).First();
                 var location = biggestSize.Location;
@@ -344,7 +404,8 @@ namespace Telega.Example
                 // await PrintUserInfo(tg);
                 // await DownloadFirstChannelPictureExample(tg);
                 // await PrintFirstChannelTop100MessagesExample(tg);
-                await SendOnePavelDurovPictureToMeExample(tg);
+                //await SendOnePavelDurovPictureToMeExample(tg);
+                await SendMultiMedia(tg);
                 await ListenUpdates(tg);
             }
         }
