@@ -186,42 +186,64 @@ namespace Telega.Example
             await tg.Messages.SendPhoto(
                 peer: new InputPeer.SelfTag(),
                 file: tgPhoto,
-                message: "Sent from Telega"
+                message: "Sent from Telega",
+                scheduleDate: None
             );
         }
 
         static async Task SendMultiMedia(TelegramClient tg)
         {
+            async Task<MessageMedia> UploadPhoto(string photoName, byte[] bytes, Some<InputPeer> peer)
+            {
+                InputFile? tgPhoto = await tg.Upload.UploadFile(name: photoName, fileLength: bytes.Length,
+                    stream: new MemoryStream(buffer: bytes));
+
+                MessageMedia? messageMedia = await tg.Messages.UploadMediaAsPhoto(
+                    peer: peer,
+                    file: tgPhoto);
+                return messageMedia;
+            }
+
+            async Task<MessageMedia> UploadVideo(string videoName, byte[] bytes, Some<InputPeer> peer,
+                Some<string> mimeType)
+            {
+                InputFile? tgPhoto = await tg.Upload.UploadFile(name: videoName, fileLength: bytes.Length,
+                    stream: new MemoryStream(buffer: bytes));
+
+                MessageMedia? messageMedia = await tg.Messages.UploadMediaAsDocument(
+                    peer: peer,
+                    file: tgPhoto,
+                    mimeType,
+                    Empty
+                );
+                return messageMedia;
+            }
+
+
             const string photoUrl = "https://cdn1.img.jp.sputniknews.com/images/406/99/4069980.png";
-            var photoName = Path.GetFileName(photoUrl);
-            var photo = new WebClient().DownloadData(photoUrl);
+            var photoName = Path.GetFileName(path: photoUrl);
+            var photo = new WebClient().DownloadData(address: photoUrl);
 
-            InputFile? tgPhoto = await tg.Upload.UploadFile(photoName, photo.Length, new MemoryStream(photo));
-            InputPeer.SelfTag? peer = new InputPeer.SelfTag();
-            
-            MessageMedia? sentImage = await tg.Messages.UploadMediaAsPhoto(
-                peer: peer,
-                file: tgPhoto,
-                stickers: Option<Arr<InputDocument>>.None,
-                ttlSeconds: Option<int>.None);
-            
-            SendMultiMedia request = new SendMultiMedia(
-                false,
-                false,
-                false,
-                peer,
-                Option<int>.None,
-                new Arr<InputSingleMedia>()
+            const string videoUrl = "http://techslides.com/demos/sample-videos/small.mp4";
+            var videoName = Path.GetFileName(path: videoUrl);
+            var video = new WebClient().DownloadData(address: videoUrl);
+
+            var inputPeer = new InputPeer.SelfTag();
+
+            MessageMedia sentImage = await UploadPhoto(photoName, photo, inputPeer);
+            MessageMedia sentVideo = await UploadVideo(videoName, video, inputPeer, "video/mp4");
+
+            await tg.Messages.SendMultimedia(
+                peer: inputPeer,
+                message: "Sent from Telega",
+                attachments: new[]
                 {
-                    new InputSingleMedia(
-                        sentImage.AsPhotoTag(), 
-                        Int64.MaxValue, 
-                        "", 
-                        Option<Arr<MessageEntity>>.None)
-                }, Option<int>.None
-
-            );
+                    sentImage,
+                    sentVideo,
+                },
+                scheduleDate: None);
         }
+
 
         static async Task PrintUserInfo(TelegramClient tg)
         {

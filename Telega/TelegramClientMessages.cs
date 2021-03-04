@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Connect;
@@ -47,7 +48,10 @@ namespace Telega
                 hash
             ));
 
-        public async Task<UpdatesType> SendMessage(Some<InputPeer> peer, Some<string> message) =>
+        public async Task<UpdatesType> SendMessage(
+            Some<InputPeer> peer,
+            Some<string> message,
+            Option<int> scheduleDate) =>
             await _tg.Call(new SendMessage(
                 peer: peer,
                 message: message,
@@ -59,13 +63,14 @@ namespace Telega
                 replyToMsgId: None,
                 replyMarkup: None,
                 entities: None,
-                scheduleDate: None
+                scheduleDate: scheduleDate
             ));
-
+      
         public async Task<UpdatesType> SendPhoto(
             Some<InputPeer> peer,
             Some<InputFile> file,
-            Some<string> message
+            Some<string> message,
+            Option<int> scheduleDate
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
@@ -78,15 +83,16 @@ namespace Telega
                 replyMarkup: None,
                 message: message,
                 silent: false,
-                scheduleDate: None
+                scheduleDate: scheduleDate
             ));
-
+       
         public async Task<UpdatesType> SendDocument(
             Some<InputPeer> peer,
             Some<InputFile> file,
             Some<string> mimeType,
             Arr<DocumentAttribute> attributes,
-            Some<string> message
+            Some<string> message,
+            Option<int> scheduleDate
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
@@ -107,7 +113,72 @@ namespace Telega
                 replyMarkup: None,
                 entities: None,
                 message: message,
-                scheduleDate: None
+                scheduleDate: scheduleDate
+            ));
+
+        public async Task<UpdatesType> SendMultimedia(
+            Some<InputPeer> peer,
+            Option<string> message,
+            Arr<MessageMedia> attachments,
+            Option<int> scheduleDate
+        ) =>
+            await _tg.Call(new SendMultiMedia(
+                silent: false,
+                background: false,
+                clearDraft: false,
+                peer: peer,
+                replyToMsgId: None,
+                multiMedia: new Arr<InputSingleMedia>(
+                    attachments.Choose<MessageMedia, InputSingleMedia>((i, x) =>
+                        x.Match(
+                            _: () => throw new NotImplementedException(),
+                            photoTag: photoTag =>
+                            {
+                                Photo.Tag? photo = photoTag.Photo
+                                    .HeadOrNone()
+                                    .IfNone(() => throw new TgInternalException("Unable to get photo", None))
+                                    .AsTag()
+                                    .HeadOrNone()
+                                    .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
+                                return new InputSingleMedia(
+                                    media: new InputMedia.PhotoTag(
+                                        id: new InputPhoto.Tag(
+                                            id: photo.Id,
+                                            accessHash: photo.AccessHash,
+                                            fileReference: photo.FileReference
+                                        ),
+                                        ttlSeconds: None
+                                    ),
+                                    randomId: Rnd.NextInt64(),
+                                    message: i == 0  ? message.IfNone(string.Empty) : string.Empty,
+                                    entities: None
+                                );
+                            },
+                            documentTag: documentTag =>
+                            {
+                                Document.Tag? document = documentTag.Document
+                                    .HeadOrNone()
+                                    .IfNone(() => throw new TgInternalException("Unable to get document", None))
+                                    .AsTag()
+                                    .HeadOrNone()
+                                    .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
+                                return new InputSingleMedia(
+                                    media: new InputMedia.DocumentTag(
+                                        id: new InputDocument.Tag(
+                                            id: document.Id,
+                                            accessHash: document.AccessHash,
+                                            fileReference: document.FileReference
+                                        ),
+                                        ttlSeconds: None
+                                    ),
+                                    randomId: Rnd.NextInt64(),
+                                    message: i == 0  ? message.IfNone(string.Empty) : string.Empty,
+                                    entities: None
+                                );
+                            }
+                        )
+                    )),
+                scheduleDate: scheduleDate
             ));
 
         public async Task<bool> SendTyping(Some<InputPeer> peer) =>
@@ -117,17 +188,31 @@ namespace Telega
             ));
 
         public async Task<MessageMedia> UploadMediaAsPhoto(Some<InputPeer> peer,
-            Some<InputFile> file,
-            Option<Arr<InputDocument>> stickers,
-            Option<int> ttlSeconds) =>
+            Some<InputFile> file) =>
             await _tg.Call(func: new UploadMedia(
                 peer: peer,
                 media: new InputMedia.UploadedPhotoTag(
                     file: file,
-                    stickers: stickers,
-                    ttlSeconds: ttlSeconds
+                    stickers: None,
+                    ttlSeconds: None
                 )));
 
-        
+        public async Task<MessageMedia> UploadMediaAsDocument(Some<InputPeer> peer,
+            Some<InputFile> file,
+            Some<string> mimeType,
+            Arr<DocumentAttribute> attributes) =>
+            await _tg.Call(func: new UploadMedia(
+                peer: peer,
+                media: new InputMedia.UploadedDocumentTag(
+                    nosoundVideo: false,
+                    file: file,
+                    mimeType: mimeType,
+                    attributes: attributes,
+                    thumb: None,
+                    stickers: None,
+                    ttlSeconds: None
+                )));
+
+
     }
 }
