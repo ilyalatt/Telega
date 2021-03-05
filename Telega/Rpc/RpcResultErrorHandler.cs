@@ -46,6 +46,7 @@ namespace Telega.Rpc
             if (msg.StartsWith("NETWORK_MIGRATE_")) return ExtractDcMigration(DcMigrationReason.Network);
 
             if (msg == "PHONE_CODE_INVALID") return new TgInvalidPhoneCodeException();
+            if (msg == "PASSWORD_HASH_INVALID") return new TgInvalidPasswordException();
             if (msg == "PHONE_NUMBER_UNOCCUPIED") return new TgPhoneNumberUnoccupiedException(); // 400
             if (msg == "SESSION_PASSWORD_NEEDED") return new TgPasswordNeededException();
 

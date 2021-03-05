@@ -65,7 +65,7 @@ namespace Telega
                 entities: None,
                 scheduleDate: scheduleDate
             ));
-      
+
         public async Task<UpdatesType> SendPhoto(
             Some<InputPeer> peer,
             Some<InputFile> file,
@@ -85,7 +85,7 @@ namespace Telega
                 silent: false,
                 scheduleDate: scheduleDate
             ));
-       
+
         public async Task<UpdatesType> SendDocument(
             Some<InputPeer> peer,
             Some<InputFile> file,
@@ -106,6 +106,63 @@ namespace Telega
                     thumb: None,
                     stickers: None,
                     ttlSeconds: None
+                ),
+                peer: peer,
+                silent: false,
+                replyToMsgId: None,
+                replyMarkup: None,
+                entities: None,
+                message: message,
+                scheduleDate: scheduleDate
+            ));
+
+        public async Task<UpdatesType> SendMedia(
+            Some<InputPeer> peer,
+            Some<MessageMedia> file,
+            Some<string> message,
+            Option<int> scheduleDate
+        ) =>
+            await _tg.Call(new SendMedia(
+                randomId: Rnd.NextInt64(),
+                background: false,
+                clearDraft: false,
+                media: file.Head().Match<InputMedia>(
+                    _: () => throw new NotImplementedException(),
+                    photoTag: photoTag =>
+                    {
+                        Photo.Tag? photo = photoTag.Photo
+                            .HeadOrNone()
+                            .IfNone(() => throw new TgInternalException("Unable to get photo", None))
+                            .AsTag()
+                            .HeadOrNone()
+                            .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
+                        return new InputMedia.PhotoTag(
+                            id: new InputPhoto.Tag(
+                                id: photo.Id,
+                                accessHash: photo.AccessHash,
+                                fileReference: photo.FileReference
+                            ),
+                            ttlSeconds: None
+                        );
+                    },
+                    documentTag: documentTag =>
+                    {
+                        Document.Tag? document = documentTag.Document
+                            .HeadOrNone()
+                            .IfNone(() => throw new TgInternalException("Unable to get document", None))
+                            .AsTag()
+                            .HeadOrNone()
+                            .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
+                        return
+                            new InputMedia.DocumentTag(
+                                id: new InputDocument.Tag(
+                                    id: document.Id,
+                                    accessHash: document.AccessHash,
+                                    fileReference: document.FileReference
+                                ),
+                                ttlSeconds: None
+                            );
+                    }
                 ),
                 peer: peer,
                 silent: false,
@@ -150,7 +207,7 @@ namespace Telega
                                         ttlSeconds: None
                                     ),
                                     randomId: Rnd.NextInt64(),
-                                    message: i == 0  ? message.IfNone(string.Empty) : string.Empty,
+                                    message: i == 0 ? message.IfNone(string.Empty) : string.Empty,
                                     entities: None
                                 );
                             },
@@ -172,7 +229,7 @@ namespace Telega
                                         ttlSeconds: None
                                     ),
                                     randomId: Rnd.NextInt64(),
-                                    message: i == 0  ? message.IfNone(string.Empty) : string.Empty,
+                                    message: i == 0 ? message.IfNone(string.Empty) : string.Empty,
                                     entities: None
                                 );
                             }
@@ -211,8 +268,12 @@ namespace Telega
                     thumb: None,
                     stickers: None,
                     ttlSeconds: None
-                )));
-
-
+                ))); 
+        
+        public async Task<MessageMedia> UploadMediaAsDocument(Some<InputPeer> peer,
+            Some<string> url) =>
+            await _tg.Call(func: new UploadMedia(
+                peer: peer,
+                media: new InputMedia.DocumentExternalTag(url, Option<int>.None)));
     }
 }

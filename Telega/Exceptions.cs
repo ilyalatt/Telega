@@ -99,6 +99,16 @@ namespace Telega
         ) { }
     }
 
+    public sealed class TgInvalidPasswordException : TgException
+    {
+        internal TgInvalidPasswordException() : base(
+            "The provided password is invalid.",
+            None
+        )
+        {
+        }
+    }
+
     public sealed class TgPhoneNumberUnoccupiedException : TgException
     {
         internal TgPhoneNumberUnoccupiedException() : base(
