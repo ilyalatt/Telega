@@ -1,5 +1,6 @@
 using System;
 using LanguageExt;
+using LanguageExt.UnsafeValueAccess;
 
 namespace Telega.Rpc.Dto.Generator.TgScheme
 {
@@ -183,18 +184,32 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
 
     class Scheme
     {
-        public int LayerVersion { get; }
+        public Option<int> LayerVersion { get; }
         public Arr<Signature> Types { get; }
         public Arr<Signature> Functions { get; }
 
         public Scheme(
-            int layerVersion,
+            Option<int> layerVersion,
             Some<Arr<Signature>> types,
             Some<Arr<Signature>> functions
         ) {
             LayerVersion = layerVersion;
             Types = types.Value;
             Functions = functions.Value;
+        }
+
+        public static Scheme Merge(Scheme a, Scheme b) {
+            if (a.LayerVersion.IsSome && b.LayerVersion.IsSome) {
+                if (a.LayerVersion.ValueUnsafe() != b.LayerVersion.ValueUnsafe()) {
+                    throw new Exception("Can not merge schemas with different layer versions");
+                }
+            }
+
+            return new Scheme(
+                a.LayerVersion || b.LayerVersion,
+                a.Types + b.Types,
+                a.Functions + b.Functions
+            );
         }
     }
 }

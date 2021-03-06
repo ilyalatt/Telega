@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LanguageExt;
 using LanguageExt.SomeHelp;
+using LanguageExt.UnsafeValueAccess;
 using Telega.Rpc.Dto.Generator.TextModel;
 using Telega.Rpc.Dto.Generator.TgScheme;
 using static LanguageExt.Prelude;
@@ -406,15 +407,15 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 return new GenFile(nameSpace, name, content);
             });
 
-        public static GenFile GenSchemeInfo(Scheme scheme)
-        {
+        public static GenFile GenSchemeInfo(Scheme scheme) {
+            var layerVersion = scheme.LayerVersion.GetOrThrow(() => new Exception("Scheme does not have layer version"));
             const string nameSpace = "Telega.Rpc.Dto";
             const string name = "SchemeInfo";
             var infoDef = Scope(
                 Line($"static class {name}"),
                 Line("{"),
                 IndentedScope(1,
-                    Line($"public const int LayerVersion = {scheme.LayerVersion};")
+                    Line($"public const int LayerVersion = {layerVersion};")
                 ),
                 Line("}")
             ).Apply(WrapIntoNamespace(nameSpace));

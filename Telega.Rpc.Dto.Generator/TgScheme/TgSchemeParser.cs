@@ -62,11 +62,11 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
             return res;
         }
 
-        static int ExtractLayerVersion(string s) =>
+        static Option<int> ExtractLayerVersion(string s) =>
             new Regex(@"\/\/ LAYER (.+)$").Match(s).Groups[1].Value
-            .Apply(Optional).Filter(x => x.Length > 0).GetOrThrow(Ex("can not find '// LAYER {version}' substring"))
-            .Apply(parseInt)
-            .GetOrThrow(Ex("can not parse a version of '// LAYER={version}'"));
+            .Apply(Optional).Filter(x => x.Length > 0)
+            .Map(parseInt)
+            .Map(x => x.GetOrThrow(Ex("can not parse a version of '// LAYER={version}'")));
 
         // works only with flags variable for now
         const string FlagMarker = "flags.";
@@ -154,6 +154,17 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
             });
 
 
+        static readonly string[] IgnoredLines = {
+            "int ? = Int;",
+            "long ? = Long;",
+            "double ? = Double;",
+            "string ? = String;",
+            "vector {t:Type} # [ t ] = Vector t;",
+            "vector#1cb5c415 {t:Type} # [ t ] = Vector t;",
+            "int128 4*[ int ] = Int128;",
+            "int256 8*[ int ] = Int256;"
+        };
+        
         public static Scheme Parse(Some<string> tgScheme)
         {
             var sections = SplitBySections(tgScheme.Value);
@@ -164,7 +175,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
                     .Map(x => x.Trim())
                     .Filter(x => !string.IsNullOrEmpty(x))
                     .Filter(x => !x.StartsWith("//"))
-                    .Filter(x => !x.EndsWith("Vector t;"))
+                    .Filter(x => !IgnoredLines.Contains(x))
                     .Filter(x => !x.StartsWith("tls"))
                     .Map(ParseSignature)
                 ))
