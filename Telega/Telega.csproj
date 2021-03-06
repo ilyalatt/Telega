@@ -3,14 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
-    <WarningsAsErrors>CS8597;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8622;CS8625</WarningsAsErrors>
-    <NoWarn>CS8614</NoWarn>
+    <WarningsAsErrors>nullable</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,14 +20,14 @@
     <Description>Telegram client</Description>
     <Authors>ilyalatt</Authors>
 
-    <VersionPrefix>0.3.3</VersionPrefix>
+    <VersionPrefix>0.4.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BigMathNetStandard" Version="1.0.0" />
     <PackageReference Include="LanguageExt.Core" Version="3.4.15" />
-    <PackageReference Include="System.Reactive" Version="4.4.1" />
-    <PackageReference Include="System.Reactive.Observable.Aliases" Version="4.4.1" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="System.Reactive.Observable.Aliases" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

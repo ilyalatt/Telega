@@ -33,7 +33,7 @@ namespace Telega.Example
                 {
                     Console.WriteLine("Enter the telegram code");
                     var code = Console.ReadLine();
-                    await tg.Auth.SignIn(cfg.Phone!, codeHash, code);
+                    await tg.Auth.SignIn(cfg.Phone!, codeHash, code!);
                     break;
                 }
                 catch (TgInvalidPhoneCodeException)
