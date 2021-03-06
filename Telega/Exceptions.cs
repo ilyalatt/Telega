@@ -104,9 +104,7 @@ namespace Telega
         internal TgInvalidPasswordException() : base(
             "The provided password is invalid.",
             None
-        )
-        {
-        }
+        ) { }
     }
 
     public sealed class TgPhoneNumberUnoccupiedException : TgException
