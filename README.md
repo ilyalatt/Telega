@@ -14,8 +14,8 @@ Also you can read [the introduction](https://github.com/ilyalatt/Telega/wiki/Int
 
 ```json
 {
-  "apiId": 12345,
-  "apiHash": "api-hash",
+  "apiId": 17349,
+  "apiHash": "344583e45741c457fe1862106095a5eb",
   "phone": "123456789",
   "password": "password-if-needed"
 }
