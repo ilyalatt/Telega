@@ -95,8 +95,8 @@ namespace Telega
             Some<InputPeer> peer,
             Some<InputFile> file,
             Some<string> mimeType,
-            Arr<DocumentAttribute> attributes,
             Some<string> message,
+            Arr<DocumentAttribute> attributes = default,
             Option<int> scheduleDate = default
         ) =>
             await _tg.Call(new SendMedia(
@@ -182,8 +182,8 @@ namespace Telega
 
         public async Task<UpdatesType> SendMultimedia(
             Some<InputPeer> peer,
-            Option<string> message,
             Arr<MessageMedia> attachments,
+            Option<string> message = default,
             Option<int> scheduleDate = default
         ) =>
             await _tg.Call(new SendMultiMedia(

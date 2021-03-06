@@ -193,32 +193,40 @@ namespace Telega.Example
 
         static async Task SendMultiMedia(TelegramClient tg)
         {
-            async Task<MessageMedia> UploadPhoto(string photoName, byte[] bytes, Some<InputPeer> peer)
-            {
-                InputFile? tgPhoto = await tg.Upload.UploadFile(name: photoName, fileLength: bytes.Length,
-                    stream: new MemoryStream(buffer: bytes));
-
-                MessageMedia? messageMedia = await tg.Messages.UploadMediaAsPhoto(
+            async Task<MessageMedia> UploadPhoto(
+                string photoName,
+                byte[] bytes,
+                InputPeer peer
+            ) {
+                var photo = await tg.Upload.UploadFile(
+                    name: photoName,
+                    fileLength: bytes.Length,
+                    stream: new MemoryStream(buffer: bytes)
+                );
+                return await tg.Messages.UploadMediaAsPhoto(
                     peer: peer,
-                    file: tgPhoto);
-                return messageMedia;
+                    file: photo
+                );
             }
 
-            async Task<MessageMedia> UploadVideo(string videoName, byte[] bytes, Some<InputPeer> peer,
-                Some<string> mimeType)
-            {
-                InputFile? tgPhoto = await tg.Upload.UploadFile(name: videoName, fileLength: bytes.Length,
-                    stream: new MemoryStream(buffer: bytes));
-
-                MessageMedia? messageMedia = await tg.Messages.UploadMediaAsDocument(
+            async Task<MessageMedia> UploadVideo(
+                string videoName,
+                byte[] bytes,
+                InputPeer peer,
+                string mimeType
+            ) {
+                var video = await tg.Upload.UploadFile(
+                    name: videoName,
+                    fileLength: bytes.Length,
+                    stream: new MemoryStream(buffer: bytes)
+                );
+                return await tg.Messages.UploadMediaAsDocument(
                     peer: peer,
-                    file: tgPhoto,
+                    file: video,
                     mimeType,
                     Empty
                 );
-                return messageMedia;
             }
-
 
             const string photoUrl = "https://cdn1.img.jp.sputniknews.com/images/406/99/4069980.png";
             var photoName = Path.GetFileName(path: photoUrl);
@@ -230,9 +238,8 @@ namespace Telega.Example
 
             var inputPeer = new InputPeer.SelfTag();
 
-            MessageMedia sentImage = await UploadPhoto(photoName, photo, inputPeer);
-            MessageMedia sentVideo = await UploadVideo(videoName, video, inputPeer, "video/mp4");
-
+            var sentImage = await UploadPhoto(photoName, photo, inputPeer);
+            var sentVideo = await UploadVideo(videoName, video, inputPeer, "video/mp4");
             await tg.Messages.SendMultimedia(
                 peer: inputPeer,
                 message: "Sent from Telega",
@@ -240,8 +247,8 @@ namespace Telega.Example
                 {
                     sentImage,
                     sentVideo,
-                },
-                scheduleDate: None);
+                }
+            );
         }
 
 
@@ -404,7 +411,7 @@ namespace Telega.Example
                 // await PrintUserInfo(tg);
                 // await DownloadFirstChannelPictureExample(tg);
                 // await PrintFirstChannelTop100MessagesExample(tg);
-                //await SendOnePavelDurovPictureToMeExample(tg);
+                // await SendOnePavelDurovPictureToMeExample(tg);
                 await SendMultiMedia(tg);
                 await ListenUpdates(tg);
             }
