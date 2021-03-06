@@ -223,8 +223,7 @@ namespace Telega.Example
                 return await tg.Messages.UploadMediaAsDocument(
                     peer: peer,
                     file: video,
-                    mimeType,
-                    Empty
+                    mimeType: mimeType
                 );
             }
 

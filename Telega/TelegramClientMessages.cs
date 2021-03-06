@@ -270,7 +270,7 @@ namespace Telega
             Some<InputPeer> peer,
             Some<InputFile> file,
             Some<string> mimeType,
-            Arr<DocumentAttribute> attributes
+            Arr<DocumentAttribute> attributes = default
         ) =>
             await _tg.Call(new UploadMedia(
                 peer: peer,
@@ -282,7 +282,7 @@ namespace Telega
                     thumb: None,
                     stickers: None,
                     ttlSeconds: None,
-                    forceFile: true
+                    forceFile: false
                 )
             )); 
         
