@@ -9,7 +9,7 @@ Also you can read [the introduction](https://github.com/ilyalatt/Telega/wiki/Int
 ## Quick start
 
 * Clone the repository.
-* Run `Telega.Rpc.Dto.Generator` to generate DTOs. You can use `./generate-dto.sh`. NET Core 3.0 is used.
+* Run `Telega.Rpc.Dto.Generator` to generate DTOs. You can use `./generate-dto.sh`. NET Core 3.1 is used.
 * Create config.json in `Telega.Example`. It should look like
 
 ```json
