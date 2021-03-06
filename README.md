@@ -41,7 +41,7 @@ Telega is not actively developed. But it is supported. Feel free to open issues 
 The root of Telega is TLSharp. However the library is designed completely different.
 
 * netstandard 2.0 target
-* layer 114
+* layer 124
 * a new DTO generator which is based on .tl scheme
 * completely redesigned DTOs
 * elimination of all reflection usages (even in deserialization)

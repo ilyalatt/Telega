@@ -105,6 +105,7 @@ namespace Telega
                 clearDraft: false,
                 media: new InputMedia.UploadedDocumentTag(
                     nosoundVideo: false,
+                    forceFile: true,
                     file: file,
                     mimeType: mimeType,
                     attributes: attributes,
@@ -165,7 +166,8 @@ namespace Telega
                                     accessHash: document.AccessHash,
                                     fileReference: document.FileReference
                                 ),
-                                ttlSeconds: None
+                                ttlSeconds: None,
+                                query: None
                             );
                     }
                 ),
@@ -231,7 +233,8 @@ namespace Telega
                                             accessHash: document.AccessHash,
                                             fileReference: document.FileReference
                                         ),
-                                        ttlSeconds: None
+                                        ttlSeconds: None,
+                                        query: None
                                     ),
                                     randomId: Rnd.NextInt64(),
                                     message: i == 0 ? message.IfNone(string.Empty) : string.Empty,
@@ -246,7 +249,8 @@ namespace Telega
         public async Task<bool> SendTyping(Some<InputPeer> peer) =>
             await _tg.Call(new SetTyping(
                 action: new SendMessageAction.TypingTag(),
-                peer: peer
+                peer: peer,
+                topMsgId: None
             ));
 
         public async Task<MessageMedia> UploadMediaAsPhoto(
@@ -277,7 +281,8 @@ namespace Telega
                     attributes: attributes,
                     thumb: None,
                     stickers: None,
-                    ttlSeconds: None
+                    ttlSeconds: None,
+                    forceFile: true
                 )
             )); 
         
