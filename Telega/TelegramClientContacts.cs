@@ -23,5 +23,13 @@ namespace Telega
                 q: q,
                 limit: limit
             ));
+
+        public async Task<ResolvedPeer> ResolveUsername(
+            Some<string> username
+        ) =>
+            await _tg.Call(new ResolveUsername(
+                username: username
+            ));
+
     }
 }

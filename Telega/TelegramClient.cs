@@ -16,6 +16,7 @@ namespace Telega
 
         public readonly TelegramClientAuth Auth;
         public readonly TelegramClientContacts Contacts;
+        public readonly TelegramClientChannels Channels;
         public readonly TelegramClientMessages Messages;
         public readonly TelegramClientUpload Upload;
         public readonly TelegramClientUpdates Updates;
@@ -31,6 +32,7 @@ namespace Telega
 
             Auth = new TelegramClientAuth(_bellhop);
             Contacts = new TelegramClientContacts(_bellhop);
+            Channels = new TelegramClientChannels(_bellhop);
             Messages = new TelegramClientMessages(_bellhop);
             Upload = new TelegramClientUpload(_bellhop);
             Updates = new TelegramClientUpdates(_bellhop);
