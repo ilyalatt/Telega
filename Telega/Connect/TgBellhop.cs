@@ -11,9 +11,9 @@ namespace Telega.Connect
 {
     sealed class TgBellhop
     {
-        public readonly TgConnectionPool ConnectionPool;
-        public readonly Var<TgConnection> CurrentConnection;
-        public readonly CustomObservable<UpdatesType> Updates = new CustomObservable<UpdatesType>();
+        public TgConnectionPool ConnectionPool { get; }
+        public Var<TgConnection> CurrentConnection { get; }
+        public CustomObservable<UpdatesType> Updates { get; } = new CustomObservable<UpdatesType>();
 
         public IVarGetter<Session> SessionVar =>
             CurrentConnection.Bind(x => x.Session);

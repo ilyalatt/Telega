@@ -39,9 +39,9 @@ namespace Telega.Rpc
 
         public struct Message
         {
-            public readonly long Id;
-            public readonly int SeqNo;
-            public readonly BinaryReader Body;
+            public long Id { get; }
+            public int SeqNo { get; }
+            public BinaryReader Body { get; }
 
             public Message(long id, int seqNo, BinaryReader body)
             {

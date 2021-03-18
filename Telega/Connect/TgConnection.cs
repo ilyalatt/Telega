@@ -8,9 +8,9 @@ namespace Telega.Connect
 {
     sealed class TgConnection : IDisposable
     {
-        public readonly Var<Session> Session;
-        public readonly TgCustomizedTransport Transport;
-        public readonly Config Config;
+        public Var<Session> Session { get; }
+        public TgCustomizedTransport Transport { get; }
+        public Config Config { get; }
 
         public TgConnection(Some<Var<Session>> session, Some<TgCustomizedTransport> transport, Some<Config> config)
         {

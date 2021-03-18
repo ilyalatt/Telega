@@ -84,8 +84,8 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
 
     struct Flag
     {
-        public readonly string ArgName;
-        public readonly int Bit;
+        public string ArgName { get; }
+        public int Bit { get; }
 
         public Flag(Some<string> argName, int bit)
         {
@@ -164,10 +164,10 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
 
     struct Signature
     {
-        public readonly string Name;
-        public readonly int TypeNumber;
-        public readonly Arr<Arg> Args;
-        public readonly TgType ResultType;
+        public string Name { get; }
+        public int TypeNumber { get; }
+        public Arr<Arg> Args { get; }
+        public TgType ResultType { get; }
 
         public Signature(
             Some<string> name,

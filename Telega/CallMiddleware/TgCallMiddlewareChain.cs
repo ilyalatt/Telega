@@ -4,7 +4,7 @@ namespace Telega.CallMiddleware
 {
     public sealed class TgCallMiddlewareChain
     {
-        public readonly Arr<ITgCallMiddleware> Middleware;
+        public Arr<ITgCallMiddleware> Middleware { get; }
 
         public TgCallMiddlewareChain(Arr<ITgCallMiddleware> middleware)
         {

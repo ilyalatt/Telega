@@ -13,15 +13,15 @@ namespace Telega
     {
         const int Version = 1;
 
-        public readonly int ApiId;
-        public readonly long Id;
-        public readonly AuthKey AuthKey;
-        public readonly bool IsAuthorized;
-        public readonly int Sequence;
-        public readonly long Salt;
-        public readonly int TimeOffset;
-        public readonly long LastMessageId;
-        public readonly IPEndPoint Endpoint;
+        public int ApiId { get; }
+        public long Id { get; }
+        public AuthKey AuthKey { get; }
+        public bool IsAuthorized { get; }
+        public int Sequence { get; }
+        public long Salt { get; }
+        public int TimeOffset { get; }
+        public long LastMessageId { get; }
+        public IPEndPoint Endpoint { get; }
 
         public Session(
             int apiId,

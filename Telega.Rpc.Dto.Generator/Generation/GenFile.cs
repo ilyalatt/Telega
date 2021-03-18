@@ -4,9 +4,9 @@ namespace Telega.Rpc.Dto.Generator.Generation
 {
     class GenFile
     {
-        public readonly string Namespace;
-        public readonly string Name;
-        public readonly string Content;
+        public string Namespace { get; }
+        public string Name { get; }
+        public string Content { get; }
 
         public GenFile(Some<string> ns, Some<string> name, Some<string> content)
         {

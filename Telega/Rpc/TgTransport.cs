@@ -24,7 +24,7 @@ namespace Telega.Rpc
         readonly ConcurrentDictionary<long, TaskCompletionSource<RpcResult>> _rpcFlow =
             new ConcurrentDictionary<long, TaskCompletionSource<RpcResult>>();
 
-        public readonly CustomObservable<UpdatesType> Updates = new CustomObservable<UpdatesType>();
+        public CustomObservable<UpdatesType> Updates { get; } = new CustomObservable<UpdatesType>();
 
         async Task ReceiveLoopImpl()
         {
