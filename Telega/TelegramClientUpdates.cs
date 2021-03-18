@@ -8,7 +8,7 @@ namespace Telega
     public sealed class TelegramClientUpdates
     {
         readonly TgBellhop _tg;
-        public readonly IObservable<UpdatesType> Stream;
+        public IObservable<UpdatesType> Stream { get; }
 
         internal TelegramClientUpdates(Some<TgBellhop> tg)
         {

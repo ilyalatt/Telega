@@ -42,8 +42,7 @@ namespace Telega
             Updates = new TelegramClientUpdates(_bellhop);
         }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             _bellhop.ConnectionPool.Dispose();
             _storeSync.Stop();
         }
