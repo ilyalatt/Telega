@@ -11,6 +11,10 @@ namespace Telega
 {
     public sealed class TelegramClient : IDisposable
     {
+        private const string DefaultTelegramIp = "149.154.167.50";
+        private const int DefaultTelegramPort = 443;
+        private const string DefaultSessionName = "session.dat";
+
         readonly TgBellhop _bellhop;
         readonly SessionStoreSync _storeSync;
 
@@ -21,7 +25,7 @@ namespace Telega
         public TelegramClientUpload Upload { get; }
         public TelegramClientUpdates Updates { get; }
 
-        static readonly IPEndPoint DefaultEndpoint = new IPEndPoint(IPAddress.Parse("149.154.167.50"), 443);
+        static readonly IPEndPoint DefaultEndpoint = new(IPAddress.Parse(DefaultTelegramIp), DefaultTelegramPort);
 
         TelegramClient(
             TgBellhop bellhop,
@@ -66,7 +70,7 @@ namespace Telega
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? tcpClientConnectionHandler = null
         ) {
-            store ??= new FileSessionStore("session.dat");
+            store ??= new FileSessionStore(DefaultSessionName);
             var ep = endpoint ?? DefaultEndpoint;
             var connectInfo = (await store.Load().ConfigureAwait(false))
                 .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
@@ -81,7 +85,7 @@ namespace Telega
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? tcpClientConnectionHandler = null
         ) {
-            store ??= new FileSessionStore("session.dat");
+            store ??= new FileSessionStore(DefaultSessionName);
             var connectInfo = ConnectInfo.FromSession(session);
 
             return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler);
