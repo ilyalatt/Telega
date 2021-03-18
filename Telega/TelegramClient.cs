@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+
 using LanguageExt;
 using LanguageExt.SomeHelp;
+
 using Telega.CallMiddleware;
 using Telega.Connect;
 using Telega.Rpc.Dto;
@@ -11,46 +13,50 @@ namespace Telega
 {
     public sealed class TelegramClient : IDisposable
     {
-        readonly TgBellhop _bellhop;
-        readonly SessionStoreSync _storeSync;
+        private const string TelegramIP = "149.154.167.50";
+        private const string DefaultSessoinName = "session.dat";
 
-        public readonly TelegramClientAuth Auth;
-        public readonly TelegramClientContacts Contacts;
-        public readonly TelegramClientChannels Channels;
-        public readonly TelegramClientMessages Messages;
-        public readonly TelegramClientUpload Upload;
-        public readonly TelegramClientUpdates Updates;
+        private readonly TgBellhop bellhop;
+        private readonly SessionStoreSync storeSync;
 
-        static readonly IPEndPoint DefaultEndpoint = new IPEndPoint(IPAddress.Parse("149.154.167.50"), 443);
+        public TelegramClientAuth Auth { get; }
+        public TelegramClientContacts Contacts { get; }
+        public TelegramClientChannels Channels { get; }
+        public TelegramClientMessages Messages { get; }
+        public TelegramClientUpload Upload { get; }
+        public TelegramClientUpdates Updates { get; }
+
+        static readonly IPEndPoint DefaultEndpoint = new(IPAddress.Parse(TelegramIP), 443);
 
         TelegramClient(
             TgBellhop bellhop,
             ISessionStore sessionStore
-        ) {
-            _bellhop = bellhop;
-            _storeSync = SessionStoreSync.Init(_bellhop.SessionVar.ToSome(), sessionStore.ToSome());
+        )
+        {
+            this.bellhop = bellhop;
+            storeSync = SessionStoreSync.Init(bellhop.SessionVar.ToSome(), sessionStore.ToSome());
 
-            Auth = new TelegramClientAuth(_bellhop);
-            Contacts = new TelegramClientContacts(_bellhop);
-            Channels = new TelegramClientChannels(_bellhop);
-            Messages = new TelegramClientMessages(_bellhop);
-            Upload = new TelegramClientUpload(_bellhop);
-            Updates = new TelegramClientUpdates(_bellhop);
+            Auth = new TelegramClientAuth(bellhop);
+            Contacts = new TelegramClientContacts(bellhop);
+            Channels = new TelegramClientChannels(bellhop);
+            Messages = new TelegramClientMessages(bellhop);
+            Upload = new TelegramClientUpload(bellhop);
+            Updates = new TelegramClientUpdates(bellhop);
         }
 
         public void Dispose()
         {
-            _bellhop.ConnectionPool.Dispose();
-            _storeSync.Stop();
+            bellhop.ConnectionPool.Dispose();
+            storeSync.Stop();
         }
-
 
         static async Task<TelegramClient> Connect(
             ConnectInfo connectInfo,
             ISessionStore store,
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? tcpClientConnectionHandler = null
-        ) {
+        )
+        {
             var bellhop = await TgBellhop.Connect(
                 connectInfo,
                 callMiddlewareChain,
@@ -65,8 +71,9 @@ namespace Telega
             IPEndPoint? endpoint = null,
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? tcpClientConnectionHandler = null
-        ) {
-            store ??= new FileSessionStore("session.dat");
+        )
+        {
+            store ??= new FileSessionStore(DefaultSessoinName);
             var ep = endpoint ?? DefaultEndpoint;
             var connectInfo = (await store.Load().ConfigureAwait(false))
                 .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
@@ -80,14 +87,15 @@ namespace Telega
             ISessionStore? store = null,
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? tcpClientConnectionHandler = null
-        ) {
-            store ??= new FileSessionStore("session.dat");
+        )
+        {
+            store ??= new FileSessionStore(DefaultSessoinName);
             var connectInfo = ConnectInfo.FromSession(session);
 
             return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler);
         }
 
         public Task<T> Call<T>(ITgFunc<T> func) =>
-            _bellhop.Call(func);
+            bellhop.Call(func);
     }
 }
