@@ -6,8 +6,8 @@ namespace Telega.Rpc.ServiceTransport
 {
     struct AesKeyData
     {
-        public readonly byte[] Key;
-        public readonly byte[] Iv;
+        public byte[] Key { get; }
+        public byte[] Iv { get; }
 
         public AesKeyData(byte[] key, byte[] iv)
         {

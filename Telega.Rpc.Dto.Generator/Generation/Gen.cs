@@ -50,7 +50,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                     Line("uint ITgTypeTag.TypeNumber => TypeNumber;"),
                     Line("")
                 ),
-                tagArgs.Map(arg => Line($"public readonly {arg.type} {arg.name};")).Scope(),
+                tagArgs.Map(arg => Line($"public {arg.type} {arg.name} {{ get; }}")).Scope(),
                 Line(""),
                 Scope(
                     Line($"public {tagName}("),

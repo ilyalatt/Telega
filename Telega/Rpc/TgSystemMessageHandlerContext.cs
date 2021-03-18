@@ -7,9 +7,9 @@ namespace Telega.Rpc
     // immutability?
     sealed class TgSystemMessageHandlerContext
     {
-        public readonly List<long> Ack = new List<long>();
-        public readonly List<RpcResult> RpcResults = new List<RpcResult>();
-        public readonly List<UpdatesType> Updates = new List<UpdatesType>();
+        public List<long> Ack { get; } = new List<long>();
+        public List<RpcResult> RpcResults { get; } = new List<RpcResult>();
+        public List<UpdatesType> Updates { get; } = new List<UpdatesType>();
         public Option<long> NewSalt;
     }
 }

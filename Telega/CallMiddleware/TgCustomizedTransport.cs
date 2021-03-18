@@ -8,8 +8,8 @@ namespace Telega.CallMiddleware
 {
     sealed class TgCustomizedTransport : IDisposable
     {
-        public readonly TgTransport Transport;
-        public readonly TgCallMiddlewareChain CallMiddlewareChain;
+        public TgTransport Transport { get; }
+        public TgCallMiddlewareChain CallMiddlewareChain { get; }
 
         public TgCustomizedTransport(Some<TgTransport> transport, Some<TgCallMiddlewareChain> callMiddlewareChain)
         {

@@ -9,8 +9,8 @@ namespace Telega.CallMiddleware
     // TODO: DC-specific via context
     sealed class DelayMiddleware : ITgCallMiddleware
     {
-        public readonly int MinMsDelay;
-        public readonly int MaxMsDelay;
+        public int MinMsDelay { get; }
+        public int MaxMsDelay { get; }
 
         readonly TaskQueue _taskQueue = new TaskQueue();
         DateTime _lastReqTimestamp;
