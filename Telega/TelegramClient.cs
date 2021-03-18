@@ -14,12 +14,12 @@ namespace Telega
         readonly TgBellhop _bellhop;
         readonly SessionStoreSync _storeSync;
 
-        public readonly TelegramClientAuth Auth;
-        public readonly TelegramClientContacts Contacts;
-        public readonly TelegramClientChannels Channels;
-        public readonly TelegramClientMessages Messages;
-        public readonly TelegramClientUpload Upload;
-        public readonly TelegramClientUpdates Updates;
+        public TelegramClientAuth Auth { get; }
+        public TelegramClientContacts Contacts { get; }
+        public TelegramClientChannels Channels { get; }
+        public TelegramClientMessages Messages { get; }
+        public TelegramClientUpload Upload { get; }
+        public TelegramClientUpdates Updates { get; }
 
         static readonly IPEndPoint DefaultEndpoint = new IPEndPoint(IPAddress.Parse("149.154.167.50"), 443);
 
