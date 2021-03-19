@@ -13,7 +13,7 @@ namespace Telega
     {
         readonly TgBellhop _tg;
         internal TelegramClientChannels(Some<TgBellhop> tg) => _tg = tg;
-        
+
         public async Task<UpdatesType> JoinChannel(
             Some<InputChannel> channel
         ) =>
@@ -29,7 +29,7 @@ namespace Telega
                 channel: channel,
                 id: messages
             ));
-        
+
         /// <summary>
         /// This method can be used for getting messages by Id (including albums)
         /// </summary>
@@ -39,8 +39,7 @@ namespace Telega
         public async Task<Arr<Message.Tag>> GetMessageById(
             Some<InputChannel> channel,
             int messageId
-        )
-        {
+        ) {
             Messages messagesResponse =
                 await GetMessages(channel: channel,
                     //We have to get 10 messages around required Id because of grouped messages (albums)
@@ -48,7 +47,7 @@ namespace Telega
                         .Select(selector: x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
                         .ToArr()
                 );
-            
+
             List<Message.Tag> tags =
                 messagesResponse
                     .AsChannelTag().Head()
@@ -60,7 +59,7 @@ namespace Telega
 
             return mainMessage.GroupedId
                     .Match(Some: groupedId =>
-                            tags.Where( tag => tag.GroupedId == groupedId).OrderBy(x => x.Id).ToArr(),
+                            tags.Where(tag => tag.GroupedId == groupedId).OrderBy(x => x.Id).ToArr(),
                         None: () => { return new[] {mainMessage}; })
                 ;
         }
