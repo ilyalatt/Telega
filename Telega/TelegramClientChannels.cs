@@ -52,9 +52,7 @@ namespace Telega
                 .ToArr();
 
             var groupId = messages.Find(x => x.Id == messageId).Bind(x => x.GroupedId);
-            return messages
-                .Filter(x => x.GroupedId == groupId)
-                .ToArr();
+            return messages.Filter(x => x.GroupedId == groupId);
         }
     }
 }
