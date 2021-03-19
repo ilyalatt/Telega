@@ -5,6 +5,7 @@ using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Channels;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Messages;
+using static LanguageExt.Prelude;
 
 namespace Telega
 {
@@ -40,7 +41,7 @@ namespace Telega
             int messageId
         ) {
             const int idRadius = 10;
-            var messageIds = Enumerable.Range(start: -idRadius, count: idRadius * 2)
+            var messageIds = Range(from: -idRadius, count: idRadius * 2 + 1)
                 .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
                 .ToArr();
 
@@ -51,8 +52,12 @@ namespace Telega
                 .Choose(Message.AsTag)
                 .ToArr();
 
-            var groupId = messages.Find(x => x.Id == messageId).Bind(x => x.GroupedId);
-            return messages.Filter(x => x.GroupedId == groupId);
+            var mainMessage = messages.Find(x => x.Id == messageId);
+            var groupId = mainMessage.Bind(x => x.GroupedId);
+            return groupId.Match(
+                Some: _ => messages.Filter(x => x.GroupedId == groupId),
+                None: () => mainMessage.ToArr()
+            );
         }
     }
 }
