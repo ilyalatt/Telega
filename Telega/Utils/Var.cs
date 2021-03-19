@@ -18,7 +18,7 @@ namespace Telega.Utils
         volatile T _value;
         Var(T value) => _value = value;
 
-        public static Var<T> Create(T value) => new Var<T>(value);
+        public static Var<T> Create(T value) => new(value);
 
         public T Get() => _value;
         public void Set(T value) => _value = value;

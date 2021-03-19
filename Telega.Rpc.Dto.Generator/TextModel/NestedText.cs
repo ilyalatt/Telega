@@ -39,9 +39,9 @@ namespace Telega.Rpc.Dto.Generator.TextModel
         readonly object _tag;
         NestedText(object tag) => _tag = tag;
 
-        public static NestedText CreateIndent(int offset, Some<NestedText> text) => new NestedText(new Indent(offset, text));
-        public static NestedText CreateLine(Some<Text> value) => new NestedText(new Line(value));
-        public static NestedText CreateScope(Some<Arr<NestedText>> values, Some<Text> separator) => new NestedText(new Scope(values, separator));
+        public static NestedText CreateIndent(int offset, Some<NestedText> text) => new(new Indent(offset, text));
+        public static NestedText CreateLine(Some<Text> value) => new(new Line(value));
+        public static NestedText CreateScope(Some<Arr<NestedText>> values, Some<Text> separator) => new(new Scope(values, separator));
 
 
         public T Match<T>(

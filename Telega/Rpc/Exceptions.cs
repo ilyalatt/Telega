@@ -14,20 +14,20 @@ namespace Telega.Rpc
 
     class TgRpcDeserializeException : TgRpcException
     {
-        internal TgRpcDeserializeException(Some<string> message) : base(message, None) { }
+        TgRpcDeserializeException(Some<string> message) : base(message, None) { }
 
         static string TypeNumber(uint n) => "0x" + n.ToString("x8");
 
-        internal static TgRpcDeserializeException UnexpectedTypeNumber(uint actual, uint[] expected) => new TgRpcDeserializeException(
+        internal static TgRpcDeserializeException UnexpectedTypeNumber(uint actual, uint[] expected) => new(
             $"Unexpected type number, got {TypeNumber(actual)}, "+
             $"expected {expected.Map(TypeNumber).Apply(xs => string.Join(" or ", xs))}."
         );
 
-        internal static TgRpcDeserializeException UnexpectedBoolTypeNumber(uint actual) => new TgRpcDeserializeException(
+        internal static TgRpcDeserializeException UnexpectedBoolTypeNumber(uint actual) => new(
             $"Unexpected 'Bool' type number {TypeNumber(actual)}"
         );
 
-        internal static TgRpcDeserializeException UnexpectedVectorTypeNumber(uint actual) => new TgRpcDeserializeException(
+        internal static TgRpcDeserializeException UnexpectedVectorTypeNumber(uint actual) => new(
             $"Unexpected 'Vector' type number {TypeNumber(actual)}"
         );
     }

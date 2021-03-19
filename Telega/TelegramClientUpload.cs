@@ -101,15 +101,13 @@ namespace Telega
             Some<string> filePath
         ) {
             var name = Path.GetFileName(filePath);
-            using (var fs = System.IO.File.OpenRead(filePath))
-            {
-                if (fs.Length > int.MaxValue) throw new ArgumentException("the file is too big", nameof(filePath));
-                return await UploadFile(name, (int) fs.Length, fs).ConfigureAwait(false);
-            }
+            using var fs = System.IO.File.OpenRead(filePath);
+            if (fs.Length > int.MaxValue) throw new ArgumentException("the file is too big", nameof(filePath));
+            return await UploadFile(name, (int) fs.Length, fs).ConfigureAwait(false);
         }
 
 
-        static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new GetFile(
+        static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new(
             precise: true,
             cdnSupported: false,
             location: location,

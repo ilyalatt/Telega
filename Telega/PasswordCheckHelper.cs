@@ -17,67 +17,61 @@ namespace Telega
     {
         static byte[] Sha256(params byte[][] bts)
         {
-            using (var sha = SHA256.Create())
-            {
-                bts.SkipLast(1).Iter(x => sha.TransformBlock(x, 0, x.Length, null, 0));
-                bts.Last().With(x => sha.TransformFinalBlock(x, 0, x.Length));
-                return sha.Hash;
-            }
+            using var sha = SHA256.Create();
+            bts.SkipLast(1).Iter(x => sha.TransformBlock(x, 0, x.Length, null, 0));
+            bts.Last().With(x => sha.TransformFinalBlock(x, 0, x.Length));
+            return sha.Hash;
         }
 
         // https://stackoverflow.com/a/18649357
         static byte[] Pbkdf2Sha512(int dkLen, byte[] password, byte[] salt, int iterationCount)
         {
-            using (var hmac = new HMACSHA512(password))
+            using var hmac = new HMACSHA512(password);
+            var hashLength = hmac.HashSize / 8;
+            if ((hmac.HashSize & 7) != 0)
+                hashLength++;
+            var keyLength = dkLen / hashLength;
+            if ((long) dkLen > (0xFFFFFFFFL * hashLength) || dkLen < 0)
+                throw new ArgumentOutOfRangeException(nameof(dkLen));
+            if (dkLen % hashLength != 0)
+                keyLength++;
+            var extendedKey = new byte[salt.Length + 4];
+            Buffer.BlockCopy(salt, 0, extendedKey, 0, salt.Length);
+            using var ms = new System.IO.MemoryStream();
+            for (var i = 0; i < keyLength; i++)
             {
-                var hashLength = hmac.HashSize / 8;
-                if ((hmac.HashSize & 7) != 0)
-                    hashLength++;
-                var keyLength = dkLen / hashLength;
-                if ((long) dkLen > (0xFFFFFFFFL * hashLength) || dkLen < 0)
-                    throw new ArgumentOutOfRangeException(nameof(dkLen));
-                if (dkLen % hashLength != 0)
-                    keyLength++;
-                var extendedKey = new byte[salt.Length + 4];
-                Buffer.BlockCopy(salt, 0, extendedKey, 0, salt.Length);
-                using (var ms = new System.IO.MemoryStream())
+                extendedKey[salt.Length] = (byte) (((i + 1) >> 24) & 0xFF);
+                extendedKey[salt.Length + 1] = (byte) (((i + 1) >> 16) & 0xFF);
+                extendedKey[salt.Length + 2] = (byte) (((i + 1) >> 8) & 0xFF);
+                extendedKey[salt.Length + 3] = (byte) (((i + 1)) & 0xFF);
+                var u = hmac.ComputeHash(extendedKey);
+                Array.Clear(extendedKey, salt.Length, 4);
+                var f = u;
+                for (var j = 1; j < iterationCount; j++)
                 {
-                    for (var i = 0; i < keyLength; i++)
+                    u = hmac.ComputeHash(u);
+                    for (var k = 0; k < f.Length; k++)
                     {
-                        extendedKey[salt.Length] = (byte) (((i + 1) >> 24) & 0xFF);
-                        extendedKey[salt.Length + 1] = (byte) (((i + 1) >> 16) & 0xFF);
-                        extendedKey[salt.Length + 2] = (byte) (((i + 1) >> 8) & 0xFF);
-                        extendedKey[salt.Length + 3] = (byte) (((i + 1)) & 0xFF);
-                        var u = hmac.ComputeHash(extendedKey);
-                        Array.Clear(extendedKey, salt.Length, 4);
-                        var f = u;
-                        for (var j = 1; j < iterationCount; j++)
-                        {
-                            u = hmac.ComputeHash(u);
-                            for (var k = 0; k < f.Length; k++)
-                            {
-                                f[k] ^= u[k];
-                            }
-                        }
-
-                        ms.Write(f, 0, f.Length);
-                        Array.Clear(u, 0, u.Length);
-                        Array.Clear(f, 0, f.Length);
+                        f[k] ^= u[k];
                     }
-
-                    var dk = new byte[dkLen];
-                    ms.Position = 0;
-                    ms.Read(dk, 0, dkLen);
-                    ms.Position = 0;
-                    for (long i = 0; i < ms.Length; i++)
-                    {
-                        ms.WriteByte(0);
-                    }
-
-                    Array.Clear(extendedKey, 0, extendedKey.Length);
-                    return dk;
                 }
+
+                ms.Write(f, 0, f.Length);
+                Array.Clear(u, 0, u.Length);
+                Array.Clear(f, 0, f.Length);
             }
+
+            var dk = new byte[dkLen];
+            ms.Position = 0;
+            ms.Read(dk, 0, dkLen);
+            ms.Position = 0;
+            for (long i = 0; i < ms.Length; i++)
+            {
+                ms.WriteByte(0);
+            }
+
+            Array.Clear(extendedKey, 0, extendedKey.Length);
+            return dk;
         }
 
         static byte[] ComputeHash(Algo algo, string passwordStr)
@@ -135,7 +129,7 @@ namespace Telega
         }
 
         static BigInteger UnsignedNum(byte[] bts) =>
-            new BigInteger(1, bts);
+            new(1, bts);
 
         static (BigInteger, byte[], BigInteger) GenerateAndCheckRandom(BigInteger g, byte[] bigB, BigInteger p)
         {

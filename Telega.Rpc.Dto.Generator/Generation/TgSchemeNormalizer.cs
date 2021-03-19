@@ -46,7 +46,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
 
 
         // TODO: compute it from a scheme
-        static readonly StringHashSet NamespaceConflicts = new StringHashSet
+        static readonly StringHashSet NamespaceConflicts = new()
         {
             "Updates"
         };
@@ -60,7 +60,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             vector: x => x.Type.Apply(Normalize).Apply(SomeExt.ToSome).Apply(TgType.OfVector)
         );
 
-        static Flag Normalize(Flag flag) => new Flag(
+        static Flag Normalize(Flag flag) => new(
             argName: flag.ArgName.Apply(NormalizeName),
             bit: flag.Bit
         );
@@ -71,7 +71,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             flags: _ => argKind
         );
 
-        static Arg Normalize(Arg arg) => new Arg(
+        static Arg Normalize(Arg arg) => new(
             name: arg.Name.Apply(NormalizeName),
             type: arg.Type.Apply(Normalize),
             kind: arg.Kind.Apply(Normalize)
@@ -145,7 +145,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
         static Signature NormalizeFunc(Signature signature) =>
             Normalize(signature);
 
-        static readonly StringHashSet IgnoredTypes = new StringHashSet
+        static readonly StringHashSet IgnoredTypes = new()
         {
             "Null",
             "True",
@@ -153,7 +153,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             // "vector" is ignored by the parser
         };
 
-        static Scheme Normalize(Scheme scheme) => new Scheme(
+        static Scheme Normalize(Scheme scheme) => new(
             layerVersion: scheme.LayerVersion,
             types: scheme.Types
                 .Filter(x => x.ResultType.Match(

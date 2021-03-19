@@ -35,11 +35,9 @@ namespace Telega.Connect
             return dstConn;
         }
 
-        readonly ConcurrentDictionary<int, Task<TgConnection>> _connTasks =
-            new ConcurrentDictionary<int, Task<TgConnection>>();
+        readonly ConcurrentDictionary<int, Task<TgConnection>> _connTasks = new();
 
-        readonly ConcurrentDictionary<int, TgConnection> _conns =
-            new ConcurrentDictionary<int, TgConnection>();
+        readonly ConcurrentDictionary<int, TgConnection> _conns = new();
 
         // TODO: refactor the common part of Connect & ReConnect
 

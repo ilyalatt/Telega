@@ -6,7 +6,7 @@ namespace Telega.Utils
 {
     class TaskQueue
     {
-        readonly SemaphoreSlim _queue = new SemaphoreSlim(1, 1);
+        readonly SemaphoreSlim _queue = new(1, 1);
 
         public async Task<T> Put<T>(Func<Task<T>> func)
         {

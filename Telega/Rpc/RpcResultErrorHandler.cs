@@ -36,7 +36,7 @@ namespace Telega.Rpc
                 ExtractInt().Apply(x => (double) x).Apply(TimeSpan.FromSeconds);
 
             TgDataCenterMigrationException ExtractDcMigration(DcMigrationReason reason) =>
-                new TgDataCenterMigrationException(reason, ExtractInt());
+                new(reason, ExtractInt());
 
             if (msg.StartsWith("FLOOD_WAIT_")) return new TgFloodException(ExtractTimeSpan());
 

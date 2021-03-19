@@ -11,7 +11,7 @@ namespace Telega
         readonly ISessionStore _store;
         readonly IVarGetter<Session> _session;
         readonly Task _task;
-        readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        readonly CancellationTokenSource _cts = new();
 
         static readonly TimeSpan Period = TimeSpan.FromSeconds(1);
 
@@ -51,7 +51,7 @@ namespace Telega
         }
 
         public static SessionStoreSync Init(Some<IVarGetter<Session>> session, Some<ISessionStore> store) =>
-            new SessionStoreSync(session, store);
+            new(session, store);
 
         public void Stop()
         {

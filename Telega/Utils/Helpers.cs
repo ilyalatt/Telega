@@ -7,10 +7,8 @@ namespace Telega.Utils
     {
         public static byte[] Sha1(byte[] data)
         {
-            using (SHA1 sha1 = new SHA1Managed())
-            {
-                return sha1.ComputeHash(data);
-            }
+            using var sha1 = new SHA1Managed();
+            return sha1.ComputeHash(data);
         }
 
         static TimeSpan EpochTime =>

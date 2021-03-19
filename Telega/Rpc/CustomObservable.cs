@@ -6,7 +6,7 @@ namespace Telega.Rpc
 {
     sealed class CustomObservable<T> : IObservable<T>
     {
-        readonly List<IObserver<T>> _observers = new List<IObserver<T>>();
+        readonly List<IObserver<T>> _observers = new();
 
         public void OnCompleted() => _observers.ForEach(x => x.OnCompleted());
         public void OnError(Exception error) => _observers.ForEach(x => x.OnError(error));

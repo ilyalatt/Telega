@@ -98,10 +98,8 @@ namespace Telega.Example
                 _: () => throw new NotImplementedException()
             );
 
-            using (var fs = File.OpenWrite($"channel-photo{fileTypeExt}"))
-            {
-                await tg.Upload.DownloadFile(fs, photoLoc);
-            }
+            using var fs = File.OpenWrite($"channel-photo{fileTypeExt}");
+            await tg.Upload.DownloadFile(fs, photoLoc);
         }
 
         static async Task DownloadLastMovieFromSavedMessagesExample(TelegramClient tg)
@@ -148,10 +146,8 @@ namespace Telega.Example
                 id: video.Id,
                 accessHash: video.AccessHash
             );
-            using (var fs = File.OpenWrite(videoName))
-            {
-                await tg.Upload.DownloadFile(fs, videoLocation);
-            }
+            using var fs = File.OpenWrite(videoName);
+            await tg.Upload.DownloadFile(fs, videoLocation);
         }
 
         static async Task PrintFirstChannelTop100MessagesExample(TelegramClient tg)
@@ -400,17 +396,15 @@ namespace Telega.Example
         static async Task Main()
         {
             var cfg = await ReadConfig();
-            using (var tg = await TelegramClient.Connect(cfg.ApiId))
-            {
-                await EnsureAuthorized(tg, cfg);
+            using var tg = await TelegramClient.Connect(cfg.ApiId);
+            await EnsureAuthorized(tg, cfg);
 
-                // await PrintUserInfo(tg);
-                // await DownloadFirstChannelPictureExample(tg);
-                // await PrintFirstChannelTop100MessagesExample(tg);
-                // await SendOnePavelDurovPictureToMeExample(tg);
-                await SendMultiMedia(tg);
-                await ListenUpdates(tg);
-            }
+            // await PrintUserInfo(tg);
+            // await DownloadFirstChannelPictureExample(tg);
+            // await PrintFirstChannelTop100MessagesExample(tg);
+            // await SendOnePavelDurovPictureToMeExample(tg);
+            await SendMultiMedia(tg);
+            await ListenUpdates(tg);
         }
     }
 }

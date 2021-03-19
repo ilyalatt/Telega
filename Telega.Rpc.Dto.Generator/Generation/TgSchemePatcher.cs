@@ -6,20 +6,20 @@ namespace Telega.Rpc.Dto.Generator.Generation
 {
     static class TgSchemePatcher
     {
-        static Arg SetBytesType(Arg arg) => new Arg(
+        static Arg SetBytesType(Arg arg) => new(
             name: arg.Name,
             type: TgType.OfPrimitive(PrimitiveType.Bytes),
             kind: arg.Kind
         );
 
-        static Signature ChangeStringToByteArgs(Signature signature) => new Signature(
+        static Signature ChangeStringToByteArgs(Signature signature) => new(
             name: signature.Name,
             typeNumber: signature.TypeNumber,
             args: signature.Args.Map(x => x.Type == TgType.OfPrimitive(PrimitiveType.String) ? SetBytesType(x) : x),
             resultType: signature.ResultType
         );
 
-        static readonly StringHashSet StringToBytes = new StringHashSet
+        static readonly StringHashSet StringToBytes = new()
         {
             // types
             "resPQ",
@@ -41,7 +41,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             signature.Apply(PatchStringToBytes);
 
 
-        static Scheme Patch(Scheme scheme) => new Scheme(
+        static Scheme Patch(Scheme scheme) => new(
             types: scheme.Types.Map(Patch),
             functions: scheme.Functions.Map(Patch),
             layerVersion: scheme.LayerVersion

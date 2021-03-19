@@ -12,7 +12,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
     static class TgSchemeParser
     {
         static TgSchemeParserException Exception(string msg)
-            => new TgSchemeParserException(msg);
+            => new(msg);
 
         static Func<Exception> Ex(string msg) =>
             () => Exception(msg);

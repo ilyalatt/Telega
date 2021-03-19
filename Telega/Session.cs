@@ -55,7 +55,7 @@ namespace Telega
             int? timeOffset = null,
             long? lastMessageId = null,
             IPEndPoint? endpoint = null
-        ) => new Session(
+        ) => new(
             apiId ?? ApiId,
             id ?? Id,
             authKey ?? AuthKey,
@@ -67,7 +67,7 @@ namespace Telega
             endpoint ?? Endpoint
         );
 
-        public static Session New(int apiId, Some<IPEndPoint> endpoint, Some<AuthKey> authKey, int timeOffset) => new Session(
+        public static Session New(int apiId, Some<IPEndPoint> endpoint, Some<AuthKey> authKey, int timeOffset) => new(
             apiId: apiId,
             id: Rnd.NextInt64(),
             authKey: authKey,

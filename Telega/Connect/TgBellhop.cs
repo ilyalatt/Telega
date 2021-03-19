@@ -14,7 +14,7 @@ namespace Telega.Connect
     {
         public TgConnectionPool ConnectionPool { get; }
         public Var<TgConnection> CurrentConnection { get; }
-        public CustomObservable<UpdatesType> Updates { get; } = new CustomObservable<UpdatesType>();
+        public CustomObservable<UpdatesType> Updates { get; } = new();
 
         public IVarGetter<Session> SessionVar =>
             CurrentConnection.Bind(x => x.Session);
@@ -49,7 +49,7 @@ namespace Telega.Connect
         }
 
         public TgBellhop Fork() =>
-            new TgBellhop(ConnectionPool, CurrentConnection.Get());
+            new(ConnectionPool, CurrentConnection.Get());
 
         public static async Task<TgBellhop> Connect(
             ILogger logger,

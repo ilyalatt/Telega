@@ -136,7 +136,7 @@ namespace Telega
                     _: () => throw new NotImplementedException(),
                     photoTag: photoTag =>
                     {
-                        Photo.Tag? photo = photoTag.Photo
+                        var photo = photoTag.Photo
                             .HeadOrNone()
                             .IfNone(() => throw new TgInternalException("Unable to get photo", None))
                             .AsTag()

@@ -23,9 +23,9 @@ namespace Telega.Rpc.Dto
 
         public static uint MurmurHash3_x86_32(byte[] data, uint length, uint seed)
         {
-            uint nblocks = length >> 2;
+            var nblocks = length >> 2;
 
-            uint h1 = seed;
+            var h1 = seed;
 
             const uint c1 = 0xcc9e2d51;
             const uint c2 = 0x1b873593;
@@ -33,11 +33,11 @@ namespace Telega.Rpc.Dto
             //----------
             // body
 
-            int i = 0 ;
+            var i = 0 ;
 
-            for (uint j = nblocks; j > 0 ; --j)
+            for (var j = nblocks; j > 0 ; --j)
             {
-                uint k1l = BitConverter.ToUInt32(data, i);
+                var k1l = BitConverter.ToUInt32(data, i);
 
                 k1l *= c1;
                 k1l = Rotl32(k1l, 15);
@@ -57,7 +57,7 @@ namespace Telega.Rpc.Dto
 
             uint k1 = 0;
 
-            uint tailLength = length & 3;
+            var tailLength = length & 3;
 
             if (tailLength == 3)
                 k1 ^= (uint)data[2 + nblocks] << 16;

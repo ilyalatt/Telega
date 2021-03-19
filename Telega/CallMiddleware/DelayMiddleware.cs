@@ -12,7 +12,7 @@ namespace Telega.CallMiddleware
         public int MinMsDelay { get; }
         public int MaxMsDelay { get; }
 
-        readonly TaskQueue _taskQueue = new TaskQueue();
+        readonly TaskQueue _taskQueue = new();
         DateTime _lastReqTimestamp;
 
         public DelayMiddleware(int minMsDelay, int maxMsDelay)

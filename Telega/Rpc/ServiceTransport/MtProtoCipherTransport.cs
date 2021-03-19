@@ -25,19 +25,17 @@ namespace Telega.Rpc.ServiceTransport
 
         static byte[] Sha256(params ArraySegment<byte>[] btsArr)
         {
-            using (var sha = SHA256.Create())
-            {
-                btsArr.SkipLast(1).Iter(bts => sha.TransformBlock(bts.Array, bts.Offset, bts.Count, null, 0));
-                btsArr.Last().Apply(bts => sha.TransformFinalBlock(bts.Array, bts.Offset, bts.Count));
-                return sha.Hash;
-            }
+            using var sha = SHA256.Create();
+            btsArr.SkipLast(1).Iter(bts => sha.TransformBlock(bts.Array, bts.Offset, bts.Count, null, 0));
+            btsArr.Last().Apply(bts => sha.TransformFinalBlock(bts.Array, bts.Offset, bts.Count));
+            return sha.Hash;
         }
 
         static ArraySegment<byte> Slice(byte[] buffer, int offset, int count) =>
-            new ArraySegment<byte>(buffer, offset, count);
+            new(buffer, offset, count);
 
         static ArraySegment<byte> AsSlice(byte[] buffer) =>
-            new ArraySegment<byte>(buffer, 0, buffer.Length);
+            new(buffer, 0, buffer.Length);
 
         static byte[] Concat(params ArraySegment<byte>[] btsArr)
         {
