@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Telega.CallMiddleware;
 using Telega.Rpc.Dto.Functions.Auth;
 using Telega.Utils;
@@ -9,6 +10,7 @@ namespace Telega.Connect
 {
     sealed class TgConnectionPool : IDisposable
     {
+        readonly ILogger _logger;
         readonly TgCallMiddlewareChain _callMiddlewareChain;
         readonly TcpClientConnectionHandler? _connHandler;
 
@@ -28,7 +30,7 @@ namespace Telega.Connect
         {
             var ep = DcInfoKeeper.FindEndpoint(dcId);
             var connectInfo = ConnectInfo.FromInfo(srcConn.Session.Get().ApiId, ep);
-            var dstConn = await TgConnectionEstablisher.EstablishConnection(connectInfo, _callMiddlewareChain, _connHandler);
+            var dstConn = await TgConnectionEstablisher.EstablishConnection(_logger, connectInfo, _callMiddlewareChain, _connHandler);
             await TryExportAuth(srcConn, dstConn);
             return dstConn;
         }
@@ -73,7 +75,7 @@ namespace Telega.Connect
             }
 
             var connectInfo = ConnectInfo.FromSession(conn.Session.Get());
-            var newConnTask = _connTasks[dcId] = TgConnectionEstablisher.EstablishConnection(connectInfo, _callMiddlewareChain, _connHandler);
+            var newConnTask = _connTasks[dcId] = TgConnectionEstablisher.EstablishConnection(_logger, connectInfo, _callMiddlewareChain, _connHandler);
 
             try
             {
@@ -93,10 +95,12 @@ namespace Telega.Connect
         }
 
         public TgConnectionPool(
+            ILogger logger,
             TgConnection mainConn,
             TgCallMiddlewareChain callMiddlewareChain,
             TcpClientConnectionHandler? connHandler = null
         ) {
+            _logger = logger;
             _conns[mainConn.Config.ThisDc] = mainConn;
             _callMiddlewareChain = callMiddlewareChain;
             _connHandler = connHandler;

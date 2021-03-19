@@ -399,9 +399,6 @@ namespace Telega.Example
 
         static async Task Main()
         {
-            // it is disabled by default
-            Internal.TgTrace.IsEnabled = false;
-
             var cfg = await ReadConfig();
             using (var tg = await TelegramClient.Connect(cfg.ApiId))
             {

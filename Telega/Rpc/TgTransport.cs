@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LanguageExt;
-using Telega.Connect;
-using Telega.Internal;
+using Microsoft.Extensions.Logging;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
@@ -26,13 +25,13 @@ namespace Telega.Rpc
 
         public CustomObservable<UpdatesType> Updates { get; } = new CustomObservable<UpdatesType>();
 
-        async Task ReceiveLoopImpl()
+        async Task ReceiveLoopImpl(ILogger logger)
         {
             while (true)
             {
                 var msgBody = await _transport.Receive();
                 var msg = TgSystemMessageHandler.ReadMsg(msgBody);
-                var ctx = new TgSystemMessageHandlerContext();
+                var ctx = new TgSystemMessageHandlerContext(logger);
                 msg.Apply(TgSystemMessageHandler.Handle(ctx));
 
                 ctx.NewSalt.Iter(salt =>
@@ -44,18 +43,18 @@ namespace Telega.Rpc
                     _rpcFlow.TryRemove(id, out var flow) ? Some(flow) : None;
                 ctx.RpcResults.Iter(res => CaptureFlow(res.Id).Match(
                     flow => flow.SetResult(res),
-                    () => TgTrace.Trace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
+                    () => ctx.Logger.LogTrace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
                 ));
 
                 ctx.Updates.Iter(Updates.OnNext);
             }
         }
 
-        async Task ReceiveLoop()
+        async Task ReceiveLoop(ILogger logger)
         {
 //            try
 //            {
-            await ReceiveLoopImpl();
+            await ReceiveLoopImpl(logger);
 //            }
 //            catch (TgTransportException e)
 //            {
@@ -63,11 +62,11 @@ namespace Telega.Rpc
 //            }
         }
 
-        public TgTransport(MtProtoCipherTransport transport, Var<Session> session)
+        public TgTransport(ILogger logger, MtProtoCipherTransport transport, Var<Session> session)
         {
             _transport = transport;
             _session = session;
-            _receiveLoopTask = Task.Run(ReceiveLoop);
+            _receiveLoopTask = Task.Run(() => ReceiveLoop(logger));
         }
 
         public void Dispose() => _transport.Dispose();

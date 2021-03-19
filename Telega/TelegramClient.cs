@@ -3,6 +3,8 @@ using System.Net;
 using System.Threading.Tasks;
 using LanguageExt;
 using LanguageExt.SomeHelp;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Telega.CallMiddleware;
 using Telega.Connect;
 using Telega.Rpc.Dto;
@@ -11,9 +13,9 @@ namespace Telega
 {
     public sealed class TelegramClient : IDisposable
     {
-        private const string DefaultTelegramIp = "149.154.167.50";
-        private const int DefaultTelegramPort = 443;
-        private const string DefaultSessionName = "session.dat";
+        const string DefaultTelegramIp = "149.154.167.50";
+        const int DefaultTelegramPort = 443;
+        const string DefaultSessionName = "session.dat";
 
         readonly TgBellhop _bellhop;
         readonly SessionStoreSync _storeSync;
@@ -28,13 +30,14 @@ namespace Telega
         static readonly IPEndPoint DefaultEndpoint = new(IPAddress.Parse(DefaultTelegramIp), DefaultTelegramPort);
 
         TelegramClient(
+            ILogger logger,
             TgBellhop bellhop,
             ISessionStore sessionStore
         ) {
             _bellhop = bellhop;
             _storeSync = SessionStoreSync.Init(_bellhop.SessionVar.ToSome(), sessionStore.ToSome());
 
-            Auth = new TelegramClientAuth(_bellhop);
+            Auth = new TelegramClientAuth(logger, _bellhop);
             Contacts = new TelegramClientContacts(_bellhop);
             Channels = new TelegramClientChannels(_bellhop);
             Messages = new TelegramClientMessages(_bellhop);
@@ -53,14 +56,17 @@ namespace Telega
             ConnectInfo connectInfo,
             ISessionStore store,
             TgCallMiddlewareChain? callMiddlewareChain = null,
-            TcpClientConnectionHandler? tcpClientConnectionHandler = null
+            TcpClientConnectionHandler? tcpClientConnectionHandler = null,
+            ILogger? logger = null
         ) {
+            logger ??= NullLogger.Instance;
             var bellhop = await TgBellhop.Connect(
+                logger,
                 connectInfo,
                 callMiddlewareChain,
                 tcpClientConnectionHandler
             ).ConfigureAwait(false);
-            return new TelegramClient(bellhop, store);
+            return new TelegramClient(logger, bellhop, store);
         }
 
         public static async Task<TelegramClient> Connect(

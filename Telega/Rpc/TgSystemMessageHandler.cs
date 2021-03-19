@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using LanguageExt;
-using Telega.Internal;
+using Microsoft.Extensions.Logging;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Utils;
@@ -135,7 +135,7 @@ namespace Telega.Rpc
 
             ctx.NewSalt = newSession.ServerSalt;
 
-            TgTrace.Trace("NewSession: " + newSession);
+            ctx.Logger.LogTrace("NewSession: " + newSession);
         }
 
 
@@ -200,7 +200,7 @@ namespace Telega.Rpc
                     },
                     () =>
                     {
-                        TgTrace.Trace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8"));
+                        ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8"));
                     });
 
                     return unit;

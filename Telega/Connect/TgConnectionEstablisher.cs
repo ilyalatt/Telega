@@ -1,5 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Telega.Auth;
 using Telega.CallMiddleware;
 using Telega.Rpc;
@@ -27,6 +28,7 @@ namespace Telega.Connect
         }
 
         public static async Task<TgConnection> EstablishConnection(
+            ILogger logger,
             ConnectInfo connectInfo,
             TgCallMiddlewareChain callMiddlewareChain,
             TcpClientConnectionHandler? connHandler = null
@@ -46,7 +48,7 @@ namespace Telega.Connect
 
             var session = connectInfo.ToSession().AsVar();
             var mtCipherTransport = new MtProtoCipherTransport(tcpTransport, session);
-            var transport = new TgCustomizedTransport(new TgTransport(mtCipherTransport, session), callMiddlewareChain);
+            var transport = new TgCustomizedTransport(new TgTransport(logger, mtCipherTransport, session), callMiddlewareChain);
 
             // TODO: separate Config
             var config = new GetConfig();

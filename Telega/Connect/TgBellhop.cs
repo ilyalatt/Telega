@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using LanguageExt;
+using Microsoft.Extensions.Logging;
 using Telega.CallMiddleware;
 using Telega.Rpc;
 using Telega.Rpc.Dto;
@@ -51,15 +52,16 @@ namespace Telega.Connect
             new TgBellhop(ConnectionPool, CurrentConnection.Get());
 
         public static async Task<TgBellhop> Connect(
+            ILogger logger,
             ConnectInfo connectInfo,
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? connHandler = null
         ) {
             callMiddlewareChain ??= TgCallMiddlewareChain.Default;
             var conn = await TaskWrapper.Wrap(() =>
-                TgConnectionEstablisher.EstablishConnection(connectInfo, callMiddlewareChain, connHandler)
+                TgConnectionEstablisher.EstablishConnection(logger, connectInfo, callMiddlewareChain, connHandler)
             ).ConfigureAwait(false);
-            var pool = new TgConnectionPool(conn, callMiddlewareChain, connHandler);
+            var pool = new TgConnectionPool(logger, conn, callMiddlewareChain, connHandler);
             return new TgBellhop(pool, conn);
         }
 

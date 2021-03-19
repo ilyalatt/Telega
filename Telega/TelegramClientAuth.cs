@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using LanguageExt;
+using Microsoft.Extensions.Logging;
 using Telega.Connect;
-using Telega.Internal;
 using Telega.Rpc.Dto.Functions.Account;
 using Telega.Rpc.Dto.Functions.Auth;
 using Telega.Rpc.Dto.Types;
@@ -14,13 +14,21 @@ namespace Telega
 {
     public sealed class TelegramClientAuth
     {
+        readonly ILogger _logger;
         readonly TgBellhop _tg;
-        internal TelegramClientAuth(Some<TgBellhop> tg) => _tg = tg;
+
+        internal TelegramClientAuth(
+            ILogger logger,
+            TgBellhop tg
+        ) {
+            _logger = logger;
+            _tg = tg;
+        }
 
 
         User SetAuthorized(User user)
         {
-            TgTrace.Trace("Authorized: " + user);
+            _logger.LogTrace("Authorized: " + user);
             _tg.SetSession(x => x.With(isAuthorized: true));
             return user;
         }
