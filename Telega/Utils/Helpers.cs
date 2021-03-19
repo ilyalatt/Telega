@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace Telega.Utils
-{
-    static class Helpers
-    {
-        public static byte[] Sha1(byte[] data)
-        {
+namespace Telega.Utils {
+    static class Helpers {
+        public static byte[] Sha1(byte[] data) {
             using var sha1 = new SHA1Managed();
             return sha1.ComputeHash(data);
         }
@@ -17,8 +14,7 @@ namespace Telega.Utils
         public static int GetCurrentEpochTime() =>
             (int) EpochTime.TotalSeconds;
 
-        public static long GetNewMessageId(long lastMessageId, int timeOffset)
-        {
+        public static long GetNewMessageId(long lastMessageId, int timeOffset) {
             var time = EpochTime;
 
             // [ unix timestamp : 32 bit]
@@ -37,9 +33,10 @@ namespace Telega.Utils
         public static TgFailedAssertionException FailedAssertion(string message) =>
             throw new TgFailedAssertionException(message);
 
-        public static void Assert(bool condition, Func<string> message)
-        {
-            if (!condition) throw FailedAssertion(message());
+        public static void Assert(bool condition, Func<string> message) {
+            if (!condition) {
+                throw FailedAssertion(message());
+            }
         }
 
         public static void Assert(bool condition, string message) =>

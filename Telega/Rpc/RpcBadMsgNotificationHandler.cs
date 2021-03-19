@@ -2,34 +2,26 @@ using LanguageExt;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
 
-namespace Telega.Rpc
-{
-    class TgRpcBadMsgException : TgRpcException
-    {
+namespace Telega.Rpc {
+    class TgRpcBadMsgException : TgRpcException {
         public int ErrorCode { get; }
 
-        public TgRpcBadMsgException(int errorCode, Some<string> msg) : base(msg, None)
-        {
+        public TgRpcBadMsgException(int errorCode, Some<string> msg) : base(msg, None) {
             ErrorCode = errorCode;
         }
     }
 
-    static class TgRpcBadMsgCodes
-    {
+    static class TgRpcBadMsgCodes {
         public const int MsgSeqNoLow = 32;
         public const int MsgSeqNoHigh = 33;
-
     }
 
-    static class RpcBadMsgNotificationHandler
-    {
-        public static TgRpcBadMsgException ToException(BadMsgNotification.Tag error)
-        {
+    static class RpcBadMsgNotificationHandler {
+        public static TgRpcBadMsgException ToException(BadMsgNotification.Tag error) {
             var code = error.ErrorCode;
             TgRpcBadMsgException Ex(string msg) => new(code, msg);
 
-            switch (code)
-            {
+            switch (code) {
                 case 16:
                     return Ex(
                         "msg_id too low (most likely, client time is wrong; it would be worthwhile to synchronize it using msg_id notifications and re-send the original message with the “correct” msg_id or wrap it in a container with a new msg_id if the original message had waited too long on the client to be transmitted)"

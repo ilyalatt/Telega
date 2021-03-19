@@ -9,10 +9,8 @@ using Telega.CallMiddleware;
 using Telega.Connect;
 using Telega.Rpc.Dto;
 
-namespace Telega
-{
-    public sealed class TelegramClient : IDisposable
-    {
+namespace Telega {
+    public sealed class TelegramClient : IDisposable {
         const string DefaultTelegramIp = "149.154.167.50";
         const int DefaultTelegramPort = 443;
         const string DefaultSessionName = "session.dat";
@@ -45,8 +43,7 @@ namespace Telega
             Updates = new TelegramClientUpdates(_bellhop);
         }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             _bellhop.ConnectionPool.Dispose();
             _storeSync.Stop();
         }
@@ -79,8 +76,8 @@ namespace Telega
             store ??= new FileSessionStore(DefaultSessionName);
             var ep = endpoint ?? DefaultEndpoint;
             var connectInfo = (await store.Load().ConfigureAwait(false))
-                .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
-                .IfNone(ConnectInfo.FromInfo(apiId, ep));
+               .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
+               .IfNone(ConnectInfo.FromInfo(apiId, ep));
 
             return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler);
         }

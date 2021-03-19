@@ -9,16 +9,13 @@ using Telega.Rpc.Dto.Types;
 using Telega.Utils;
 using static LanguageExt.Prelude;
 
-namespace Telega.Rpc
-{
-    static class TgSystemMessageHandler
-    {
+namespace Telega.Rpc {
+    static class TgSystemMessageHandler {
         const uint MsgContainerTypeNumber = 0x73f1f8dc;
         const uint RpcResultTypeNumber = 0xf35c6d01;
         const uint GZipPackedTypeNumber = 0x3072cfa1;
 
-        static Func<BinaryReader, T> Peek<T>(Func<BinaryReader, T> func) => br =>
-        {
+        static Func<BinaryReader, T> Peek<T>(Func<BinaryReader, T> func) => br => {
             var bs = br.BaseStream;
             var pos = bs.Position;
 
@@ -31,20 +28,19 @@ namespace Telega.Rpc
         static uint PeekTypeNumber(BinaryReader br) =>
             br.Apply(Peek(x => x.ReadUInt32()));
 
-        static void EnsureTypeNumber(BinaryReader br, uint expectedTypeNumber)
-        {
-            if (br.ReadUInt32() != expectedTypeNumber) throw new Exception("WTF");
+        static void EnsureTypeNumber(BinaryReader br, uint expectedTypeNumber) {
+            if (br.ReadUInt32() != expectedTypeNumber) {
+                throw new Exception("WTF");
+            }
         }
 
 
-        public struct Message
-        {
+        public struct Message {
             public long Id { get; }
             public int SeqNo { get; }
             public BinaryReader Body { get; }
 
-            public Message(long id, int seqNo, BinaryReader body)
-            {
+            public Message(long id, int seqNo, BinaryReader body) {
                 Id = id;
                 SeqNo = seqNo;
                 Body = body;
@@ -54,8 +50,7 @@ namespace Telega.Rpc
                 msg => new Message(msg.Id, msg.SeqNo, body);
         }
 
-        public static Message ReadMsg(BinaryReader br)
-        {
+        public static Message ReadMsg(BinaryReader br) {
             var id = br.ReadInt64();
             var seqNo = br.ReadInt32();
 
@@ -65,15 +60,13 @@ namespace Telega.Rpc
             return new Message(id, seqNo, body.Apply(BtHelpers.Deserialize(identity)));
         }
 
-        static IEnumerable<Message> ReadContainer(BinaryReader br)
-        {
+        static IEnumerable<Message> ReadContainer(BinaryReader br) {
             EnsureTypeNumber(br, MsgContainerTypeNumber);
             var count = br.ReadInt32();
             return Range(0, count).Map(_ => ReadMsg(br));
         }
 
-        static BinaryReader ReadGZipPacked(BinaryReader br)
-        {
+        static BinaryReader ReadGZipPacked(BinaryReader br) {
             EnsureTypeNumber(br, GZipPackedTypeNumber);
             var packedData = TgMarshal.ReadBytes(br).ToArrayUnsafe();
             // we need to unpack data to byte array because position and length is used sometimes
@@ -82,19 +75,17 @@ namespace Telega.Rpc
         }
 
 
-        static RpcResult HandleRpcResult(BinaryReader br)
-        {
+        static RpcResult HandleRpcResult(BinaryReader br) {
             EnsureTypeNumber(br, RpcResultTypeNumber);
             var reqMsgId = br.ReadInt64();
             var innerCode = PeekTypeNumber(br);
 
-            switch (innerCode)
-            {
+            switch (innerCode) {
                 case RpcError.TypeNumber:
                     EnsureTypeNumber(br, RpcError.TypeNumber);
                     return RpcError.DeserializeTag(br)
-                        .Apply(RpcResultErrorHandler.ToException)
-                        .Apply(exc => RpcResult.OfFail(reqMsgId, exc));
+                       .Apply(RpcResultErrorHandler.ToException)
+                       .Apply(exc => RpcResult.OfFail(reqMsgId, exc));
                 case GZipPackedTypeNumber:
                     return ReadGZipPacked(br).Apply(msgBr => RpcResult.OfSuccess(reqMsgId, msgBr));
                 default:
@@ -102,17 +93,15 @@ namespace Telega.Rpc
             }
         }
 
-        static RpcResult HandleBadMsgNotification(BinaryReader br)
-        {
+        static RpcResult HandleBadMsgNotification(BinaryReader br) {
             EnsureTypeNumber(br, BadMsgNotification.Tag.TypeNumber);
             var badMsg = BadMsgNotification.Tag.DeserializeTag(br);
             return badMsg
-                .Apply(RpcBadMsgNotificationHandler.ToException)
-                .Apply(exc => RpcResult.OfFail(badMsg.BadMsgId, exc));
+               .Apply(RpcBadMsgNotificationHandler.ToException)
+               .Apply(exc => RpcResult.OfFail(badMsg.BadMsgId, exc));
         }
 
-        static RpcResult HandleBadServerSalt(BinaryReader br, TgSystemMessageHandlerContext ctx)
-        {
+        static RpcResult HandleBadServerSalt(BinaryReader br, TgSystemMessageHandlerContext ctx) {
             br.ReadInt32();
             var msg = BadMsgNotification.ServerSaltTag.DeserializeTag(br);
 
@@ -121,15 +110,13 @@ namespace Telega.Rpc
             return RpcResult.OfFail(msg.BadMsgId, new TgBadSaltException());
         }
 
-        static RpcResult HandlePong(BinaryReader br)
-        {
+        static RpcResult HandlePong(BinaryReader br) {
             var msg = br.Apply(Peek(Pong.Deserialize));
             var msgId = msg.MsgId;
             return RpcResult.OfSuccess(msgId, br);
         }
 
-        static void HandleNewSessionCreated(BinaryReader messageReader, TgSystemMessageHandlerContext ctx)
-        {
+        static void HandleNewSessionCreated(BinaryReader messageReader, TgSystemMessageHandlerContext ctx) {
             messageReader.ReadInt32();
             var newSession = NewSession.DeserializeTag(messageReader);
 
@@ -139,15 +126,12 @@ namespace Telega.Rpc
         }
 
 
-
-        public static Func<Message, Unit> Handle(TgSystemMessageHandlerContext ctx) => message =>
-        {
+        public static Func<Message, Unit> Handle(TgSystemMessageHandlerContext ctx) => message => {
             var br = message.Body;
             var msgId = message.Id;
             var typeNumber = PeekTypeNumber(br);
 
-            switch (typeNumber)
-            {
+            switch (typeNumber) {
                 case GZipPackedTypeNumber:
                     return message.Apply(ReadGZipPacked(br).Apply(Message.WithBody)).Apply(Handle(ctx));
                 case MsgContainerTypeNumber:
@@ -193,15 +177,11 @@ namespace Telega.Rpc
                 default:
                     EnsureTypeNumber(br, typeNumber);
 
-                    UpdatesType.TryDeserialize(typeNumber, br).Match(updates =>
-                    {
-                        ctx.Ack.Add(msgId);
-                        ctx.Updates.Add(updates);
-                    },
-                    () =>
-                    {
-                        ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8"));
-                    });
+                    UpdatesType.TryDeserialize(typeNumber, br).Match(updates => {
+                            ctx.Ack.Add(msgId);
+                            ctx.Updates.Add(updates);
+                        },
+                        () => { ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8")); });
 
                     return unit;
             }

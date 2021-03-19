@@ -11,12 +11,9 @@ using Telega.Rpc.Dto.Types.Account;
 using Telega.Utils;
 using Algo = Telega.Rpc.Dto.Types.PasswordKdfAlgo.Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPowTag;
 
-namespace Telega
-{
-    static class PasswordCheckHelper
-    {
-        static byte[] Sha256(params byte[][] bts)
-        {
+namespace Telega {
+    static class PasswordCheckHelper {
+        static byte[] Sha256(params byte[][] bts) {
             using var sha = SHA256.Create();
             bts.SkipLast(1).Iter(x => sha.TransformBlock(x, 0, x.Length, null, 0));
             bts.Last().With(x => sha.TransformFinalBlock(x, 0, x.Length));
@@ -24,22 +21,26 @@ namespace Telega
         }
 
         // https://stackoverflow.com/a/18649357
-        static byte[] Pbkdf2Sha512(int dkLen, byte[] password, byte[] salt, int iterationCount)
-        {
+        static byte[] Pbkdf2Sha512(int dkLen, byte[] password, byte[] salt, int iterationCount) {
             using var hmac = new HMACSHA512(password);
             var hashLength = hmac.HashSize / 8;
-            if ((hmac.HashSize & 7) != 0)
+            if ((hmac.HashSize & 7) != 0) {
                 hashLength++;
+            }
+
             var keyLength = dkLen / hashLength;
-            if ((long) dkLen > (0xFFFFFFFFL * hashLength) || dkLen < 0)
+            if ((long) dkLen > (0xFFFFFFFFL * hashLength) || dkLen < 0) {
                 throw new ArgumentOutOfRangeException(nameof(dkLen));
-            if (dkLen % hashLength != 0)
+            }
+
+            if (dkLen % hashLength != 0) {
                 keyLength++;
+            }
+
             var extendedKey = new byte[salt.Length + 4];
             Buffer.BlockCopy(salt, 0, extendedKey, 0, salt.Length);
             using var ms = new System.IO.MemoryStream();
-            for (var i = 0; i < keyLength; i++)
-            {
+            for (var i = 0; i < keyLength; i++) {
                 extendedKey[salt.Length] = (byte) (((i + 1) >> 24) & 0xFF);
                 extendedKey[salt.Length + 1] = (byte) (((i + 1) >> 16) & 0xFF);
                 extendedKey[salt.Length + 2] = (byte) (((i + 1) >> 8) & 0xFF);
@@ -47,11 +48,9 @@ namespace Telega
                 var u = hmac.ComputeHash(extendedKey);
                 Array.Clear(extendedKey, salt.Length, 4);
                 var f = u;
-                for (var j = 1; j < iterationCount; j++)
-                {
+                for (var j = 1; j < iterationCount; j++) {
                     u = hmac.ComputeHash(u);
-                    for (var k = 0; k < f.Length; k++)
-                    {
+                    for (var k = 0; k < f.Length; k++) {
                         f[k] ^= u[k];
                     }
                 }
@@ -65,8 +64,7 @@ namespace Telega
             ms.Position = 0;
             ms.Read(dk, 0, dkLen);
             ms.Position = 0;
-            for (long i = 0; i < ms.Length; i++)
-            {
+            for (long i = 0; i < ms.Length; i++) {
                 ms.WriteByte(0);
             }
 
@@ -74,8 +72,7 @@ namespace Telega
             return dk;
         }
 
-        static byte[] ComputeHash(Algo algo, string passwordStr)
-        {
+        static byte[] ComputeHash(Algo algo, string passwordStr) {
             var salt1 = algo.Salt1.ToArrayUnsafe();
             var salt2 = algo.Salt2.ToArrayUnsafe();
             var passwordBytes = Encoding.UTF8.GetBytes(passwordStr);
@@ -86,11 +83,12 @@ namespace Telega
             return Sha256(salt2, hash3, salt2);
         }
 
-        static byte[] WithHashPadding(byte[] bts)
-        {
+        static byte[] WithHashPadding(byte[] bts) {
             const int sizeForHash = 256;
             var fill = sizeForHash - bts.Length;
-            if (fill == 0) return bts;
+            if (fill == 0) {
+                return bts;
+            }
 
             var res = new byte[sizeForHash];
             Buffer.BlockCopy(bts, 0, res, fill, bts.Length);
@@ -100,13 +98,12 @@ namespace Telega
         static byte[] ToBytes(BigInteger number) =>
             WithHashPadding(number.ToByteArrayUnsigned());
 
-        static byte[] Xor(byte[] a, byte[] b)
-        {
+        static byte[] Xor(byte[] a, byte[] b) {
             var res = new byte[a.Length];
-            for (var i = 0; i < a.Length; i++)
-            {
+            for (var i = 0; i < a.Length; i++) {
                 res[i] = (byte) (a[i] ^ b[i]);
             }
+
             return res;
         }
 
@@ -131,24 +128,25 @@ namespace Telega
         static BigInteger UnsignedNum(byte[] bts) =>
             new(1, bts);
 
-        static (BigInteger, byte[], BigInteger) GenerateAndCheckRandom(BigInteger g, byte[] bigB, BigInteger p)
-        {
+        static (BigInteger, byte[], BigInteger) GenerateAndCheckRandom(BigInteger g, byte[] bigB, BigInteger p) {
             const int randomSize = 256;
-            while (true)
-            {
+            while (true) {
                 var random = Rnd.NextBytes(randomSize);
                 var a = UnsignedNum(random);
                 var bigA = g.ModPow(a, p);
-                if (!IsGoodModExpFirst(bigA, p)) continue;
+                if (!IsGoodModExpFirst(bigA, p)) {
+                    continue;
+                }
 
                 var bigABts = ToBytes(bigA);
                 var u = UnsignedNum(Sha256(bigABts, bigB));
-                if (u > 0) return (a, bigABts, u);
+                if (u > 0) {
+                    return (a, bigABts, u);
+                }
             }
         }
 
-        public static CheckPassword GenRequest(Password pwdInfo, Algo algo, string passwordStr)
-        {
+        public static CheckPassword GenRequest(Password pwdInfo, Algo algo, string passwordStr) {
             var hash = ComputeHash(algo, passwordStr);
 
             var pBytes = algo.P.ToArrayUnsafe().Apply(WithHashPadding);

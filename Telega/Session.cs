@@ -7,10 +7,8 @@ using Telega.Rpc.Dto;
 using Telega.Utils;
 using static LanguageExt.Prelude;
 
-namespace Telega
-{
-    public sealed class Session
-    {
+namespace Telega {
+    public sealed class Session {
         const int Version = 1;
 
         public int ApiId { get; }
@@ -79,16 +77,14 @@ namespace Telega
             endpoint
         );
 
-        internal static long GetNewMessageId(Var<Session> sessionVar)
-        {
+        internal static long GetNewMessageId(Var<Session> sessionVar) {
             return sessionVar.SetWith(x => x.With(
                 lastMessageId: Helpers.GetNewMessageId(x.LastMessageId, x.TimeOffset)
             )).LastMessageId;
         }
 
 
-        public void Serialize(BinaryWriter bw)
-        {
+        public void Serialize(BinaryWriter bw) {
             TgMarshal.WriteInt(bw, Version);
             TgMarshal.WriteInt(bw, ApiId);
             TgMarshal.WriteLong(bw, Id);
@@ -102,10 +98,11 @@ namespace Telega
             TgMarshal.WriteBool(bw, IsAuthorized);
         }
 
-        public static Session Deserialize(BinaryReader br)
-        {
+        public static Session Deserialize(BinaryReader br) {
             var version = TgMarshal.ReadInt(br);
-            if (version != Version) throw new TgInternalException($"Invalid session file version, got {version}, expected {Version}.", None);
+            if (version != Version) {
+                throw new TgInternalException($"Invalid session file version, got {version}, expected {Version}.", None);
+            }
 
             var apiId = TgMarshal.ReadInt(br);
             var id = TgMarshal.ReadLong(br);

@@ -2,10 +2,8 @@ using LanguageExt;
 using Telega.Rpc.Dto.Generator.TgScheme;
 using StringHashSet = System.Collections.Generic.HashSet<string>;
 
-namespace Telega.Rpc.Dto.Generator.Generation
-{
-    static class TgSchemePatcher
-    {
+namespace Telega.Rpc.Dto.Generator.Generation {
+    static class TgSchemePatcher {
         static Arg SetBytesType(Arg arg) => new(
             name: arg.Name,
             type: TgType.OfPrimitive(PrimitiveType.Bytes),
@@ -19,8 +17,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             resultType: signature.ResultType
         );
 
-        static readonly StringHashSet StringToBytes = new()
-        {
+        static readonly StringHashSet StringToBytes = new() {
             // types
             "resPQ",
             "p_q_inner_data",

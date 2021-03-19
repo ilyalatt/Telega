@@ -1,12 +1,9 @@
 using System;
 
-namespace Telega.Rpc.Dto
-{
+namespace Telega.Rpc.Dto {
     // https://github.com/sebas77/Murmur3.net/blob/master/Murmur3hash.cs
-    static class MurMur3
-    {
-        static uint Fmix32(uint h)
-        {
+    static class MurMur3 {
+        static uint Fmix32(uint h) {
             h ^= h >> 16;
             h *= 0x85ebca6b;
             h ^= h >> 13;
@@ -16,13 +13,11 @@ namespace Telega.Rpc.Dto
             return h;
         }
 
-        static uint Rotl32(uint x, byte r)
-        {
+        static uint Rotl32(uint x, byte r) {
             return (x << r) | (x >> (32 - r));
         }
 
-        public static uint MurmurHash3_x86_32(byte[] data, uint length, uint seed)
-        {
+        public static uint MurmurHash3_x86_32(byte[] data, uint length, uint seed) {
             var nblocks = length >> 2;
 
             var h1 = seed;
@@ -33,10 +28,9 @@ namespace Telega.Rpc.Dto
             //----------
             // body
 
-            var i = 0 ;
+            var i = 0;
 
-            for (var j = nblocks; j > 0 ; --j)
-            {
+            for (var j = nblocks; j > 0; --j) {
                 var k1l = BitConverter.ToUInt32(data, i);
 
                 k1l *= c1;
@@ -47,7 +41,7 @@ namespace Telega.Rpc.Dto
                 h1 = Rotl32(h1, 13);
                 h1 = h1 * 5 + 0xe6546b64;
 
-                i+=4;
+                i += 4;
             }
 
             //----------
@@ -59,14 +53,20 @@ namespace Telega.Rpc.Dto
 
             var tailLength = length & 3;
 
-            if (tailLength == 3)
-                k1 ^= (uint)data[2 + nblocks] << 16;
-            if (tailLength >= 2)
-                k1 ^= (uint)data[1 + nblocks] << 8;
-            if (tailLength >= 1)
-            {
+            if (tailLength == 3) {
+                k1 ^= (uint) data[2 + nblocks] << 16;
+            }
+
+            if (tailLength >= 2) {
+                k1 ^= (uint) data[1 + nblocks] << 8;
+            }
+
+            if (tailLength >= 1) {
                 k1 ^= data[nblocks];
-                k1 *= c1; k1 = Rotl32(k1, 15); k1 *= c2; h1 ^= k1;
+                k1 *= c1;
+                k1 = Rotl32(k1, 15);
+                k1 *= c2;
+                h1 ^= k1;
             }
 
             //----------

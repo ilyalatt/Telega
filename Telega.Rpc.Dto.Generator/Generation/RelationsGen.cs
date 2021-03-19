@@ -5,12 +5,9 @@ using Telega.Rpc.Dto.Generator.TgScheme;
 using static Telega.Rpc.Dto.Generator.TextModel.TextAbbreviations;
 using static Telega.Rpc.Dto.Generator.TextModel.NestedTextAbbreviations;
 
-namespace Telega.Rpc.Dto.Generator.Generation
-{
-    static class RelationsGen
-    {
-        public static NestedText GenEqRelations(string typeName, Text cmpBy)
-        {
+namespace Telega.Rpc.Dto.Generator.Generation {
+    static class RelationsGen {
+        public static NestedText GenEqRelations(string typeName, Text cmpBy) {
             var equality = Concat(
                 "public bool Equals(",
                 $"{typeName}?",
@@ -29,8 +26,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             return Scope(equality, equalityLegacy, equalityOps);
         }
 
-        public static NestedText GenCmpRelations(string typeName, Text cmpBy)
-        {
+        public static NestedText GenCmpRelations(string typeName, Text cmpBy) {
             var cmp = Concat(
                 "public int CompareTo(",
                 typeName,
@@ -46,11 +42,11 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 " x ? CompareTo(x) : throw new ArgumentException(\"bad type\", nameof(other));"
             ).Apply(Line);
             var cmpOps = Scope(new[] { "<=", "<", ">", ">=" }
-                .Map(op => Concat(
+               .Map(op => Concat(
                     "public static bool operator ", op, "(", typeName, " x, ", typeName, " y) => ",
                     "x.CompareTo(y) ", op, " 0;"
                 ))
-                .Map(Line)
+               .Map(Line)
             );
 
             return Scope(cmp, cmpLegacy, cmpOps);
@@ -62,20 +58,20 @@ namespace Telega.Rpc.Dto.Generator.Generation
         public static NestedText GenToString(Text by) =>
             Concat("public override string ToString() => ", by, ";").Apply(Line);
 
-        public static NestedText GenRelations(string typeName, Arr<Arg> args)
-        {
+        public static NestedText GenRelations(string typeName, Arr<Arg> args) {
             var cmpTupleName = String("CmpTuple");
 
 
             Text EmPt(Text text) => Concat("(", text, ")");
+
             Func<Arr<Text>, Text> Tuple(bool type) => xs =>
                 xs.Count == 0 ? (type ? "Unit" : "Unit.Default") :
-                xs.Count == 1 ? xs[0]
-                : Join(", ", xs).Apply(EmPt);
+                xs.Count == 1 ? xs[0] :
+                Join(", ", xs).Apply(EmPt);
 
             Text ArgsTuple(bool type, Func<Arg, Text> argStr) => args
-                .Map(argStr)
-                .Apply(Tuple(type));
+               .Map(argStr)
+               .Apply(Tuple(type));
 
             var argsTuple = ArgsTuple(false, x => x.Name);
             var argsTupleType = ArgsTuple(true, x => TgTypeConverter.ConvertArgType(x));
@@ -88,9 +84,9 @@ namespace Telega.Rpc.Dto.Generator.Generation
 
 
             var argsInterpolationStr = args
-                .Map(x => Concat(x.Name, ": ", "{", x.Name, "}"))
-                .Apply(xs => Join(", ", xs))
-                .Apply(x => Concat("$\"(", x, ")\""));
+               .Map(x => Concat(x.Name, ": ", "{", x.Name, "}"))
+               .Apply(xs => Join(", ", xs))
+               .Apply(x => Concat("$\"(", x, ")\""));
 
             return Scope(Environment.NewLine + Environment.NewLine,
                 cmpTuple,

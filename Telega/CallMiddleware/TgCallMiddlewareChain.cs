@@ -1,13 +1,10 @@
 using LanguageExt;
 
-namespace Telega.CallMiddleware
-{
-    public sealed class TgCallMiddlewareChain
-    {
+namespace Telega.CallMiddleware {
+    public sealed class TgCallMiddlewareChain {
         public Arr<ITgCallMiddleware> Middleware { get; }
 
-        public TgCallMiddlewareChain(Arr<ITgCallMiddleware> middleware)
-        {
+        public TgCallMiddlewareChain(Arr<ITgCallMiddleware> middleware) {
             Middleware = middleware;
         }
 
@@ -27,8 +24,8 @@ namespace Telega.CallMiddleware
         );
 
         public static TgCallMiddlewareChain Default => Empty
-            .Add(new FloodMiddleware())
-            .Add(new DelayMiddleware());
+           .Add(new FloodMiddleware())
+           .Add(new DelayMiddleware());
 
 
         public TgCallHandler<T> Apply<T>(TgCallHandler<T> handler) =>

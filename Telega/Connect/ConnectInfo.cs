@@ -2,17 +2,14 @@ using System.Net;
 using LanguageExt;
 using Telega.Auth;
 
-namespace Telega.Connect
-{
-    sealed class ConnectInfo
-    {
+namespace Telega.Connect {
+    sealed class ConnectInfo {
         readonly Session? _original;
         readonly int _apiId;
         readonly IPEndPoint? _endpoint;
         Step3Res _auth;
 
-        ConnectInfo(Session? original, int apiId, IPEndPoint? endpoint)
-        {
+        ConnectInfo(Session? original, int apiId, IPEndPoint? endpoint) {
             _original = original;
             _apiId = apiId;
             _endpoint = endpoint;
@@ -29,8 +26,7 @@ namespace Telega.Connect
 
         public IPEndPoint? Endpoint => _original?.Endpoint ?? _endpoint;
 
-        public Session ToSession()
-        {
+        public Session ToSession() {
             // TODO: fix it
             // Helpers.Assert(_endpoint != null, "_endpoint == null");
             return _original ?? Session.New(_apiId, _endpoint!, _auth.AuthKey, _auth.TimeOffset);

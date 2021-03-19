@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Channels;
@@ -7,10 +6,8 @@ using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Messages;
 using static LanguageExt.Prelude;
 
-namespace Telega
-{
-    public sealed class TelegramClientChannels
-    {
+namespace Telega {
+    public sealed class TelegramClientChannels {
         readonly TgBellhop _tg;
         internal TelegramClientChannels(Some<TgBellhop> tg) => _tg = tg;
 
@@ -42,15 +39,15 @@ namespace Telega
         ) {
             const int idRadius = 10;
             var messageIds = Range(from: -idRadius, count: idRadius * 2 + 1)
-                .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
-                .ToArr();
+               .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
+               .ToArr();
 
             var messagesResponse = await GetMessages(channel, messageIds);
             var messages = messagesResponse
-                .AsChannelTag()
-                .Bind(x => x.Messages)
-                .Choose(Message.AsTag)
-                .ToArr();
+               .AsChannelTag()
+               .Bind(x => x.Messages)
+               .Choose(Message.AsTag)
+               .ToArr();
 
             var mainMessage = messages.Find(x => x.Id == messageId);
             var groupId = mainMessage.Bind(x => x.GroupedId);

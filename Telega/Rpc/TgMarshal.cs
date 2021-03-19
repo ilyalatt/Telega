@@ -7,10 +7,8 @@ using LanguageExt;
 using Telega.Rpc.Dto;
 using static LanguageExt.Prelude;
 
-namespace Telega.Rpc
-{
-    static class TgMarshal
-    {
+namespace Telega.Rpc {
+    static class TgMarshal {
         const uint VectorNum = 0x1cb5c415;
         const uint FalseNum = 0xbc799737;
         const uint TrueNum = 0x997275b5;
@@ -54,45 +52,45 @@ namespace Telega.Rpc
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int CalculateBtsPadding(int length)
-        {
+        static int CalculateBtsPadding(int length) {
             var tail4Bts = (length + (length < BytesMagic ? 1 : 0)) % 4;
             var padding = tail4Bts == 0 ? 0 : 4 - tail4Bts;
             return padding;
         }
 
-        public static Bytes ReadBytes(BinaryReader br)
-        {
+        public static Bytes ReadBytes(BinaryReader br) {
             var firstByte = br.ReadByte();
 
             var len = firstByte == BytesMagic ? br.ReadByte() | (br.ReadByte() << 8) | (br.ReadByte() << 16) : firstByte;
             var data = br.ReadBytes(len);
 
             var padding = CalculateBtsPadding(len);
-            if (padding > 0) br.ReadBytes(padding);
+            if (padding > 0) {
+                br.ReadBytes(padding);
+            }
 
             return data.ToBytesUnsafe();
         }
 
-        public static void WriteBytes(BinaryWriter bw, Bytes bytes)
-        {
+        public static void WriteBytes(BinaryWriter bw, Bytes bytes) {
             var bts = bytes.ToArrayUnsafe();
 
-            if (bts.Length < BytesMagic)
-            {
+            if (bts.Length < BytesMagic) {
                 bw.Write((byte) bts.Length);
             }
-            else
-            {
+            else {
                 bw.Write((byte) BytesMagic);
                 bw.Write((byte) bts.Length);
                 bw.Write((byte) (bts.Length >> 8));
                 bw.Write((byte) (bts.Length >> 16));
             }
+
             bw.Write(bts);
 
             var padding = CalculateBtsPadding(bts.Length);
-            for (var i = 0; i < padding; i++) bw.Write((byte) 0);
+            for (var i = 0; i < padding; i++) {
+                bw.Write((byte) 0);
+            }
         }
 
 
@@ -106,11 +104,9 @@ namespace Telega.Rpc
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ReadBool(BinaryReader br)
-        {
+        public static bool ReadBool(BinaryReader br) {
             var n = br.ReadUInt32();
-            switch (n)
-            {
+            switch (n) {
                 case TrueNum: return true;
                 case FalseNum: return false;
                 default: throw TgRpcDeserializeException.UnexpectedBoolTypeNumber(n);
@@ -143,22 +139,25 @@ namespace Telega.Rpc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Func<BinaryReader, Arr<T>> ReadVector<T>(
             Func<BinaryReader, T> deserializer
-        ) => br =>
-        {
+        ) => br => {
             var typeNumber = ReadUint(br);
-            if (typeNumber != VectorNum) throw TgRpcDeserializeException.UnexpectedVectorTypeNumber(typeNumber);
+            if (typeNumber != VectorNum) {
+                throw TgRpcDeserializeException.UnexpectedVectorTypeNumber(typeNumber);
+            }
 
             var count = ReadInt(br);
             var arr = new T[count];
-            for (var i = 0; i < count; i++) arr[i] = deserializer(br);
+            for (var i = 0; i < count; i++) {
+                arr[i] = deserializer(br);
+            }
+
             return arr.ToArr();
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Action<BinaryWriter, Arr<T>> WriteVector<T>(
             Action<BinaryWriter, T> serializer
-        ) => (bw, vector) =>
-        {
+        ) => (bw, vector) => {
             WriteUint(bw, VectorNum);
             WriteInt(bw, vector.Count);
             vector.Iter(x => serializer(bw, x));

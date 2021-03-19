@@ -13,56 +13,44 @@ using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
 
-namespace Telega.Example
-{
-    static class Exts
-    {
+namespace Telega.Example {
+    static class Exts {
         public static T AssertSome<T>(this Option<T> opt) =>
             opt.IfNone(() => throw new ApplicationException("Should be Some, but got None."));
     }
 
-    static class Program
-    {
-        static async Task SignInViaCode(TelegramClient tg, Config cfg)
-        {
+    static class Program {
+        static async Task SignInViaCode(TelegramClient tg, Config cfg) {
             var codeHash = await tg.Auth.SendCode(cfg.ApiHash!, cfg.Phone!);
 
-            while (true)
-            {
-                try
-                {
+            while (true) {
+                try {
                     Console.WriteLine("Enter the telegram code");
                     var code = Console.ReadLine();
                     await tg.Auth.SignIn(cfg.Phone!, codeHash, code!);
                     break;
                 }
-                catch (TgInvalidPhoneCodeException)
-                {
+                catch (TgInvalidPhoneCodeException) {
                     Console.WriteLine("Invalid phone code");
                 }
             }
         }
 
-        static async Task SignInViaPassword(TelegramClient tg, Config cfg)
-        {
+        static async Task SignInViaPassword(TelegramClient tg, Config cfg) {
             var pwdInfo = await tg.Auth.GetPasswordInfo();
             await tg.Auth.CheckPassword(pwdInfo, cfg.Password!);
         }
 
-        static async Task EnsureAuthorized(TelegramClient tg, Config cfg)
-        {
-            if (tg.Auth.IsAuthorized)
-            {
+        static async Task EnsureAuthorized(TelegramClient tg, Config cfg) {
+            if (tg.Auth.IsAuthorized) {
                 Console.WriteLine("Already authorized");
                 return;
             }
 
-            try
-            {
+            try {
                 await SignInViaCode(tg, cfg);
             }
-            catch (TgPasswordNeededException)
-            {
+            catch (TgPasswordNeededException) {
                 await SignInViaPassword(tg, cfg);
             }
 
@@ -72,17 +60,16 @@ namespace Telega.Example
         static Task<Config> ReadConfig() =>
             File.ReadAllTextAsync("config.json").Map(JsonConvert.DeserializeObject<Config>);
 
-        static async Task DownloadFirstChannelPictureExample(TelegramClient tg)
-        {
+        static async Task DownloadFirstChannelPictureExample(TelegramClient tg) {
             var chatsType = await tg.Messages.GetDialogs();
             var chats = chatsType.AsTag().IfNone(() => throw new NotImplementedException());
             var channels = chats.Chats.Choose(Chat.AsChannelTag);
 
             var firstChannel = channels
-                .HeadOrNone()
-                .IfNone(() => throw new Exception("A channel is not found"));
+               .HeadOrNone()
+               .IfNone(() => throw new Exception("A channel is not found"));
             var photo = firstChannel.Photo
-                .AsTag().IfNone(() => throw new Exception("The first channel does not have a photo"));
+               .AsTag().IfNone(() => throw new Exception("The first channel does not have a photo"));
             var bigPhotoFile = photo.PhotoBig;
 
             var photoLoc = new InputFileLocation.PeerPhotoTag(
@@ -102,8 +89,7 @@ namespace Telega.Example
             await tg.Upload.DownloadFile(fs, photoLoc);
         }
 
-        static async Task DownloadLastMovieFromSavedMessagesExample(TelegramClient tg)
-        {
+        static async Task DownloadLastMovieFromSavedMessagesExample(TelegramClient tg) {
             var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
             var userInfo = fullUserInfo.User.AsTag().AssertSome();
 
@@ -113,8 +99,7 @@ namespace Telega.Example
             );
             const int batchLimit = 100;
 
-            async Task<IEnumerable<Document.Tag>> GetHistory(int offset = 0)
-            {
+            async Task<IEnumerable<Document.Tag>> GetHistory(int offset = 0) {
                 var resp = await tg.Call(new GetHistory(
                     peer: chatPeer,
                     addOffset: offset,
@@ -127,12 +112,12 @@ namespace Telega.Example
                 ));
                 var messages = resp.AsSliceTag().AssertSome().Messages;
                 var docs = messages
-                    .Reverse()
-                    .Choose(Message.AsTag)
-                    .Choose(message => message.Media)
-                    .Choose(MessageMedia.AsDocumentTag)
-                    .Choose(x => x.Document)
-                    .Choose(Document.AsTag);
+                   .Reverse()
+                   .Choose(Message.AsTag)
+                   .Choose(message => message.Media)
+                   .Choose(MessageMedia.AsDocumentTag)
+                   .Choose(x => x.Document)
+                   .Choose(Document.AsTag);
                 return messages.Count == 0
                     ? docs
                     : (await GetHistory(offset + batchLimit)).Concat(docs);
@@ -150,30 +135,27 @@ namespace Telega.Example
             await tg.Upload.DownloadFile(fs, videoLocation);
         }
 
-        static async Task PrintFirstChannelTop100MessagesExample(TelegramClient tg)
-        {
+        static async Task PrintFirstChannelTop100MessagesExample(TelegramClient tg) {
             var chatsType = await tg.Messages.GetDialogs();
             var chats = chatsType.AsTag().AssertSome();
             var channels = chats.Chats.Choose(Chat.AsChannelTag);
 
             var firstChannel = channels
-                .HeadOrNone()
-                .IfNone(() => throw new Exception("A channel is not found"));
+               .HeadOrNone()
+               .IfNone(() => throw new Exception("A channel is not found"));
 
             var inputPeer = new InputPeer.ChannelTag(
                 channelId: firstChannel.Id,
                 accessHash: firstChannel.AccessHash.AssertSome()
             );
             var top100Messages = await tg.Messages.GetHistory(inputPeer, limit: 100);
-            top100Messages.AsChannelTag().AssertSome().Messages.Iter(msg =>
-            {
+            top100Messages.AsChannelTag().AssertSome().Messages.Iter(msg => {
                 Console.WriteLine(msg);
                 Console.WriteLine();
             });
         }
 
-        static async Task SendOnePavelDurovPictureToMeExample(TelegramClient tg)
-        {
+        static async Task SendOnePavelDurovPictureToMeExample(TelegramClient tg) {
             const string photoUrl = "https://cdn1.img.jp.sputniknews.com/images/406/99/4069980.png";
             var photoName = Path.GetFileName(photoUrl);
             var photo = new WebClient().DownloadData(photoUrl);
@@ -187,8 +169,7 @@ namespace Telega.Example
             );
         }
 
-        static async Task SendMultiMedia(TelegramClient tg)
-        {
+        static async Task SendMultiMedia(TelegramClient tg) {
             async Task<MessageMedia> UploadPhoto(
                 string photoName,
                 byte[] bytes,
@@ -238,26 +219,22 @@ namespace Telega.Example
             await tg.Messages.SendMultimedia(
                 peer: inputPeer,
                 message: "Sent from Telega",
-                attachments: new[]
-                {
+                attachments: new[] {
                     sentImage,
-                    sentVideo,
+                    sentVideo
                 }
             );
         }
 
 
-        static async Task PrintUserInfo(TelegramClient tg)
-        {
+        static async Task PrintUserInfo(TelegramClient tg) {
             var myInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
             Console.WriteLine(myInfo);
         }
 
-        static async Task ListenUpdates(TelegramClient tg)
-        {
+        static async Task ListenUpdates(TelegramClient tg) {
             tg.Updates.Stream.Subscribe(
-                onNext: updatesType =>
-                {
+                onNext: updatesType => {
                     var messageText = updatesType.Match(
                         updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
                         updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
@@ -276,8 +253,7 @@ namespace Telega.Example
             );
 
             tg.Updates.Stream.Subscribe(
-                onNext: updatesType =>
-                {
+                onNext: updatesType => {
                     updatesType.AsUpdateShortTag().Bind(x => x.Update.AsNewMessageTag()).IfSome(msg => { });
                     var messageText = updatesType.Match(
                         updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
@@ -302,8 +278,7 @@ namespace Telega.Example
         static async Task<Arr<(int userIdx, User.Tag user)>> ImportUsers(
             TelegramClient tg,
             IEnumerable<(string phone, string firstName, string lastName)> users
-        )
-        {
+        ) {
             var resp = await tg.Call(new ImportContacts(
                 contacts: users.Map((userIdx, user) => new InputContact(
                     clientId: userIdx,
@@ -316,8 +291,7 @@ namespace Telega.Example
             return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
         }
 
-        static async Task DownloadGroupImages(TelegramClient tg)
-        {
+        static async Task DownloadGroupImages(TelegramClient tg) {
             const string groupName = "Amsterdam";
             const string counterFormat = "000";
 
@@ -327,8 +301,7 @@ namespace Telega.Example
 
             const int batchLimit = 100;
 
-            async Task<IEnumerable<Photo.Tag>> GetHistory(int offset = 0)
-            {
+            async Task<IEnumerable<Photo.Tag>> GetHistory(int offset = 0) {
                 var resp = await tg.Call(new GetHistory(
                     peer: chatPeer,
                     addOffset: offset,
@@ -341,12 +314,12 @@ namespace Telega.Example
                 ));
                 var messages = resp.AsSliceTag().AssertSome().Messages;
                 var photos = messages
-                    .Reverse()
-                    .Choose(Message.AsTag)
-                    .Choose(message => message.Media)
-                    .Choose(MessageMedia.AsPhotoTag)
-                    .Choose(x => x.Photo)
-                    .Choose(Photo.AsTag);
+                   .Reverse()
+                   .Choose(Message.AsTag)
+                   .Choose(message => message.Media)
+                   .Choose(MessageMedia.AsPhotoTag)
+                   .Choose(x => x.Photo)
+                   .Choose(Photo.AsTag);
                 return messages.Count == 0
                     ? photos
                     : (await GetHistory(offset + batchLimit)).Concat(photos);
@@ -356,12 +329,13 @@ namespace Telega.Example
             var allPhotos = (await GetHistory()).ToArr();
 
             const string photosDir = groupName;
-            if (!Directory.Exists(photosDir)) Directory.CreateDirectory(photosDir);
+            if (!Directory.Exists(photosDir)) {
+                Directory.CreateDirectory(photosDir);
+            }
 
             Console.WriteLine("Downloading images");
             var counter = 1;
-            foreach (var photo in allPhotos)
-            {
+            foreach (var photo in allPhotos) {
                 var biggestSize = photo.Sizes.Choose(PhotoSize.AsTag).OrderByDescending(x => x.Size).First();
                 var location = biggestSize.Location;
 
@@ -383,8 +357,7 @@ namespace Telega.Example
                 var photoName = $"{counterStr}{fileTypeExt}";
                 var photoPath = Path.Combine(photosDir, photoName);
 
-                using (var fileStream = File.OpenWrite(photoPath))
-                {
+                using (var fileStream = File.OpenWrite(photoPath)) {
                     var ms = new MemoryStream();
                     await tg.Upload.DownloadFile(fileStream, photoFileLocation);
                 }
@@ -393,8 +366,7 @@ namespace Telega.Example
             }
         }
 
-        static async Task Main()
-        {
+        static async Task Main() {
             var cfg = await ReadConfig();
             using var tg = await TelegramClient.Connect(cfg.ApiId);
             await EnsureAuthorized(tg, cfg);

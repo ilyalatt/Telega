@@ -7,15 +7,12 @@ using LanguageExt;
 using Telega.Rpc.Dto;
 using Telega.Utils;
 
-namespace Telega.Rpc.ServiceTransport
-{
-    class MtProtoCipherTransport : IDisposable
-    {
+namespace Telega.Rpc.ServiceTransport {
+    class MtProtoCipherTransport : IDisposable {
         readonly TcpTransport _transport;
         readonly IVarGetter<Session> _session;
 
-        public MtProtoCipherTransport(TcpTransport transport, IVarGetter<Session> session)
-        {
+        public MtProtoCipherTransport(TcpTransport transport, IVarGetter<Session> session) {
             _transport = transport;
             _session = session;
         }
@@ -23,8 +20,7 @@ namespace Telega.Rpc.ServiceTransport
         public void Dispose() => _transport.Dispose();
 
 
-        static byte[] Sha256(params ArraySegment<byte>[] btsArr)
-        {
+        static byte[] Sha256(params ArraySegment<byte>[] btsArr) {
             using var sha = SHA256.Create();
             btsArr.SkipLast(1).Iter(bts => sha.TransformBlock(bts.Array, bts.Offset, bts.Count, null, 0));
             btsArr.Last().Apply(bts => sha.TransformFinalBlock(bts.Array, bts.Offset, bts.Count));
@@ -37,8 +33,7 @@ namespace Telega.Rpc.ServiceTransport
         static ArraySegment<byte> AsSlice(byte[] buffer) =>
             new(buffer, 0, buffer.Length);
 
-        static byte[] Concat(params ArraySegment<byte>[] btsArr)
-        {
+        static byte[] Concat(params ArraySegment<byte>[] btsArr) {
             var res = new byte[btsArr.Sum(x => x.Count)];
             btsArr.Scan(0, (a, x) => a + x.Count).Zip(btsArr).Iter(t =>
                 Buffer.BlockCopy(t.Item2.Array, t.Item2.Offset, res, t.Item1, t.Item2.Count)
@@ -49,15 +44,13 @@ namespace Telega.Rpc.ServiceTransport
         static int Offset(bool isClient) =>
             isClient ? 0 : 8;
 
-        public static byte[] CalcMsgKey(byte[] authKey, byte[] plainText, bool isClient)
-        {
+        public static byte[] CalcMsgKey(byte[] authKey, byte[] plainText, bool isClient) {
             var x = Offset(isClient);
             var msgKeyLarge = Sha256(Slice(authKey, 88 + x, 32), AsSlice(plainText));
             return Concat(Slice(msgKeyLarge, 8, 16));
         }
 
-        public static AesKeyData CalcAesKey(byte[] authKey, byte[] msgKey, bool isClient)
-        {
+        public static AesKeyData CalcAesKey(byte[] authKey, byte[] msgKey, bool isClient) {
             var x = Offset(isClient);
             var sha256A = Sha256(AsSlice(msgKey), Slice(authKey, x, 36));
             var sha256B = Sha256(Slice(authKey, 40 + x, 36), AsSlice(msgKey));
@@ -66,12 +59,10 @@ namespace Telega.Rpc.ServiceTransport
             return new AesKeyData(aesKey, aesIv);
         }
 
-        public async Task Send(byte[] msg)
-        {
+        public async Task Send(byte[] msg) {
             var session = _session.Get();
 
-            var plainText = BtHelpers.UsingMemBinWriter(bw =>
-            {
+            var plainText = BtHelpers.UsingMemBinWriter(bw => {
                 bw.Write(session.Salt);
                 bw.Write(session.Id);
                 bw.Write(msg);
@@ -88,8 +79,7 @@ namespace Telega.Rpc.ServiceTransport
             var aesKey = CalcAesKey(authKey, msgKey, true);
             var cipherText = Aes.EncryptAES(aesKey, plainText);
 
-            await BtHelpers.UsingMemBinWriter(bw =>
-            {
+            await BtHelpers.UsingMemBinWriter(bw => {
                 bw.Write(session.AuthKey.KeyId);
                 bw.Write(msgKey);
                 bw.Write(cipherText);
@@ -97,11 +87,9 @@ namespace Telega.Rpc.ServiceTransport
         }
 
 
-        async Task<byte[]> ReceivePlainText()
-        {
+        async Task<byte[]> ReceivePlainText() {
             var body = await _transport.Receive();
-            return body.Apply(BtHelpers.Deserialize(br =>
-            {
+            return body.Apply(BtHelpers.Deserialize(br => {
                 var authKeyId = br.ReadUInt64(); // TODO: check auth key id
                 var msgKey = br.ReadBytes(16); // TODO: check msg_key correctness
                 var keyData = CalcAesKey(_session.Get().AuthKey.Key.ToArrayUnsafe(), msgKey, false);
@@ -115,11 +103,9 @@ namespace Telega.Rpc.ServiceTransport
             }));
         }
 
-        public async Task<BinaryReader> Receive()
-        {
+        public async Task<BinaryReader> Receive() {
             var plainText = await ReceivePlainText();
-            return plainText.Apply(BtHelpers.Deserialize(br =>
-            {
+            return plainText.Apply(BtHelpers.Deserialize(br => {
                 var remoteSalt = br.ReadUInt64();
                 var remoteSessionId = br.ReadUInt64();
 

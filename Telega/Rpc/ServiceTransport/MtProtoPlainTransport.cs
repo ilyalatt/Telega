@@ -3,10 +3,8 @@ using LanguageExt;
 using Telega.Rpc.Dto;
 using Telega.Utils;
 
-namespace Telega.Rpc.ServiceTransport
-{
-    class MtProtoPlainTransport
-    {
+namespace Telega.Rpc.ServiceTransport {
+    class MtProtoPlainTransport {
         long _lastMessageId;
         readonly TcpTransport _transport;
 
@@ -16,8 +14,7 @@ namespace Telega.Rpc.ServiceTransport
             _lastMessageId = Helpers.GetNewMessageId(_lastMessageId, timeOffset: 0);
 
         async Task Send(byte[] msg) =>
-            await BtHelpers.UsingMemBinWriter(bw =>
-            {
+            await BtHelpers.UsingMemBinWriter(bw => {
                 bw.Write((long) 0);
                 bw.Write(GetNewMessageId());
 
@@ -25,11 +22,9 @@ namespace Telega.Rpc.ServiceTransport
                 bw.Write(msg);
             }).Apply(_transport.Send);
 
-        async Task<byte[]> Receive()
-        {
+        async Task<byte[]> Receive() {
             var body = await _transport.Receive();
-            return body.Apply(BtHelpers.Deserialize(br =>
-            {
+            return body.Apply(BtHelpers.Deserialize(br => {
                 var authKeyId = br.ReadInt64(); // 0
                 var messageId = br.ReadInt64();
 
@@ -39,8 +34,7 @@ namespace Telega.Rpc.ServiceTransport
             }));
         }
 
-        public async Task<T> Call<T>(ITgFunc<T> func)
-        {
+        public async Task<T> Call<T>(ITgFunc<T> func) {
             await BtHelpers.UsingMemBinWriter(func.Serialize).Apply(Send);
             return await Receive().Map(BtHelpers.Deserialize(func.DeserializeResult));
         }

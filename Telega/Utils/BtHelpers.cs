@@ -6,12 +6,11 @@ using BigMath.Utils;
 using LanguageExt;
 using Telega.Rpc.Dto;
 
-namespace Telega.Utils
-{
-    static class BtHelpers
-    {
+namespace Telega.Utils {
+    static class BtHelpers {
         public static Int128 GenNonce16() =>
             Rnd.NextBytes(16).ToInt128();
+
         public static Int256 GenNonce32() =>
             Rnd.NextBytes(32).ToInt256();
 
@@ -27,8 +26,7 @@ namespace Telega.Utils
         public static byte[] Serialize(ITgType dto) =>
             UsingMemBinWriter(dto.Serialize);
 
-        public static Func<byte[], T> Deserialize<T>(Func<BinaryReader, T> deserializer) => bts =>
-        {
+        public static Func<byte[], T> Deserialize<T>(Func<BinaryReader, T> deserializer) => bts => {
             var ms = new MemoryStream(bts);
             var br = new BinaryReader(ms);
             return deserializer(br);

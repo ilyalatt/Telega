@@ -1,21 +1,19 @@
-using LanguageExt;
-using Telega.Connect;
 using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using LanguageExt;
+using Telega.Connect;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Functions.Upload;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Storage;
 using Telega.Utils;
-using File = Telega.Rpc.Dto.Types.Upload.File;
 using static LanguageExt.Prelude;
+using File = Telega.Rpc.Dto.Types.Upload.File;
 
-namespace Telega
-{
-    public sealed class TelegramClientUpload
-    {
+namespace Telega {
+    public sealed class TelegramClientUpload {
         readonly TgBellhop _tg;
         internal TelegramClientUpload(Some<TgBellhop> tg) => _tg = tg;
 
@@ -23,13 +21,14 @@ namespace Telega
 
         static bool IsBigUpload(int size) => size > 10 * 1024 * 1024;
 
-        static async Task ReadToBuffer(byte[] buffer, int pos, int count, Stream stream)
-        {
+        static async Task ReadToBuffer(byte[] buffer, int pos, int count, Stream stream) {
             var totalReceived = 0;
-            while (totalReceived < count)
-            {
+            while (totalReceived < count) {
                 var received = await stream.ReadAsync(buffer, pos + totalReceived, count - totalReceived).ConfigureAwait(false);
-                if (received == 0) throw new EndOfStreamException();
+                if (received == 0) {
+                    throw new EndOfStreamException();
+                }
+
                 totalReceived += received;
             }
         }
@@ -40,7 +39,9 @@ namespace Telega
             int fileLength,
             Some<Stream> stream
         ) {
-            if (fileLength <= 0) throw new ArgumentOutOfRangeException(nameof(fileLength));
+            if (fileLength <= 0) {
+                throw new ArgumentOutOfRangeException(nameof(fileLength));
+            }
 
             var tg = _tg.Fork();
 
@@ -52,8 +53,7 @@ namespace Telega
             var chunkIdx = 0;
             var chunksCount = 1 + (fileLength - 1) / ChunkSize;
 
-            while (chunkIdx < chunksCount)
-            {
+            while (chunkIdx < chunksCount) {
                 var chunkSize = Math.Min(ChunkSize, fileLength - totalReceived);
                 await ReadToBuffer(buffer, 0, chunkSize, stream).ConfigureAwait(false);
                 totalReceived += chunkSize;
@@ -102,7 +102,10 @@ namespace Telega
         ) {
             var name = Path.GetFileName(filePath);
             using var fs = System.IO.File.OpenRead(filePath);
-            if (fs.Length > int.MaxValue) throw new ArgumentException("the file is too big", nameof(filePath));
+            if (fs.Length > int.MaxValue) {
+                throw new ArgumentException("the file is too big", nameof(filePath));
+            }
+
             return await UploadFile(name, (int) fs.Length, fs).ConfigureAwait(false);
         }
 
@@ -136,8 +139,7 @@ namespace Telega
             var stream = someStream.Value;
             var offset = 0;
             var prevFile = default(File.Tag);
-            while (true)
-            {
+            while (true) {
                 var resp = await tg.Call(new GetFile(
                     precise: true,
                     cdnSupported: false,
@@ -154,7 +156,9 @@ namespace Telega
                 await stream.WriteAsync(bts, 0, bts.Length).ConfigureAwait(false);
                 offset += bts.Length;
 
-                if (bts.Length < ChunkSize) break;
+                if (bts.Length < ChunkSize) {
+                    break;
+                }
             }
 
             return prevFile.Type;

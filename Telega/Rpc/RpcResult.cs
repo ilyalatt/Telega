@@ -1,15 +1,12 @@
 using System.IO;
 
-namespace Telega.Rpc
-{
-    struct RpcResult
-    {
+namespace Telega.Rpc {
+    struct RpcResult {
         public long Id { get; }
         public BinaryReader? Body { get; }
         public TgException? Exception { get; }
 
-        public RpcResult(long id, BinaryReader? body, TgException? exception)
-        {
+        public RpcResult(long id, BinaryReader? body, TgException? exception) {
             Id = id;
             Body = body;
             Exception = exception;

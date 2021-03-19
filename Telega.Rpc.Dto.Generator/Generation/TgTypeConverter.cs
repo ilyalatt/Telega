@@ -1,15 +1,11 @@
 using LanguageExt;
 using Telega.Rpc.Dto.Generator.TgScheme;
 
-namespace Telega.Rpc.Dto.Generator.Generation
-{
-    static class TgTypeConverter
-    {
+namespace Telega.Rpc.Dto.Generator.Generation {
+    static class TgTypeConverter {
         public static string ConvertType(TgType type) => type.Match(
-            primitive: x =>
-            {
-                switch (x.Type)
-                {
+            primitive: x => {
+                switch (x.Type) {
                     case PrimitiveType.Bytes: return "Bytes";
                     case PrimitiveType.Int128: return "BigMath.Int128";
                     case PrimitiveType.Int256: return "BigMath.Int256";
@@ -39,6 +35,6 @@ namespace Telega.Rpc.Dto.Generator.Generation
         );
 
         public static string WrapArgTypeWithNullable(Arg arg) => ConvertArgType(arg)
-            .Apply(x => $"{x}?");
+           .Apply(x => $"{x}?");
     }
 }

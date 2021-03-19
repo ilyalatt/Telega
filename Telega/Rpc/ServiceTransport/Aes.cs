@@ -2,24 +2,19 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Telega.Rpc.ServiceTransport
-{
-    struct AesKeyData
-    {
+namespace Telega.Rpc.ServiceTransport {
+    struct AesKeyData {
         public byte[] Key { get; }
         public byte[] Iv { get; }
 
-        public AesKeyData(byte[] key, byte[] iv)
-        {
+        public AesKeyData(byte[] key, byte[] iv) {
             Key = key;
             Iv = iv;
         }
     }
 
-    static class Aes
-    {
-        public static byte[] DecryptWithNonces(byte[] data, byte[] serverNonce, byte[] newNonce)
-        {
+    static class Aes {
+        public static byte[] DecryptWithNonces(byte[] data, byte[] serverNonce, byte[] newNonce) {
             using var hash = new SHA1Managed();
             var nonces = new byte[48];
 
@@ -48,8 +43,7 @@ namespace Telega.Rpc.ServiceTransport
             return DecryptIGE(data, keyBuffer.ToArray(), ivBuffer.ToArray());
         }
 
-        public static AesKeyData GenerateKeyDataFromNonces(byte[] serverNonce, byte[] newNonce)
-        {
+        public static AesKeyData GenerateKeyDataFromNonces(byte[] serverNonce, byte[] newNonce) {
             using var hash = new SHA1Managed();
             var nonces = new byte[48];
 
@@ -78,18 +72,15 @@ namespace Telega.Rpc.ServiceTransport
             return new AesKeyData(keyBuffer.ToArray(), ivBuffer.ToArray());
         }
 
-        public static byte[] DecryptAES(AesKeyData key, byte[] ciphertext)
-        {
+        public static byte[] DecryptAES(AesKeyData key, byte[] ciphertext) {
             return DecryptIGE(ciphertext, key.Key, key.Iv);
         }
 
-        public static byte[] EncryptAES(AesKeyData key, byte[] plaintext)
-        {
+        public static byte[] EncryptAES(AesKeyData key, byte[] plaintext) {
             return EncryptIGE(plaintext, key.Key, key.Iv);
         }
 
-        public static byte[] DecryptIGE(byte[] ciphertext, byte[] key, byte[] iv)
-        {
+        public static byte[] DecryptIGE(byte[] ciphertext, byte[] key, byte[] iv) {
             var iv1 = new byte[iv.Length / 2];
             var iv2 = new byte[iv.Length / 2];
 
@@ -104,17 +95,14 @@ namespace Telega.Rpc.ServiceTransport
 
             var ciphertextBlock = new byte[16];
             var plaintextBlock = new byte[16];
-            for (var blockIndex = 0; blockIndex < blocksCount; blockIndex++)
-            {
-                for (var i = 0; i < 16; i++)
-                {
+            for (var blockIndex = 0; blockIndex < blocksCount; blockIndex++) {
+                for (var i = 0; i < 16; i++) {
                     ciphertextBlock[i] = (byte) (ciphertext[blockIndex * 16 + i] ^ iv2[i]);
                 }
 
                 aes.ProcessBlock(ciphertextBlock, 0, plaintextBlock, 0);
 
-                for (var i = 0; i < 16; i++)
-                {
+                for (var i = 0; i < 16; i++) {
                     plaintextBlock[i] ^= iv1[i];
                 }
 
@@ -127,8 +115,7 @@ namespace Telega.Rpc.ServiceTransport
             return plaintext;
         }
 
-        public static byte[] EncryptIGE(byte[] plaintext, byte[] key, byte[] iv)
-        {
+        public static byte[] EncryptIGE(byte[] plaintext, byte[] key, byte[] iv) {
             var iv1 = new byte[iv.Length / 2];
             var iv2 = new byte[iv.Length / 2];
 
@@ -143,14 +130,12 @@ namespace Telega.Rpc.ServiceTransport
 
             var ciphertextBlock = new byte[16];
             var plaintextBlock = new byte[16];
-            for (var blockIndex = 0; blockIndex < blocksCount; blockIndex++)
-            {
+            for (var blockIndex = 0; blockIndex < blocksCount; blockIndex++) {
                 Array.Copy(plaintext, 16 * blockIndex, plaintextBlock, 0, 16);
 
                 //logger.info("plaintext block: {0} xor {1}", BitConverter.ToString(plaintextBlock).Replace("-", ""), BitConverter.ToString(iv1).Replace("-", ""));
 
-                for (var i = 0; i < 16; i++)
-                {
+                for (var i = 0; i < 16; i++) {
                     plaintextBlock[i] ^= iv1[i];
                 }
 
@@ -160,8 +145,7 @@ namespace Telega.Rpc.ServiceTransport
 
                 //logger.info("encrypted plaintext: {0} xor {1}", BitConverter.ToString(ciphertextBlock).Replace("-", ""), BitConverter.ToString(iv2).Replace("-", ""));
 
-                for (var i = 0; i < 16; i++)
-                {
+                for (var i = 0; i < 16; i++) {
                     ciphertextBlock[i] ^= iv2[i];
                 }
 
@@ -176,11 +160,12 @@ namespace Telega.Rpc.ServiceTransport
             return ciphertext;
         }
 
-        public static byte[] XOR(byte[] buffer1, byte[] buffer2)
-        {
+        public static byte[] XOR(byte[] buffer1, byte[] buffer2) {
             var result = new byte[buffer1.Length];
-            for (var i = 0; i < buffer1.Length; i++)
-                result[i] = (byte)(buffer1[i] ^ buffer2[i]);
+            for (var i = 0; i < buffer1.Length; i++) {
+                result[i] = (byte) (buffer1[i] ^ buffer2[i]);
+            }
+
             return result;
         }
     }
@@ -188,8 +173,7 @@ namespace Telega.Rpc.ServiceTransport
 
     // AES engine implementation
 
-    public class AesEngine
-    {
+    public class AesEngine {
         // The S box
         const uint m1 = 0x80808080;
         const uint m2 = 0x7f7f7f7f;
@@ -389,26 +373,24 @@ namespace Telega.Rpc.ServiceTransport
         uint[,]? WorkingKey;
         bool forEncryption;
 
-        public string AlgorithmName
-        {
+        public string AlgorithmName {
             get { return "AES"; }
         }
 
-        public bool IsPartialBlockOkay
-        {
+        public bool IsPartialBlockOkay {
             get { return false; }
         }
 
         uint Shift(
             uint r,
-            int shift)
-        {
+            int shift
+        ) {
             return (r >> shift) | (r << (32 - shift));
         }
 
         uint FFmulX(
-            uint x)
-        {
+            uint x
+        ) {
             return ((x & m2) << 1) ^ (((x & m1) >> 7) * m3);
         }
 
@@ -423,8 +405,8 @@ namespace Telega.Rpc.ServiceTransport
         */
 
         uint Inv_Mcol(
-            uint x)
-        {
+            uint x
+        ) {
             var f2 = FFmulX(x);
             var f4 = FFmulX(f2);
             var f8 = FFmulX(f4);
@@ -434,12 +416,12 @@ namespace Telega.Rpc.ServiceTransport
         }
 
         uint SubWord(
-            uint x)
-        {
+            uint x
+        ) {
             return S[x & 255]
-                   | (((uint)S[(x >> 8) & 255]) << 8)
-                   | (((uint)S[(x >> 16) & 255]) << 16)
-                   | (((uint)S[(x >> 24) & 255]) << 24);
+              | (((uint) S[(x >> 8) & 255]) << 8)
+              | (((uint) S[(x >> 16) & 255]) << 16)
+              | (((uint) S[(x >> 24) & 255]) << 24);
         }
 
         /**
@@ -448,16 +430,15 @@ namespace Telega.Rpc.ServiceTransport
         * AES specified a fixed block size of 128 bits and key sizes 128/192/256 bits
         * This code is written assuming those are the only possible values
         */
-
         uint[,] GenerateWorkingKey(
             byte[] key,
-            bool forEncryption)
-        {
+            bool forEncryption) {
             var KC = key.Length / 4; // key length in words
             int t;
 
-            if ((KC != 4) && (KC != 6) && (KC != 8))
+            if ((KC != 4) && (KC != 6) && (KC != 8)) {
                 throw new ArgumentException("Key length not 128/192/256 bits.");
+            }
 
             ROUNDS = KC + 6; // This is not always true for the generalized Rijndael that allows larger block sizes
             var W = new uint[ROUNDS + 1, 4]; // 4 words in a block
@@ -467,8 +448,7 @@ namespace Telega.Rpc.ServiceTransport
             //
 
             t = 0;
-            for (var i = 0; i < key.Length; t++)
-            {
+            for (var i = 0; i < key.Length; t++) {
                 W[t >> 2, t & 3] = Pack.LE_To_UInt32(key, i);
                 i += 4;
             }
@@ -478,27 +458,21 @@ namespace Telega.Rpc.ServiceTransport
             // calculate new values
             //
             var k = (ROUNDS + 1) << 2;
-            for (var i = KC; (i < k); i++)
-            {
+            for (var i = KC; (i < k); i++) {
                 var temp = W[(i - 1) >> 2, (i - 1) & 3];
-                if ((i % KC) == 0)
-                {
+                if ((i % KC) == 0) {
                     temp = SubWord(Shift(temp, 8)) ^ rcon[(i / KC) - 1];
                 }
-                else if ((KC > 6) && ((i % KC) == 4))
-                {
+                else if ((KC > 6) && ((i % KC) == 4)) {
                     temp = SubWord(temp);
                 }
 
                 W[i >> 2, i & 3] = W[(i - KC) >> 2, (i - KC) & 3] ^ temp;
             }
 
-            if (!forEncryption)
-            {
-                for (var j = 1; j < ROUNDS; j++)
-                {
-                    for (var i = 0; i < 4; i++)
-                    {
+            if (!forEncryption) {
+                for (var j = 1; j < ROUNDS; j++) {
+                    for (var i = 0; i < 4; i++) {
                         W[j, i] = Inv_Mcol(W[j, i]);
                     }
                 }
@@ -507,38 +481,31 @@ namespace Telega.Rpc.ServiceTransport
             return W;
         }
 
-        public void Init(bool forEncryption, byte[] key)
-        {
+        public void Init(bool forEncryption, byte[] key) {
             WorkingKey = GenerateWorkingKey(key, forEncryption);
             this.forEncryption = forEncryption;
         }
 
-        public int GetBlockSize()
-        {
+        public int GetBlockSize() {
             return BLOCK_SIZE;
         }
 
-        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
-        {
-            if (WorkingKey == null)
-            {
+        public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff) {
+            if (WorkingKey == null) {
                 throw new InvalidOperationException("AES engine not initialised");
             }
 
-            if ((inOff + (32 / 2)) > input.Length)
-            {
+            if ((inOff + (32 / 2)) > input.Length) {
                 throw new InvalidOperationException("input buffer too short");
             }
 
-            if ((outOff + (32 / 2)) > output.Length)
-            {
+            if ((outOff + (32 / 2)) > output.Length) {
                 throw new InvalidOperationException("output buffer too short");
             }
 
             UnPackBlock(input, inOff);
 
-            if (forEncryption)
-            {
+            if (forEncryption) {
                 EncryptBlock(WorkingKey);
             }
             else {
@@ -550,14 +517,11 @@ namespace Telega.Rpc.ServiceTransport
             return BLOCK_SIZE;
         }
 
-        public void Reset()
-        {
-        }
+        public void Reset() { }
 
         void UnPackBlock(
             byte[] bytes,
-            int off)
-        {
+            int off) {
             C0 = Pack.LE_To_UInt32(bytes, off);
             C1 = Pack.LE_To_UInt32(bytes, off + 4);
             C2 = Pack.LE_To_UInt32(bytes, off + 8);
@@ -566,8 +530,7 @@ namespace Telega.Rpc.ServiceTransport
 
         void PackBlock(
             byte[] bytes,
-            int off)
-        {
+            int off) {
             Pack.UInt32_To_LE(C0, bytes, off);
             Pack.UInt32_To_LE(C1, bytes, off + 4);
             Pack.UInt32_To_LE(C2, bytes, off + 8);
@@ -575,8 +538,7 @@ namespace Telega.Rpc.ServiceTransport
         }
 
         void EncryptBlock(
-            uint[,] KW)
-        {
+            uint[,] KW) {
             uint r, r0, r1, r2, r3;
 
             C0 ^= KW[0, 0];
@@ -584,50 +546,48 @@ namespace Telega.Rpc.ServiceTransport
             C2 ^= KW[0, 2];
             C3 ^= KW[0, 3];
 
-            for (r = 1; r < ROUNDS - 1;)
-            {
+            for (r = 1; r < ROUNDS - 1;) {
                 r0 = T0[C0 & 255] ^ Shift(T0[(C1 >> 8) & 255], 24) ^ Shift(T0[(C2 >> 16) & 255], 16) ^
-                     Shift(T0[(C3 >> 24) & 255], 8) ^ KW[r, 0];
+                    Shift(T0[(C3 >> 24) & 255], 8) ^ KW[r, 0];
                 r1 = T0[C1 & 255] ^ Shift(T0[(C2 >> 8) & 255], 24) ^ Shift(T0[(C3 >> 16) & 255], 16) ^
-                     Shift(T0[(C0 >> 24) & 255], 8) ^ KW[r, 1];
+                    Shift(T0[(C0 >> 24) & 255], 8) ^ KW[r, 1];
                 r2 = T0[C2 & 255] ^ Shift(T0[(C3 >> 8) & 255], 24) ^ Shift(T0[(C0 >> 16) & 255], 16) ^
-                     Shift(T0[(C1 >> 24) & 255], 8) ^ KW[r, 2];
+                    Shift(T0[(C1 >> 24) & 255], 8) ^ KW[r, 2];
                 r3 = T0[C3 & 255] ^ Shift(T0[(C0 >> 8) & 255], 24) ^ Shift(T0[(C1 >> 16) & 255], 16) ^
-                     Shift(T0[(C2 >> 24) & 255], 8) ^ KW[r++, 3];
+                    Shift(T0[(C2 >> 24) & 255], 8) ^ KW[r++, 3];
                 C0 = T0[r0 & 255] ^ Shift(T0[(r1 >> 8) & 255], 24) ^ Shift(T0[(r2 >> 16) & 255], 16) ^
-                     Shift(T0[(r3 >> 24) & 255], 8) ^ KW[r, 0];
+                    Shift(T0[(r3 >> 24) & 255], 8) ^ KW[r, 0];
                 C1 = T0[r1 & 255] ^ Shift(T0[(r2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^
-                     Shift(T0[(r0 >> 24) & 255], 8) ^ KW[r, 1];
+                    Shift(T0[(r0 >> 24) & 255], 8) ^ KW[r, 1];
                 C2 = T0[r2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(r0 >> 16) & 255], 16) ^
-                     Shift(T0[(r1 >> 24) & 255], 8) ^ KW[r, 2];
+                    Shift(T0[(r1 >> 24) & 255], 8) ^ KW[r, 2];
                 C3 = T0[r3 & 255] ^ Shift(T0[(r0 >> 8) & 255], 24) ^ Shift(T0[(r1 >> 16) & 255], 16) ^
-                     Shift(T0[(r2 >> 24) & 255], 8) ^ KW[r++, 3];
+                    Shift(T0[(r2 >> 24) & 255], 8) ^ KW[r++, 3];
             }
 
             r0 = T0[C0 & 255] ^ Shift(T0[(C1 >> 8) & 255], 24) ^ Shift(T0[(C2 >> 16) & 255], 16) ^
-                 Shift(T0[(C3 >> 24) & 255], 8) ^ KW[r, 0];
+                Shift(T0[(C3 >> 24) & 255], 8) ^ KW[r, 0];
             r1 = T0[C1 & 255] ^ Shift(T0[(C2 >> 8) & 255], 24) ^ Shift(T0[(C3 >> 16) & 255], 16) ^
-                 Shift(T0[(C0 >> 24) & 255], 8) ^ KW[r, 1];
+                Shift(T0[(C0 >> 24) & 255], 8) ^ KW[r, 1];
             r2 = T0[C2 & 255] ^ Shift(T0[(C3 >> 8) & 255], 24) ^ Shift(T0[(C0 >> 16) & 255], 16) ^
-                 Shift(T0[(C1 >> 24) & 255], 8) ^ KW[r, 2];
+                Shift(T0[(C1 >> 24) & 255], 8) ^ KW[r, 2];
             r3 = T0[C3 & 255] ^ Shift(T0[(C0 >> 8) & 255], 24) ^ Shift(T0[(C1 >> 16) & 255], 16) ^
-                 Shift(T0[(C2 >> 24) & 255], 8) ^ KW[r++, 3];
+                Shift(T0[(C2 >> 24) & 255], 8) ^ KW[r++, 3];
 
             // the final round's table is a simple function of S so we don't use a whole other four tables for it
 
-            C0 = S[r0 & 255] ^ (((uint)S[(r1 >> 8) & 255]) << 8) ^ (((uint)S[(r2 >> 16) & 255]) << 16) ^
-                 (((uint)S[(r3 >> 24) & 255]) << 24) ^ KW[r, 0];
-            C1 = S[r1 & 255] ^ (((uint)S[(r2 >> 8) & 255]) << 8) ^ (((uint)S[(r3 >> 16) & 255]) << 16) ^
-                 (((uint)S[(r0 >> 24) & 255]) << 24) ^ KW[r, 1];
-            C2 = S[r2 & 255] ^ (((uint)S[(r3 >> 8) & 255]) << 8) ^ (((uint)S[(r0 >> 16) & 255]) << 16) ^
-                 (((uint)S[(r1 >> 24) & 255]) << 24) ^ KW[r, 2];
-            C3 = S[r3 & 255] ^ (((uint)S[(r0 >> 8) & 255]) << 8) ^ (((uint)S[(r1 >> 16) & 255]) << 16) ^
-                 (((uint)S[(r2 >> 24) & 255]) << 24) ^ KW[r, 3];
+            C0 = S[r0 & 255] ^ (((uint) S[(r1 >> 8) & 255]) << 8) ^ (((uint) S[(r2 >> 16) & 255]) << 16) ^
+                (((uint) S[(r3 >> 24) & 255]) << 24) ^ KW[r, 0];
+            C1 = S[r1 & 255] ^ (((uint) S[(r2 >> 8) & 255]) << 8) ^ (((uint) S[(r3 >> 16) & 255]) << 16) ^
+                (((uint) S[(r0 >> 24) & 255]) << 24) ^ KW[r, 1];
+            C2 = S[r2 & 255] ^ (((uint) S[(r3 >> 8) & 255]) << 8) ^ (((uint) S[(r0 >> 16) & 255]) << 16) ^
+                (((uint) S[(r1 >> 24) & 255]) << 24) ^ KW[r, 2];
+            C3 = S[r3 & 255] ^ (((uint) S[(r0 >> 8) & 255]) << 8) ^ (((uint) S[(r1 >> 16) & 255]) << 16) ^
+                (((uint) S[(r2 >> 24) & 255]) << 24) ^ KW[r, 3];
         }
 
         void DecryptBlock(
-            uint[,] KW)
-        {
+            uint[,] KW) {
             int r;
             uint r0, r1, r2, r3;
 
@@ -636,173 +596,153 @@ namespace Telega.Rpc.ServiceTransport
             C2 ^= KW[ROUNDS, 2];
             C3 ^= KW[ROUNDS, 3];
 
-            for (r = ROUNDS - 1; r > 1;)
-            {
+            for (r = ROUNDS - 1; r > 1;) {
                 r0 = Tinv0[C0 & 255] ^ Shift(Tinv0[(C3 >> 8) & 255], 24) ^ Shift(Tinv0[(C2 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(C1 >> 24) & 255], 8) ^ KW[r, 0];
+                    Shift(Tinv0[(C1 >> 24) & 255], 8) ^ KW[r, 0];
                 r1 = Tinv0[C1 & 255] ^ Shift(Tinv0[(C0 >> 8) & 255], 24) ^ Shift(Tinv0[(C3 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(C2 >> 24) & 255], 8) ^ KW[r, 1];
+                    Shift(Tinv0[(C2 >> 24) & 255], 8) ^ KW[r, 1];
                 r2 = Tinv0[C2 & 255] ^ Shift(Tinv0[(C1 >> 8) & 255], 24) ^ Shift(Tinv0[(C0 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(C3 >> 24) & 255], 8) ^ KW[r, 2];
+                    Shift(Tinv0[(C3 >> 24) & 255], 8) ^ KW[r, 2];
                 r3 = Tinv0[C3 & 255] ^ Shift(Tinv0[(C2 >> 8) & 255], 24) ^ Shift(Tinv0[(C1 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(C0 >> 24) & 255], 8) ^ KW[r--, 3];
+                    Shift(Tinv0[(C0 >> 24) & 255], 8) ^ KW[r--, 3];
                 C0 = Tinv0[r0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(r2 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(r1 >> 24) & 255], 8) ^ KW[r, 0];
+                    Shift(Tinv0[(r1 >> 24) & 255], 8) ^ KW[r, 0];
                 C1 = Tinv0[r1 & 255] ^ Shift(Tinv0[(r0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(r2 >> 24) & 255], 8) ^ KW[r, 1];
+                    Shift(Tinv0[(r2 >> 24) & 255], 8) ^ KW[r, 1];
                 C2 = Tinv0[r2 & 255] ^ Shift(Tinv0[(r1 >> 8) & 255], 24) ^ Shift(Tinv0[(r0 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(r3 >> 24) & 255], 8) ^ KW[r, 2];
+                    Shift(Tinv0[(r3 >> 24) & 255], 8) ^ KW[r, 2];
                 C3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(r2 >> 8) & 255], 24) ^ Shift(Tinv0[(r1 >> 16) & 255], 16) ^
-                     Shift(Tinv0[(r0 >> 24) & 255], 8) ^ KW[r--, 3];
+                    Shift(Tinv0[(r0 >> 24) & 255], 8) ^ KW[r--, 3];
             }
 
             r0 = Tinv0[C0 & 255] ^ Shift(Tinv0[(C3 >> 8) & 255], 24) ^ Shift(Tinv0[(C2 >> 16) & 255], 16) ^
-                 Shift(Tinv0[(C1 >> 24) & 255], 8) ^ KW[r, 0];
+                Shift(Tinv0[(C1 >> 24) & 255], 8) ^ KW[r, 0];
             r1 = Tinv0[C1 & 255] ^ Shift(Tinv0[(C0 >> 8) & 255], 24) ^ Shift(Tinv0[(C3 >> 16) & 255], 16) ^
-                 Shift(Tinv0[(C2 >> 24) & 255], 8) ^ KW[r, 1];
+                Shift(Tinv0[(C2 >> 24) & 255], 8) ^ KW[r, 1];
             r2 = Tinv0[C2 & 255] ^ Shift(Tinv0[(C1 >> 8) & 255], 24) ^ Shift(Tinv0[(C0 >> 16) & 255], 16) ^
-                 Shift(Tinv0[(C3 >> 24) & 255], 8) ^ KW[r, 2];
+                Shift(Tinv0[(C3 >> 24) & 255], 8) ^ KW[r, 2];
             r3 = Tinv0[C3 & 255] ^ Shift(Tinv0[(C2 >> 8) & 255], 24) ^ Shift(Tinv0[(C1 >> 16) & 255], 16) ^
-                 Shift(Tinv0[(C0 >> 24) & 255], 8) ^ KW[r, 3];
+                Shift(Tinv0[(C0 >> 24) & 255], 8) ^ KW[r, 3];
 
             // the final round's table is a simple function of Si so we don't use a whole other four tables for it
 
-            C0 = Si[r0 & 255] ^ (((uint)Si[(r3 >> 8) & 255]) << 8) ^ (((uint)Si[(r2 >> 16) & 255]) << 16) ^
-                 (((uint)Si[(r1 >> 24) & 255]) << 24) ^ KW[0, 0];
-            C1 = Si[r1 & 255] ^ (((uint)Si[(r0 >> 8) & 255]) << 8) ^ (((uint)Si[(r3 >> 16) & 255]) << 16) ^
-                 (((uint)Si[(r2 >> 24) & 255]) << 24) ^ KW[0, 1];
-            C2 = Si[r2 & 255] ^ (((uint)Si[(r1 >> 8) & 255]) << 8) ^ (((uint)Si[(r0 >> 16) & 255]) << 16) ^
-                 (((uint)Si[(r3 >> 24) & 255]) << 24) ^ KW[0, 2];
-            C3 = Si[r3 & 255] ^ (((uint)Si[(r2 >> 8) & 255]) << 8) ^ (((uint)Si[(r1 >> 16) & 255]) << 16) ^
-                 (((uint)Si[(r0 >> 24) & 255]) << 24) ^ KW[0, 3];
+            C0 = Si[r0 & 255] ^ (((uint) Si[(r3 >> 8) & 255]) << 8) ^ (((uint) Si[(r2 >> 16) & 255]) << 16) ^
+                (((uint) Si[(r1 >> 24) & 255]) << 24) ^ KW[0, 0];
+            C1 = Si[r1 & 255] ^ (((uint) Si[(r0 >> 8) & 255]) << 8) ^ (((uint) Si[(r3 >> 16) & 255]) << 16) ^
+                (((uint) Si[(r2 >> 24) & 255]) << 24) ^ KW[0, 1];
+            C2 = Si[r2 & 255] ^ (((uint) Si[(r1 >> 8) & 255]) << 8) ^ (((uint) Si[(r0 >> 16) & 255]) << 16) ^
+                (((uint) Si[(r3 >> 24) & 255]) << 24) ^ KW[0, 2];
+            C3 = Si[r3 & 255] ^ (((uint) Si[(r2 >> 8) & 255]) << 8) ^ (((uint) Si[(r1 >> 16) & 255]) << 16) ^
+                (((uint) Si[(r0 >> 24) & 255]) << 24) ^ KW[0, 3];
         }
     }
 
 
-    sealed class Pack
-    {
-        Pack()
-        {
+    sealed class Pack {
+        Pack() { }
+
+        internal static void UInt32_To_BE(uint n, byte[] bs) {
+            bs[0] = (byte) (n >> 24);
+            bs[1] = (byte) (n >> 16);
+            bs[2] = (byte) (n >> 8);
+            bs[3] = (byte) (n);
         }
 
-        internal static void UInt32_To_BE(uint n, byte[] bs)
-        {
-            bs[0] = (byte)(n >> 24);
-            bs[1] = (byte)(n >> 16);
-            bs[2] = (byte)(n >> 8);
-            bs[3] = (byte)(n);
+        internal static void UInt32_To_BE(uint n, byte[] bs, int off) {
+            bs[off] = (byte) (n >> 24);
+            bs[++off] = (byte) (n >> 16);
+            bs[++off] = (byte) (n >> 8);
+            bs[++off] = (byte) (n);
         }
 
-        internal static void UInt32_To_BE(uint n, byte[] bs, int off)
-        {
-            bs[off] = (byte)(n >> 24);
-            bs[++off] = (byte)(n >> 16);
-            bs[++off] = (byte)(n >> 8);
-            bs[++off] = (byte)(n);
-        }
-
-        internal static uint BE_To_UInt32(byte[] bs)
-        {
-            var n = (uint)bs[0] << 24;
-            n |= (uint)bs[1] << 16;
-            n |= (uint)bs[2] << 8;
+        internal static uint BE_To_UInt32(byte[] bs) {
+            var n = (uint) bs[0] << 24;
+            n |= (uint) bs[1] << 16;
+            n |= (uint) bs[2] << 8;
             n |= bs[3];
             return n;
         }
 
-        internal static uint BE_To_UInt32(byte[] bs, int off)
-        {
-            var n = (uint)bs[off] << 24;
-            n |= (uint)bs[++off] << 16;
-            n |= (uint)bs[++off] << 8;
+        internal static uint BE_To_UInt32(byte[] bs, int off) {
+            var n = (uint) bs[off] << 24;
+            n |= (uint) bs[++off] << 16;
+            n |= (uint) bs[++off] << 8;
             n |= bs[++off];
             return n;
         }
 
-        internal static ulong BE_To_UInt64(byte[] bs)
-        {
+        internal static ulong BE_To_UInt64(byte[] bs) {
             var hi = BE_To_UInt32(bs);
             var lo = BE_To_UInt32(bs, 4);
-            return ((ulong)hi << 32) | lo;
+            return ((ulong) hi << 32) | lo;
         }
 
-        internal static ulong BE_To_UInt64(byte[] bs, int off)
-        {
+        internal static ulong BE_To_UInt64(byte[] bs, int off) {
             var hi = BE_To_UInt32(bs, off);
             var lo = BE_To_UInt32(bs, off + 4);
-            return ((ulong)hi << 32) | lo;
+            return ((ulong) hi << 32) | lo;
         }
 
-        internal static void UInt64_To_BE(ulong n, byte[] bs)
-        {
-            UInt32_To_BE((uint)(n >> 32), bs);
-            UInt32_To_BE((uint)(n), bs, 4);
+        internal static void UInt64_To_BE(ulong n, byte[] bs) {
+            UInt32_To_BE((uint) (n >> 32), bs);
+            UInt32_To_BE((uint) (n), bs, 4);
         }
 
-        internal static void UInt64_To_BE(ulong n, byte[] bs, int off)
-        {
-            UInt32_To_BE((uint)(n >> 32), bs, off);
-            UInt32_To_BE((uint)(n), bs, off + 4);
+        internal static void UInt64_To_BE(ulong n, byte[] bs, int off) {
+            UInt32_To_BE((uint) (n >> 32), bs, off);
+            UInt32_To_BE((uint) (n), bs, off + 4);
         }
 
-        internal static void UInt32_To_LE(uint n, byte[] bs)
-        {
-            bs[0] = (byte)(n);
-            bs[1] = (byte)(n >> 8);
-            bs[2] = (byte)(n >> 16);
-            bs[3] = (byte)(n >> 24);
+        internal static void UInt32_To_LE(uint n, byte[] bs) {
+            bs[0] = (byte) (n);
+            bs[1] = (byte) (n >> 8);
+            bs[2] = (byte) (n >> 16);
+            bs[3] = (byte) (n >> 24);
         }
 
-        internal static void UInt32_To_LE(uint n, byte[] bs, int off)
-        {
-            bs[off] = (byte)(n);
-            bs[++off] = (byte)(n >> 8);
-            bs[++off] = (byte)(n >> 16);
-            bs[++off] = (byte)(n >> 24);
+        internal static void UInt32_To_LE(uint n, byte[] bs, int off) {
+            bs[off] = (byte) (n);
+            bs[++off] = (byte) (n >> 8);
+            bs[++off] = (byte) (n >> 16);
+            bs[++off] = (byte) (n >> 24);
         }
 
-        internal static uint LE_To_UInt32(byte[] bs)
-        {
+        internal static uint LE_To_UInt32(byte[] bs) {
             uint n = bs[0];
-            n |= (uint)bs[1] << 8;
-            n |= (uint)bs[2] << 16;
-            n |= (uint)bs[3] << 24;
+            n |= (uint) bs[1] << 8;
+            n |= (uint) bs[2] << 16;
+            n |= (uint) bs[3] << 24;
             return n;
         }
 
-        internal static uint LE_To_UInt32(byte[] bs, int off)
-        {
+        internal static uint LE_To_UInt32(byte[] bs, int off) {
             uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            n |= (uint)bs[++off] << 16;
-            n |= (uint)bs[++off] << 24;
+            n |= (uint) bs[++off] << 8;
+            n |= (uint) bs[++off] << 16;
+            n |= (uint) bs[++off] << 24;
             return n;
         }
 
-        internal static ulong LE_To_UInt64(byte[] bs)
-        {
+        internal static ulong LE_To_UInt64(byte[] bs) {
             var lo = LE_To_UInt32(bs);
             var hi = LE_To_UInt32(bs, 4);
-            return ((ulong)hi << 32) | lo;
+            return ((ulong) hi << 32) | lo;
         }
 
-        internal static ulong LE_To_UInt64(byte[] bs, int off)
-        {
+        internal static ulong LE_To_UInt64(byte[] bs, int off) {
             var lo = LE_To_UInt32(bs, off);
             var hi = LE_To_UInt32(bs, off + 4);
-            return ((ulong)hi << 32) | lo;
+            return ((ulong) hi << 32) | lo;
         }
 
-        internal static void UInt64_To_LE(ulong n, byte[] bs)
-        {
-            UInt32_To_LE((uint)(n), bs);
-            UInt32_To_LE((uint)(n >> 32), bs, 4);
+        internal static void UInt64_To_LE(ulong n, byte[] bs) {
+            UInt32_To_LE((uint) (n), bs);
+            UInt32_To_LE((uint) (n >> 32), bs, 4);
         }
 
-        internal static void UInt64_To_LE(ulong n, byte[] bs, int off)
-        {
-            UInt32_To_LE((uint)(n), bs, off);
-            UInt32_To_LE((uint)(n >> 32), bs, off + 4);
+        internal static void UInt64_To_LE(ulong n, byte[] bs, int off) {
+            UInt32_To_LE((uint) (n), bs, off);
+            UInt32_To_LE((uint) (n >> 32), bs, off + 4);
         }
     }
 }

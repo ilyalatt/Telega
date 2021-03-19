@@ -8,24 +8,19 @@ using Telega.Rpc.ServiceTransport;
 using Telega.Utils;
 using static Telega.Utils.BtHelpers;
 
-namespace Telega.Auth
-{
-    struct Step2Result
-    {
+namespace Telega.Auth {
+    struct Step2Result {
         public ServerDhParams.OkTag ServerDhParams { get; }
         public Int256 NewNonce { get; }
 
-        public Step2Result(Some<ServerDhParams.OkTag> serverDhParams, Int256 newNonce)
-        {
+        public Step2Result(Some<ServerDhParams.OkTag> serverDhParams, Int256 newNonce) {
             ServerDhParams = serverDhParams;
             NewNonce = newNonce;
         }
     }
 
-    static class Step2
-    {
-        public static async Task<Step2Result> Do(Some<ResPq> someResPq, Int256 newNonce, Some<MtProtoPlainTransport> transport)
-        {
+    static class Step2 {
+        public static async Task<Step2Result> Do(Some<ResPq> someResPq, Int256 newNonce, Some<MtProtoPlainTransport> transport) {
             var resPq = someResPq.Value;
 
             var pqBts = resPq.Pq.ToArrayUnsafe();
@@ -46,7 +41,7 @@ namespace Telega.Auth
             var pqInnerDataBts = Serialize((PqInnerData) pqInnerData);
 
             var fingerprint = resPq.ServerPublicKeyFingerprints.Find(x => x == TgServerRsaKey.Fingerprint)
-                .IfNone(() => throw Helpers.FailedAssertion(
+               .IfNone(() => throw Helpers.FailedAssertion(
                     $"auth step2: can not find a key for fingerprints: {string.Join(", ", resPq.ServerPublicKeyFingerprints.Map(x => x.ToString("x16")))}"
                 ));
             var cipherText = Rsa.Encrypt(TgServerRsaKey.Key, pqInnerDataBts);

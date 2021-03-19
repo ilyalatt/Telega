@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using LanguageExt;
 using LanguageExt.SomeHelp;
-using LanguageExt.UnsafeValueAccess;
 using Telega.Rpc.Dto.Generator.TextModel;
 using Telega.Rpc.Dto.Generator.TgScheme;
 using static LanguageExt.Prelude;
 using static Telega.Rpc.Dto.Generator.TextModel.TextAbbreviations;
 using static Telega.Rpc.Dto.Generator.TextModel.NestedTextAbbreviations;
 
-namespace Telega.Rpc.Dto.Generator.Generation
-{
+namespace Telega.Rpc.Dto.Generator.Generation {
     // TODO: refactor it, add CsModel over TextModel
-    static class Gen
-    {
+    static class Gen {
         static readonly NestedText Header = Scope(
             Line("using System;"),
             Line("using System.IO;"),
@@ -23,20 +20,19 @@ namespace Telega.Rpc.Dto.Generator.Generation
             Line("using T = Telega.Rpc.Dto.Types;")
         );
 
-        static NestedText GenTypeTagBody(string typeName, string tagName, Signature tag)
-        {
+        static NestedText GenTypeTagBody(string typeName, string tagName, Signature tag) {
             var modifiedArgs = tag.Args
-                .Map(x => new Arg(
+               .Map(x => new Arg(
                     name: x.Name == tagName ? $"{x.Name}Value" : x.Name, // TODO: move to normalizer
                     type: x.Type,
                     kind: x.Kind
                 ))
-                .ToArr();
+               .ToArr();
             var argsWithoutFlags = modifiedArgs
-                .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
-                .ToArr();
+               .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
+               .ToArr();
             var tagArgs = argsWithoutFlags
-                .Map(x => (
+               .Map(x => (
                     name: x.Name,
                     lowerName: Helpers.LowerFirst(x.Name),
                     type: TgTypeConverter.ConvertArgType(x),
@@ -69,11 +65,13 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 Line(""),
                 WithGen.GenWith(argsWithoutFlags, tagName),
                 Line(""),
-                typeName != tagName ? Scope(
-                    Line($"public static implicit operator {typeName}({tagName} tag) => new {typeName}(tag);"),
-                    Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new {typeName}(tag);"),
-                    Line("")
-                ) : EmptyScope(),
+                typeName != tagName
+                    ? Scope(
+                        Line($"public static implicit operator {typeName}({tagName} tag) => new {typeName}(tag);"),
+                        Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new {typeName}(tag);"),
+                        Line("")
+                    )
+                    : EmptyScope(),
                 RelationsGen.GenRelations(tagName, argsWithoutFlags),
                 Line(""),
                 Line(""),
@@ -83,8 +81,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
         }
 
-        static NestedText GenTypeTag(string typeName, Signature tag)
-        {
+        static NestedText GenTypeTag(string typeName, Signature tag) {
             var tagName = tag.Name;
 
             return Scope(
@@ -95,13 +92,12 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
         }
 
-        static NestedText GenFunc(Signature func, string funcName)
-        {
+        static NestedText GenFunc(Signature func, string funcName) {
             var argsWithoutFlags = func.Args
-                .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
-                .ToArr();
+               .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
+               .ToArr();
             var funcArgs = argsWithoutFlags
-                .Map(x => (
+               .Map(x => (
                     name: x.Name,
                     lowerName: Helpers.LowerFirst(x.Name),
                     type: TgTypeConverter.ConvertArgType(x),
@@ -148,12 +144,14 @@ namespace Telega.Rpc.Dto.Generator.Generation
                         ),
                         Line(""),
                         Line(""),
-                        isWrapper ? Scope(new NestedText[0]) : Scope(
-                            WithGen.GenWith(argsWithoutFlags, funcName),
-                            Line(""),
-                            RelationsGen.GenRelations(funcName, argsWithoutFlags),
-                            Line("")
-                        ),
+                        isWrapper
+                            ? Scope(new NestedText[0])
+                            : Scope(
+                                WithGen.GenWith(argsWithoutFlags, funcName),
+                                Line(""),
+                                RelationsGen.GenRelations(funcName, argsWithoutFlags),
+                                Line("")
+                            ),
                         SerializerGen.GenSerializer(func.Args, typeNumber: func.TypeNumber, "ITgSerializable.Serialize"),
                         Line(""),
                         resultDeserializer
@@ -163,8 +161,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
         }
 
-        static NestedText GenTypeWithManyTags(string typeName, Arr<Signature> typeTags)
-        {
+        static NestedText GenTypeWithManyTags(string typeName, Arr<Signature> typeTags) {
             var tagsDefs = typeTags.Map(x => GenTypeTag(typeName, x)).Scope(Environment.NewLine + Environment.NewLine);
 
             var tagDef = Scope(
@@ -230,8 +227,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                     Line("switch (_tag)"),
                     Line("{"),
                     IndentedScope(1,
-                        typeTags.Map(tag =>
-                        {
+                        typeTags.Map(tag => {
                             var tagName = tag.Name;
                             var tagNameLower = Helpers.LowerFirst(tagName);
                             return Line($"case {tagName} x when {tagNameLower} != null: return {tagNameLower}(x);");
@@ -249,8 +245,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 Line(") => Match("),
                 IndentedScope(1, $",{Environment.NewLine}",
                     Line(@"() => throw new Exception(""WTF"")").Singleton(),
-                    typeTags.Map(tag =>
-                    {
+                    typeTags.Map(tag => {
                         var tagName = tag.Name;
                         var tagNameLower = Helpers.LowerFirst(tagName);
                         return Line($"{tagNameLower} ?? throw new ArgumentNullException(nameof({tagNameLower}))");
@@ -312,8 +307,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             return def;
         }
 
-        static NestedText GenTypeWithOneTag(string typeName, Signature tag)
-        {
+        static NestedText GenTypeWithOneTag(string typeName, Signature tag) {
             var tagBody = GenTypeTagBody(typeName, typeName, tag);
 
             var serializeRef = Scope(
@@ -368,12 +362,11 @@ namespace Telega.Rpc.Dto.Generator.Generation
             );
         }
 
-        static NestedText GenType(string typeName, Arr<Signature> tags)
-        {
+        static NestedText GenType(string typeName, Arr<Signature> tags) {
             return tags.Count > 1 ? GenTypeWithManyTags(typeName, tags) : GenTypeWithOneTag(typeName, tags[0]);
         }
 
-        public static Func<NestedText, NestedText> WrapIntoNamespace(string nameSpace) => def =>Scope(
+        public static Func<NestedText, NestedText> WrapIntoNamespace(string nameSpace) => def => Scope(
             Header,
             Line(""),
             Line($"namespace {nameSpace}"),
@@ -383,13 +376,12 @@ namespace Telega.Rpc.Dto.Generator.Generation
         );
 
         public static IEnumerable<GenFile> GenTypes(Scheme scheme) => scheme.Types
-            .GroupBy(x => x.ResultType)
-            .Choose(x => x
-                .Key.Match(_: () => None, typeRef: Some)
-                .Map(custom => (name: custom.Name, tags: x.ToArr()))
+           .GroupBy(x => x.ResultType)
+           .Choose(x => x
+               .Key.Match(_: () => None, typeRef: Some)
+               .Map(custom => (name: custom.Name, tags: x.ToArr()))
             )
-            .Map(type =>
-            {
+           .Map(type => {
                 var (rawNameSpace, name) = TgSchemeNormalizer.SplitName(type.name);
                 var nameSpace = string.Join(".", new[] { "Telega.Rpc.Dto.Types", rawNameSpace }.Choose(identity));
                 var def = GenType(name, type.tags).Apply(WrapIntoNamespace(nameSpace));
@@ -398,8 +390,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             });
 
         public static IEnumerable<GenFile> GenFunctions(Scheme scheme) => scheme.Functions
-            .Map(func =>
-            {
+           .Map(func => {
                 var (rawNameSpace, name) = TgSchemeNormalizer.SplitName(func.Name);
                 var nameSpace = string.Join(".", new[] { "Telega.Rpc.Dto.Functions", rawNameSpace }.Choose(identity));
                 var def = GenFunc(func, name).Apply(WrapIntoNamespace(nameSpace));

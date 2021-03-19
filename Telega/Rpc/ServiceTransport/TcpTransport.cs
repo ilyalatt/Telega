@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using BigMath.Utils;
 using Telega.Utils;
 
-namespace Telega.Rpc.ServiceTransport
-{
-    class TcpTransport : IDisposable
-    {
+namespace Telega.Rpc.ServiceTransport {
+    class TcpTransport : IDisposable {
         readonly TcpClient _tcpClient;
         int _sendCounter;
 
@@ -16,16 +14,14 @@ namespace Telega.Rpc.ServiceTransport
         public void Dispose() => _tcpClient.Dispose();
 
 
-        static uint ComputeCrc32(params byte[][] arrays)
-        {
+        static uint ComputeCrc32(params byte[][] arrays) {
             var crc32 = new Crc32();
             arrays.Iter(arr => crc32.Update(arr, 0, arr.Length));
             return crc32.Value;
         }
 
 
-        async Task SendImpl(byte[] packet)
-        {
+        async Task SendImpl(byte[] packet) {
             // https://core.telegram.org/mtproto#tcp-transport
             /*
                 4 length bytes are added at the front
@@ -35,8 +31,7 @@ namespace Telega.Rpc.ServiceTransport
                 and 4 CRC32 bytes at the end (length, sequence number, and payload together).
             */
 
-            var bts = BtHelpers.UsingMemBinWriter(bw =>
-            {
+            var bts = BtHelpers.UsingMemBinWriter(bw => {
                 var seqNum = _sendCounter++;
 
                 var lenBts = BitConverter.GetBytes(packet.Length + 12);
@@ -53,36 +48,33 @@ namespace Telega.Rpc.ServiceTransport
             await _tcpClient.GetStream().WriteAsync(bts, 0, bts.Length);
         }
 
-        public async Task Send(byte[] packet)
-        {
-            try
-            {
+        public async Task Send(byte[] packet) {
+            try {
                 await SendImpl(packet);
             }
-            catch (IOException exc)
-            {
+            catch (IOException exc) {
                 throw new TgTransportException("TcpTransport.Send IO exception.", exc);
             }
         }
 
 
-        static async Task<byte[]> ReadBytes(Stream stream, int count)
-        {
+        static async Task<byte[]> ReadBytes(Stream stream, int count) {
             var res = new byte[count];
 
             var totalReceived = 0;
-            while (totalReceived < count)
-            {
+            while (totalReceived < count) {
                 var received = await stream.ReadAsync(res, totalReceived, count - totalReceived);
-                if (received == 0) throw new TgBrokenConnectionException();
+                if (received == 0) {
+                    throw new TgBrokenConnectionException();
+                }
+
                 totalReceived += received;
             }
 
             return res;
         }
 
-        async Task<byte[]> ReceiveImpl()
-        {
+        async Task<byte[]> ReceiveImpl() {
             var stream = _tcpClient.GetStream();
 
             var packetLengthBytes = await ReadBytes(stream, 4);
@@ -98,25 +90,26 @@ namespace Telega.Rpc.ServiceTransport
             var packetCrc32 = BitConverter.ToUInt32(crcBytes, 0);
 
             var computedCrc32 = ComputeCrc32(packetLengthBytes, seqBytes, body);
-            if (packetCrc32 != computedCrc32) Helpers.Assert(packetCrc32 == computedCrc32, "TcpTransport.Receive bad checksum");
+            if (packetCrc32 != computedCrc32) {
+                Helpers.Assert(packetCrc32 == computedCrc32, "TcpTransport.Receive bad checksum");
+            }
 
             return body;
         }
 
-        public async Task<byte[]> Receive()
-        {
-            try
-            {
+        public async Task<byte[]> Receive() {
+            try {
                 var body = await ReceiveImpl();
 
                 const uint protocolViolationCode = 0xfffffe6c;
                 var isProtocolViolated = body.Length == 4 && BitConverter.ToUInt32(body, 0) == protocolViolationCode;
-                if (isProtocolViolated) throw new TgProtocolViolation();
+                if (isProtocolViolated) {
+                    throw new TgProtocolViolation();
+                }
 
                 return body;
             }
-            catch (IOException exc)
-            {
+            catch (IOException exc) {
                 throw new TgTransportException("TcpTransport.Receive IO exception.", exc);
             }
         }

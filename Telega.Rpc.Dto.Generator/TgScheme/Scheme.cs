@@ -2,10 +2,8 @@ using System;
 using LanguageExt;
 using LanguageExt.UnsafeValueAccess;
 
-namespace Telega.Rpc.Dto.Generator.TgScheme
-{
-    enum PrimitiveType
-    {
+namespace Telega.Rpc.Dto.Generator.TgScheme {
+    enum PrimitiveType {
         Int,
         Uint,
         Long,
@@ -18,22 +16,18 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
         Int256
     }
 
-    class TgType
-    {
-        public class Primitive : Record<Primitive>
-        {
+    class TgType {
+        public class Primitive : Record<Primitive> {
             public PrimitiveType Type { get; }
             public Primitive(PrimitiveType type) => Type = type;
         }
 
-        public class Vector : Record<Vector>
-        {
+        public class Vector : Record<Vector> {
             public TgType Type { get; }
             public Vector(Some<TgType> type) => Type = type;
         }
 
-        public class TypeRef : Record<TypeRef>
-        {
+        public class TypeRef : Record<TypeRef> {
             public string Name { get; }
             public TypeRef(Some<string> name) => Name = name;
         }
@@ -60,9 +54,11 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
             Func<Vector, T> vector = null,
             Func<TypeRef, T> typeRef = null
         ) {
-            if (_ == null) throw new ArgumentNullException(nameof(_));
-            switch (_tag)
-            {
+            if (_ == null) {
+                throw new ArgumentNullException(nameof(_));
+            }
+
+            switch (_tag) {
                 case Primitive x when primitive != null: return primitive(x);
                 case Vector x when vector != null: return vector(x);
                 case TypeRef x when typeRef != null: return typeRef(x);
@@ -82,25 +78,21 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
         );
     }
 
-    struct Flag
-    {
+    struct Flag {
         public string ArgName { get; }
         public int Bit { get; }
 
-        public Flag(Some<string> argName, int bit)
-        {
+        public Flag(Some<string> argName, int bit) {
             ArgName = argName;
             Bit = bit;
         }
     }
 
     // TODO: enhance the model
-    class ArgKind
-    {
+    class ArgKind {
         public class Required : Record<Required> { }
 
-        public class Optional : Record<Optional>
-        {
+        public class Optional : Record<Optional> {
             public Flag Flag { get; }
             public Optional(Some<Flag> flag) => Flag = flag;
         }
@@ -126,9 +118,11 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
             Func<Optional, T> optional = null,
             Func<Flags, T> flags = null
         ) {
-            if (_ == null) throw new ArgumentNullException(nameof(_));
-            switch (_tag)
-            {
+            if (_ == null) {
+                throw new ArgumentNullException(nameof(_));
+            }
+
+            switch (_tag) {
                 case Required x when required != null: return required(x);
                 case Optional x when optional != null: return optional(x);
                 case Flags x when flags != null: return flags(x);
@@ -148,22 +142,19 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
         );
     }
 
-    class Arg : Record<Arg>
-    {
+    class Arg : Record<Arg> {
         public string Name { get; }
         public TgType Type { get; }
         public ArgKind Kind { get; }
 
-        public Arg(Some<string> name, Some<TgType> type, Some<ArgKind> kind)
-        {
+        public Arg(Some<string> name, Some<TgType> type, Some<ArgKind> kind) {
             Name = name;
             Type = type;
             Kind = kind;
         }
     }
 
-    struct Signature
-    {
+    struct Signature {
         public string Name { get; }
         public int TypeNumber { get; }
         public Arr<Arg> Args { get; }
@@ -182,8 +173,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
         }
     }
 
-    class Scheme
-    {
+    class Scheme {
         public Option<int> LayerVersion { get; }
         public Arr<Signature> Types { get; }
         public Arr<Signature> Functions { get; }

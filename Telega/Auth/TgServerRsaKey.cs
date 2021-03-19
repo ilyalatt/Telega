@@ -1,9 +1,7 @@
 using BigMath;
 
-namespace Telega.Auth
-{
-    static class TgServerRsaKey
-    {
+namespace Telega.Auth {
+    static class TgServerRsaKey {
         public const long Fingerprint = unchecked((long) 0xc3b42b026ce86b21);
 
         // TODO: resource

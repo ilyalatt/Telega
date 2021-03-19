@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using static LanguageExt.Prelude;
 
-namespace Telega.Rpc.Dto.Generator.TextModel
-{
-    static class TextAbbreviations
-    {
+namespace Telega.Rpc.Dto.Generator.TextModel {
+    static class TextAbbreviations {
         public static Text String(string s) => Text.CreateString(s);
         public static Text Join(Text separator, params Text[] xs) => Text.CreateScope(xs.ToArr(), separator);
         public static Text Concat(params Text[] xs) => Join("", xs);

@@ -8,10 +8,8 @@ using Telega.Rpc.Dto.Types.Messages;
 using Telega.Utils;
 using static LanguageExt.Prelude;
 
-namespace Telega
-{
-    public sealed class TelegramClientMessages
-    {
+namespace Telega {
+    public sealed class TelegramClientMessages {
         readonly TgBellhop _tg;
         internal TelegramClientMessages(Some<TgBellhop> tg) => _tg = tg;
 
@@ -134,14 +132,13 @@ namespace Telega
                 clearDraft: false,
                 media: file.Head().Match<InputMedia>(
                     _: () => throw new NotImplementedException(),
-                    photoTag: photoTag =>
-                    {
+                    photoTag: photoTag => {
                         var photo = photoTag.Photo
-                            .HeadOrNone()
-                            .IfNone(() => throw new TgInternalException("Unable to get photo", None))
-                            .AsTag()
-                            .HeadOrNone()
-                            .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
+                           .HeadOrNone()
+                           .IfNone(() => throw new TgInternalException("Unable to get photo", None))
+                           .AsTag()
+                           .HeadOrNone()
+                           .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
                         return new InputMedia.PhotoTag(
                             id: new InputPhoto.Tag(
                                 id: photo.Id,
@@ -151,14 +148,13 @@ namespace Telega
                             ttlSeconds: None
                         );
                     },
-                    documentTag: documentTag =>
-                    {
+                    documentTag: documentTag => {
                         var document = documentTag.Document
-                            .HeadOrNone()
-                            .IfNone(() => throw new TgInternalException("Unable to get document", None))
-                            .AsTag()
-                            .HeadOrNone()
-                            .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
+                           .HeadOrNone()
+                           .IfNone(() => throw new TgInternalException("Unable to get document", None))
+                           .AsTag()
+                           .HeadOrNone()
+                           .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
                         return
                             new InputMedia.DocumentTag(
                                 id: new InputDocument.Tag(
@@ -196,14 +192,13 @@ namespace Telega
                     attachments.Choose<MessageMedia, InputSingleMedia>((i, x) =>
                         x.Match(
                             _: () => throw new NotImplementedException(),
-                            photoTag: photoTag =>
-                            {
+                            photoTag: photoTag => {
                                 var photo = photoTag.Photo
-                                    .HeadOrNone()
-                                    .IfNone(() => throw new TgInternalException("Unable to get photo", None))
-                                    .AsTag()
-                                    .HeadOrNone()
-                                    .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
+                                   .HeadOrNone()
+                                   .IfNone(() => throw new TgInternalException("Unable to get photo", None))
+                                   .AsTag()
+                                   .HeadOrNone()
+                                   .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
                                 return new InputSingleMedia(
                                     media: new InputMedia.PhotoTag(
                                         id: new InputPhoto.Tag(
@@ -218,14 +213,13 @@ namespace Telega
                                     entities: None
                                 );
                             },
-                            documentTag: documentTag =>
-                            {
+                            documentTag: documentTag => {
                                 var document = documentTag.Document
-                                    .HeadOrNone()
-                                    .IfNone(() => throw new TgInternalException("Unable to get document", None))
-                                    .AsTag()
-                                    .HeadOrNone()
-                                    .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
+                                   .HeadOrNone()
+                                   .IfNone(() => throw new TgInternalException("Unable to get document", None))
+                                   .AsTag()
+                                   .HeadOrNone()
+                                   .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
                                 return new InputSingleMedia(
                                     media: new InputMedia.DocumentTag(
                                         id: new InputDocument.Tag(
@@ -284,8 +278,8 @@ namespace Telega
                     ttlSeconds: None,
                     forceFile: false
                 )
-            )); 
-        
+            ));
+
         public async Task<MessageMedia> UploadMediaAsDocument(
             Some<InputPeer> peer,
             Some<string> url

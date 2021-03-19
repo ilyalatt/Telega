@@ -4,19 +4,16 @@ using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Functions.Upload;
 using Telega.Utils;
 
-namespace Telega.CallMiddleware
-{
+namespace Telega.CallMiddleware {
     // TODO: DC-specific via context
-    sealed class DelayMiddleware : ITgCallMiddleware
-    {
+    sealed class DelayMiddleware : ITgCallMiddleware {
         public int MinMsDelay { get; }
         public int MaxMsDelay { get; }
 
         readonly TaskQueue _taskQueue = new();
         DateTime _lastReqTimestamp;
 
-        public DelayMiddleware(int minMsDelay, int maxMsDelay)
-        {
+        public DelayMiddleware(int minMsDelay, int maxMsDelay) {
             MinMsDelay = minMsDelay;
             MaxMsDelay = maxMsDelay;
         }
@@ -33,12 +30,14 @@ namespace Telega.CallMiddleware
             func is ReuploadCdnFile ||
             func is GetCdnFileHashes;
 
-        public TgCallHandler<T> Handle<T>(TgCallHandler<T> next) => func => _taskQueue.Put(async () =>
-        {
+        public TgCallHandler<T> Handle<T>(TgCallHandler<T> next) => func => _taskQueue.Put(async () => {
             var timeSinceLastReq = DateTime.Now - _lastReqTimestamp;
             var isDelayNeeded = timeSinceLastReq.TotalMilliseconds < MaxMsDelay && !IsIgnored(func);
 
-            if (isDelayNeeded) await Task.Delay(Rnd.NextInt32(MinMsDelay, MaxMsDelay));
+            if (isDelayNeeded) {
+                await Task.Delay(Rnd.NextInt32(MinMsDelay, MaxMsDelay));
+            }
+
             _lastReqTimestamp = DateTime.Now;
 
             return await next(func);

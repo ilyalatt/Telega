@@ -12,26 +12,20 @@ using Telega.Rpc.ServiceTransport;
 using Telega.Utils;
 using static LanguageExt.Prelude;
 using static Telega.Utils.BtHelpers;
-using Aes = Telega.Rpc.ServiceTransport.Aes; // TODO
 
-namespace Telega.Auth
-{
-    struct Step3Res
-    {
+namespace Telega.Auth {
+    struct Step3Res {
         public AuthKey AuthKey { get; }
         public int TimeOffset { get; }
 
-        public Step3Res(Some<AuthKey> authKey, int timeOffset)
-        {
+        public Step3Res(Some<AuthKey> authKey, int timeOffset) {
             AuthKey = authKey;
             TimeOffset = timeOffset;
         }
     }
 
-    static class Step3
-    {
-        static Func<BinaryReader, T> WithHashSumCheck<T>(Func<BinaryReader, T> func) => br =>
-        {
+    static class Step3 {
+        static Func<BinaryReader, T> WithHashSumCheck<T>(Func<BinaryReader, T> func) => br => {
             var hash = br.ReadBytes(20);
             var bs = br.BaseStream;
 
@@ -48,8 +42,7 @@ namespace Telega.Auth
             return res;
         };
 
-        static byte[] WithHashAndPadding(byte[] bts) => UsingMemBinWriter(bw =>
-        {
+        static byte[] WithHashAndPadding(byte[] bts) => UsingMemBinWriter(bw => {
             bw.Write(Helpers.Sha1(bts));
             bw.Write(bts);
             var padding = (16 - (int) bw.BaseStream.Position % 16).Apply(x => x == 16 ? 0 : x);

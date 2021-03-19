@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using LanguageExt;
 using static LanguageExt.Prelude;
 
-namespace Telega.Rpc.Dto.Generator.TextModel
-{
-    static class NestedTextAbbreviations
-    {
+namespace Telega.Rpc.Dto.Generator.TextModel {
+    static class NestedTextAbbreviations {
         public static NestedText Line(Text text) => NestedText.CreateLine(text);
         public static NestedText Line(string s) => Line((Text) s);
         public static NestedText Indent(int offset, NestedText text) => NestedText.CreateIndent(offset, text);

@@ -4,10 +4,8 @@ using LanguageExt;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
 
-namespace Telega.Rpc
-{
-    class TgRpcResultUnknownErrorException : TgRpcException
-    {
+namespace Telega.Rpc {
+    class TgRpcResultUnknownErrorException : TgRpcException {
         public int ErrorCode { get; }
         public string ErrorMessage { get; }
 
@@ -20,10 +18,8 @@ namespace Telega.Rpc
         }
     }
 
-    static class RpcResultErrorHandler
-    {
-        public static TgException ToException(RpcError error)
-        {
+    static class RpcResultErrorHandler {
+        public static TgException ToException(RpcError error) {
             var code = error.ErrorCode;
             var msg = error.ErrorMessage;
 
@@ -38,19 +34,45 @@ namespace Telega.Rpc
             TgDataCenterMigrationException ExtractDcMigration(DcMigrationReason reason) =>
                 new(reason, ExtractInt());
 
-            if (msg.StartsWith("FLOOD_WAIT_")) return new TgFloodException(ExtractTimeSpan());
+            if (msg.StartsWith("FLOOD_WAIT_")) {
+                return new TgFloodException(ExtractTimeSpan());
+            }
 
-            if (msg.StartsWith("PHONE_MIGRATE_")) return ExtractDcMigration(DcMigrationReason.Phone);
-            if (msg.StartsWith("FILE_MIGRATE_")) return ExtractDcMigration(DcMigrationReason.File);
-            if (msg.StartsWith("USER_MIGRATE_")) return ExtractDcMigration(DcMigrationReason.User);
-            if (msg.StartsWith("NETWORK_MIGRATE_")) return ExtractDcMigration(DcMigrationReason.Network);
+            if (msg.StartsWith("PHONE_MIGRATE_")) {
+                return ExtractDcMigration(DcMigrationReason.Phone);
+            }
 
-            if (msg == "PHONE_CODE_INVALID") return new TgInvalidPhoneCodeException();
-            if (msg == "PASSWORD_HASH_INVALID") return new TgInvalidPasswordException();
-            if (msg == "PHONE_NUMBER_UNOCCUPIED") return new TgPhoneNumberUnoccupiedException(); // 400
-            if (msg == "SESSION_PASSWORD_NEEDED") return new TgPasswordNeededException();
+            if (msg.StartsWith("FILE_MIGRATE_")) {
+                return ExtractDcMigration(DcMigrationReason.File);
+            }
 
-            if (msg == "AUTH_KEY_UNREGISTERED") throw new TgNotAuthenticatedException();
+            if (msg.StartsWith("USER_MIGRATE_")) {
+                return ExtractDcMigration(DcMigrationReason.User);
+            }
+
+            if (msg.StartsWith("NETWORK_MIGRATE_")) {
+                return ExtractDcMigration(DcMigrationReason.Network);
+            }
+
+            if (msg == "PHONE_CODE_INVALID") {
+                return new TgInvalidPhoneCodeException();
+            }
+
+            if (msg == "PASSWORD_HASH_INVALID") {
+                return new TgInvalidPasswordException();
+            }
+
+            if (msg == "PHONE_NUMBER_UNOCCUPIED") {
+                return new TgPhoneNumberUnoccupiedException(); // 400
+            }
+
+            if (msg == "SESSION_PASSWORD_NEEDED") {
+                return new TgPasswordNeededException();
+            }
+
+            if (msg == "AUTH_KEY_UNREGISTERED") {
+                throw new TgNotAuthenticatedException();
+            }
 
             return new TgRpcResultUnknownErrorException(code, msg);
         }

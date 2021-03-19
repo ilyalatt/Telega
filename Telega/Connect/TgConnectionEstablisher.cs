@@ -12,15 +12,15 @@ using Telega.Rpc.ServiceTransport;
 using Telega.Utils;
 using static LanguageExt.Prelude;
 
-namespace Telega.Connect
-{
-    static class TgConnectionEstablisher
-    {
+namespace Telega.Connect {
+    static class TgConnectionEstablisher {
         static async Task<System.Net.Sockets.TcpClient> CreateTcpClient(
             IPEndPoint endpoint,
             TcpClientConnectionHandler? connHandler = null
         ) {
-            if (connHandler != null) return await connHandler(endpoint);
+            if (connHandler != null) {
+                return await connHandler(endpoint);
+            }
 
             var res = new System.Net.Sockets.TcpClient(endpoint.AddressFamily);
             await res.ConnectAsync(endpoint.Address, endpoint.Port);
@@ -32,15 +32,13 @@ namespace Telega.Connect
             ConnectInfo connectInfo,
             TgCallMiddlewareChain callMiddlewareChain,
             TcpClientConnectionHandler? connHandler = null
-        )
-        {
+        ) {
             var endpoint = connectInfo.Endpoint;
             Helpers.Assert(endpoint != null, "endpoint == null");
             var tcpClient = await CreateTcpClient(endpoint!, connHandler);
             var tcpTransport = new TcpTransport(tcpClient);
 
-            if (connectInfo.NeedsInAuth)
-            {
+            if (connectInfo.NeedsInAuth) {
                 var mtPlainTransport = new MtProtoPlainTransport(tcpTransport);
                 var result = await Authenticator.DoAuthentication(mtPlainTransport);
                 connectInfo.SetAuth(result);
