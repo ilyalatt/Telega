@@ -31,37 +31,31 @@ namespace Telega
             ));
 
         /// <summary>
-        /// This method can be used for getting messages by Id (including albums)
+        /// Get grouped messages (including albums)
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="messageId"></param>
-        /// <returns>List of tags associated with this mesageId</returns>
-        public async Task<Arr<Message.Tag>> GetMessageById(
+        /// <returns>Grouped messages</returns>
+        public async Task<Arr<Message.Tag>> GetGroupedMessages(
             Some<InputChannel> channel,
             int messageId
         ) {
-            Messages messagesResponse =
-                await GetMessages(channel: channel,
-                    //We have to get 10 messages around required Id because of grouped messages (albums)
-                    messages: Enumerable.Range(start: -10, count: 20)
-                        .Select(selector: x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
-                        .ToArr()
-                );
+            const int idRadius = 10;
+            var messageIds = Enumerable.Range(start: -idRadius, count: idRadius * 2)
+                .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
+                .ToArr();
 
-            List<Message.Tag> tags =
-                messagesResponse
-                    .AsChannelTag().Head()
-                    .Messages
-                    .Choose(Message.AsTag)
-                    .ToList();
+            var messagesResponse = await GetMessages( channel: channel, messages: messageIds);
+            var messages = messagesResponse
+                .AsChannelTag()
+                .Bind(x => x.Messages)
+                .Choose(Message.AsTag)
+                .ToArr();
 
-            Message.Tag mainMessage = tags.First(x => x.Id == messageId);
-
-            return mainMessage.GroupedId
-                    .Match(Some: groupedId =>
-                            tags.Where(tag => tag.GroupedId == groupedId).OrderBy(x => x.Id).ToArr(),
-                        None: () => { return new[] {mainMessage}; })
-                ;
+            var groupId = messages.Find(x => x.Id == messageId).Bind(x => x.GroupedId);
+            return messages
+                .Filter(x => x.GroupedId == groupId)
+                .ToArr();
         }
     }
 }
