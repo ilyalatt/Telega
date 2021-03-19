@@ -44,7 +44,7 @@ namespace Telega
                 .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
                 .ToArr();
 
-            var messagesResponse = await GetMessages(channel: channel, messages: messageIds);
+            var messagesResponse = await GetMessages(channel, messageIds);
             var messages = messagesResponse
                 .AsChannelTag()
                 .Bind(x => x.Messages)
