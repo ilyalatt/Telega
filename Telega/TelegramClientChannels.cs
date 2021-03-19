@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Connect;
@@ -9,7 +8,7 @@ using Telega.Rpc.Dto.Types.Messages;
 
 namespace Telega
 {
-    public class TelegramClientChannels
+    public sealed class TelegramClientChannels
     {
         readonly TgBellhop _tg;
         internal TelegramClientChannels(Some<TgBellhop> tg) => _tg = tg;
