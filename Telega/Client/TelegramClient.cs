@@ -9,7 +9,7 @@ using Telega.CallMiddleware;
 using Telega.Connect;
 using Telega.Rpc.Dto;
 
-namespace Telega {
+namespace Telega.Client {
     public sealed class TelegramClient : IDisposable {
         const string DefaultTelegramIp = "149.154.167.50";
         const int DefaultTelegramPort = 443;

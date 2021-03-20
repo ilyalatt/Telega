@@ -4,7 +4,7 @@ using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Contacts;
 using Telega.Rpc.Dto.Types.Contacts;
 
-namespace Telega {
+namespace Telega.Client {
     public sealed class TelegramClientContacts {
         readonly TgBellhop _tg;
         internal TelegramClientContacts(Some<TgBellhop> tg) => _tg = tg;

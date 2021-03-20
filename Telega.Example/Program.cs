@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LanguageExt;
 using Newtonsoft.Json;
+using Telega.Client;
 using Telega.Rpc.Dto.Functions.Contacts;
 using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Functions.Users;

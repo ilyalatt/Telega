@@ -8,7 +8,7 @@ using Telega.Rpc.Dto.Types.Messages;
 using Telega.Utils;
 using static LanguageExt.Prelude;
 
-namespace Telega {
+namespace Telega.Client {
     public sealed class TelegramClientMessages {
         readonly TgBellhop _tg;
         internal TelegramClientMessages(Some<TgBellhop> tg) => _tg = tg;

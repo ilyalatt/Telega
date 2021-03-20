@@ -12,7 +12,7 @@ using Telega.Utils;
 using static LanguageExt.Prelude;
 using File = Telega.Rpc.Dto.Types.Upload.File;
 
-namespace Telega {
+namespace Telega.Client {
     public sealed class TelegramClientUpload {
         readonly TgBellhop _tg;
         internal TelegramClientUpload(Some<TgBellhop> tg) => _tg = tg;
