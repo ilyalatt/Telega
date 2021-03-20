@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using LanguageExt;
-using Newtonsoft.Json;
 using Telega.Client;
 using Telega.Rpc.Dto.Functions.Contacts;
 using Telega.Rpc.Dto.Functions.Messages;
@@ -21,46 +20,6 @@ namespace Telega.Example {
     }
 
     static class Program {
-        static async Task SignInViaCode(TelegramClient tg, Config cfg) {
-            var codeHash = await tg.Auth.SendCode(cfg.ApiHash!, cfg.Phone!);
-
-            while (true) {
-                try {
-                    Console.WriteLine("Enter the telegram code");
-                    var code = Console.ReadLine();
-                    await tg.Auth.SignIn(cfg.Phone!, codeHash, code!);
-                    break;
-                }
-                catch (TgInvalidPhoneCodeException) {
-                    Console.WriteLine("Invalid phone code");
-                }
-            }
-        }
-
-        static async Task SignInViaPassword(TelegramClient tg, Config cfg) {
-            var pwdInfo = await tg.Auth.GetPasswordInfo();
-            await tg.Auth.CheckPassword(pwdInfo, cfg.Password!);
-        }
-
-        static async Task EnsureAuthorized(TelegramClient tg, Config cfg) {
-            if (tg.Auth.IsAuthorized) {
-                Console.WriteLine("Already authorized");
-                return;
-            }
-
-            try {
-                await SignInViaCode(tg, cfg);
-            }
-            catch (TgPasswordNeededException) {
-                await SignInViaPassword(tg, cfg);
-            }
-
-            Console.WriteLine("Authorization completed");
-        }
-
-        static Task<Config> ReadConfig() =>
-            File.ReadAllTextAsync("config.json").Map(JsonConvert.DeserializeObject<Config>);
-
         static async Task DownloadFirstChannelPictureExample(TelegramClient tg) {
             var chatsType = await tg.Messages.GetDialogs();
             var chats = chatsType.AsTag().IfNone(() => throw new NotImplementedException());
@@ -234,6 +193,7 @@ namespace Telega.Example {
         }
 
         static async Task ListenUpdates(TelegramClient tg) {
+            Console.WriteLine("Listening to updates until exit.");
             tg.Updates.Stream.Subscribe(
                 onNext: updatesType => {
                     var messageText = updatesType.Match(
@@ -368,9 +328,10 @@ namespace Telega.Example {
         }
 
         static async Task Main() {
-            var cfg = await ReadConfig();
-            using var tg = await TelegramClient.Connect(cfg.ApiId);
-            await EnsureAuthorized(tg, cfg);
+            Console.WriteLine("Playground is launched.");
+            Console.WriteLine("Connecting to Telegram.");
+            using var tg = await TelegramClient.Connect(Authorizer.ApiId);
+            await Authorizer.Authorize(tg);
 
             // await PrintUserInfo(tg);
             // await DownloadFirstChannelPictureExample(tg);
