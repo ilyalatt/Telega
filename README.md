@@ -2,25 +2,18 @@
 
 [![NuGet version](https://badge.fury.io/nu/Telega.svg)](https://www.nuget.org/packages/Telega)
 
-You can see the library usage example [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Example/Program.cs).
+You can see the library usage example [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Playground/Program.cs).
 
 Also you can read [the introduction](https://github.com/ilyalatt/Telega/wiki/Introduction).
+
+A simple documentation will be ready soon.
 
 ## Quick start
 
 * Clone the repository.
-* Create config.json in `Telega.Example`. It should look like
-
-```json
-{
-  "apiId": 17349,
-  "apiHash": "344583e45741c457fe1862106095a5eb",
-  "phone": "123456789",
-  "password": "password-if-needed"
-}
-```
-
-* Run `Telega.Example`. Sign in to your account. The app should send a picture to your 'Saved Messages' chat.
+* Run `Telega.Playground`
+* Sign in to your account
+* Explore snippets
 
 If you are not familiar with functional programming you can read [LanguageExt introduction](https://github.com/louthy/language-ext/wiki/Thinking-Functionally:-Introduction).
 If you are not familiar with LanguageExt you can read [LanguageExt readme](https://github.com/louthy/language-ext).

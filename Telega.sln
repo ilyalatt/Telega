@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telega", "Telega\Telega.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telega.Rpc.Dto.Generator", "Telega.Rpc.Dto.Generator\Telega.Rpc.Dto.Generator.csproj", "{07C01294-0DC0-41B9-A92F-0FD165660C3D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telega.Example", "Telega.Example\Telega.Example.csproj", "{4F0F6D57-8352-46D6-9F77-537C5BE72724}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telega.Playground", "Telega.Playground\Telega.Playground.csproj", "{4F0F6D57-8352-46D6-9F77-537C5BE72724}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F3E94A09-7912-41E2-9C9D-250838DEDB08}"
 	ProjectSection(SolutionItems) = preProject

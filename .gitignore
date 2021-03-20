@@ -16,6 +16,6 @@ obj
 Telega/Rpc/Dto/Types
 Telega/Rpc/Dto/Functions
 
-# Telega.Example
-Telega.Example/*.json
-Telega.Example/*.dat
+# Telega.Playground
+Telega.Playground/*.json
+Telega.Playground/*.dat

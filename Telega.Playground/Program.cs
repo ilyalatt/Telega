@@ -13,7 +13,7 @@ using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
 
-namespace Telega.Example {
+namespace Telega.Playground {
     static class Exts {
         public static T AssertSome<T>(this Option<T> opt) =>
             opt.IfNone(() => throw new ApplicationException("Should be Some, but got None."));

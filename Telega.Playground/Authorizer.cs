@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Client;
 
-namespace Telega.Example {
+namespace Telega.Playground {
     public static class Authorizer {
+        // public test api credentials
         public const int ApiId = 17349;
         const string ApiHash = "344583e45741c457fe1862106095a5eb";
         
