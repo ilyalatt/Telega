@@ -16,7 +16,6 @@ namespace Telega.Rpc.Dto.Generator {
             while (currentDirectory != null) {
                 var hasSlnFile = Directory.GetFiles(currentDirectory, "Telega.sln").Any();
                 if (hasSlnFile) {
-                    Console.WriteLine(currentDirectory);
                     return currentDirectory;
                 }
                 currentDirectory = Path.GetDirectoryName(currentDirectory);

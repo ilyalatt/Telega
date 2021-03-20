@@ -58,8 +58,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                .IfNone(s)
             );
             var def = Scope(
-                Line($"void {funcName}(BinaryWriter bw)"),
-                Line("{"),
+                Line($"void {funcName}(BinaryWriter bw) {{"),
                 Indent(1, body),
                 Line("}")
             );
@@ -107,8 +106,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 ))
             );
             var def = Scope(
-                Line($"internal static {tagName} DeserializeTag(BinaryReader br)"),
-                Line("{"),
+                Line($"internal static {tagName} DeserializeTag(BinaryReader br) {{"),
                 Indent(1, body),
                 Line("}")
             );

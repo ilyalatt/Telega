@@ -122,8 +122,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             return Scope(
-                Line($"{classAccess}sealed class {funcName}{classTemplates} {classAnnotations}"),
-                Line("{"),
+                Line($"{classAccess}sealed class {funcName}{classTemplates} {classAnnotations} {{"),
                 IndentedScope(1,
                     funcArgs.Map(arg => Line($"public {arg.type} {arg.name} {{ get; }}")).Scope(),
                     Scope(
@@ -170,8 +169,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var serializeRef = Scope(
-                Line("void ITgSerializable.Serialize(BinaryWriter bw)"),
-                Line("{"),
+                Line("void ITgSerializable.Serialize(BinaryWriter bw) {"),
                 IndentedScope(1,
                     Line("WriteUint(bw, _tag.TypeNumber);"),
                     Line("_tag.SerializeTag(bw);")
@@ -180,11 +178,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var staticTryDeserializeDef = Scope(
-                Line($"internal static Option<{typeName}> TryDeserialize(uint typeNumber, BinaryReader br)"),
-                Line("{"),
+                Line($"internal static Option<{typeName}> TryDeserialize(uint typeNumber, BinaryReader br) {{"),
                 IndentedScope(1,
-                    Line("return typeNumber switch"),
-                    Line("{"),
+                    Line("return typeNumber switch {"),
                     IndentedScope(1,
                         typeTags.Map(x => Line($"{x.Name}.TypeNumber => ({typeName}) {x.Name}.DeserializeTag(br),")).Scope(),
                         Line("_ => Prelude.None,")
@@ -195,8 +191,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var staticDeserializeDef = Scope(
-                Line($"internal static {typeName} Deserialize(BinaryReader br)"),
-                Line("{"),
+                Line($"internal static {typeName} Deserialize(BinaryReader br) {{"),
                 IndentedScope(1,
                     Line("var typeNumber = ReadUint(br);"),
                     Line(Concat(
@@ -224,8 +219,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line(") {"),
                 IndentedScope(1,
                     Line("if (_ == null) throw new ArgumentNullException(nameof(_));"),
-                    Line("return _tag switch"),
-                    Line("{"),
+                    Line("return _tag switch {"),
                     IndentedScope(1,
                         typeTags.Map(tag => {
                             var tagName = tag.Name;
@@ -264,11 +258,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
             var cmpPairName = String("CmpPair");
             var helpersDef = Scope(
-                Line("int GetTagOrder()"),
-                Line("{"),
+                Line("int GetTagOrder() {"),
                 IndentedScope(1,
-                    Line("return _tag switch"),
-                    Line("{"),
+                    Line("return _tag switch {"),
                     IndentedScope(1,
                         typeTags.Map((idx, x) => $"{x.Name} => {idx},").Map(Line).Scope(),
                         Line("_ => throw new(\"WTF\"),")
@@ -298,8 +290,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var def = Scope(
-                Line($"public sealed class {typeName} : ITgType, IEquatable<{typeName}>, IComparable<{typeName}>, IComparable"),
-                Line("{"),
+                Line($"public sealed class {typeName} : ITgType, IEquatable<{typeName}>, IComparable<{typeName}>, IComparable {{"),
                 Indent(1, bodyDef),
                 Line("}")
             );
@@ -311,8 +302,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             var tagBody = GenTypeTagBody(typeName, typeName, tag);
 
             var serializeRef = Scope(
-                Line("void ITgSerializable.Serialize(BinaryWriter bw)"),
-                Line("{"),
+                Line("void ITgSerializable.Serialize(BinaryWriter bw) {"),
                 IndentedScope(1,
                     Line("WriteUint(bw, TypeNumber);"),
                     Line("((ITgTypeTag) this).SerializeTag(bw);")
@@ -330,8 +320,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var staticDeserializeDef = Scope(
-                Line($"internal static {typeName} Deserialize(BinaryReader br)"),
-                Line("{"),
+                Line($"internal static {typeName} Deserialize(BinaryReader br) {{"),
                 IndentedScope(1,
                     Line("var typeNumber = ReadUint(br);"),
                     Line(Concat(
@@ -355,8 +344,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             return Scope(
-                Line($"public sealed class {typeName} : ITgType, ITgTypeTag, IEquatable<{typeName}>, IComparable<{typeName}>, IComparable"),
-                Line("{"),
+                Line($"public sealed class {typeName} : ITgType, ITgTypeTag, IEquatable<{typeName}>, IComparable<{typeName}>, IComparable {{"),
                 Indent(1, bodyDef),
                 Line("}")
             );
@@ -369,8 +357,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         public static Func<NestedText, NestedText> WrapIntoNamespace(string nameSpace) => def => Scope(
             Header,
             Line(""),
-            Line($"namespace {nameSpace}"),
-            Line("{"),
+            Line($"namespace {nameSpace} {{"),
             Indent(1, def),
             Line("}")
         );
@@ -403,8 +390,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             const string nameSpace = "Telega.Rpc.Dto";
             const string name = "SchemeInfo";
             var infoDef = Scope(
-                Line($"static class {name}"),
-                Line("{"),
+                Line($"static class {name} {{"),
                 IndentedScope(1,
                     Line($"public const int LayerVersion = {layerVersion};")
                 ),
