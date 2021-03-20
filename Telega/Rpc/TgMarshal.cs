@@ -106,11 +106,12 @@ namespace Telega.Rpc {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ReadBool(BinaryReader br) {
             var n = br.ReadUInt32();
-            switch (n) {
-                case TrueNum: return true;
-                case FalseNum: return false;
-                default: throw TgRpcDeserializeException.UnexpectedBoolTypeNumber(n);
-            }
+            return n switch
+            {
+                TrueNum => true,
+                FalseNum => false,
+                _ => throw TgRpcDeserializeException.UnexpectedBoolTypeNumber(n),
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -15,7 +15,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         };
 
         public static string LowerFirst(string s) => s[0]
-           .Apply(char.ToLower).Apply(fc => fc + s.Substring(1))
+           .Apply(char.ToLower).Apply(fc => fc + s[1..])
            .Apply(x => CsKeywords.Contains(x) ? "@" + x : x);
 
         public static string TypeNumber(int typeNumber) =>
