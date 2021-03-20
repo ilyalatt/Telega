@@ -55,9 +55,6 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         public static NestedText GenGetHashCode(Text by) =>
             Concat("public override int GetHashCode() => ", by, ".GetHashCode();").Apply(Line);
 
-        public static NestedText GenToString(Text by) =>
-            Concat("public override string ToString() => ", by, ";").Apply(Line);
-
         public static NestedText GenRelations(string typeName, Arr<Arg> args) {
             var cmpTupleName = String("CmpTuple");
 
@@ -82,18 +79,11 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Indent(1, Line(Concat(argsTuple, ";")))
             );
 
-
-            var argsInterpolationStr = args
-               .Map(x => Concat(x.Name, ": ", "{", x.Name, "}"))
-               .Apply(xs => Join(", ", xs))
-               .Apply(x => Concat("$\"(", x, ")\""));
-
             return Scope(Environment.NewLine + Environment.NewLine,
                 cmpTuple,
                 GenEqRelations(typeName, cmpTupleName),
                 GenCmpRelations(typeName, cmpTupleName),
-                GenGetHashCode(cmpTupleName),
-                GenToString(argsInterpolationStr)
+                GenGetHashCode(cmpTupleName)
             );
         }
     }

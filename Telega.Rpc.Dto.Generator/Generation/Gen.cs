@@ -77,7 +77,10 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line(""),
                 SerializerGen.GenSerializer(modifiedArgs, typeNumber: None, "ITgTypeTag.SerializeTag"),
                 Line(""),
-                SerializerGen.GenTypeTagDeserialize(tagName, modifiedArgs)
+                SerializerGen.GenTypeTagDeserialize(tagName, modifiedArgs),
+                Line(""),
+                Line(""),
+                YamlifierGen.GenTagYamlifier(modifiedArgs, tagName)
             );
         }
 
@@ -144,7 +147,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                         Line(""),
                         Line(""),
                         isWrapper
-                            ? Scope(new NestedText[0])
+                            ? EmptyScope()
                             : Scope(
                                 WithGen.GenWith(argsWithoutFlags, funcName),
                                 Line(""),
@@ -153,7 +156,12 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                             ),
                         SerializerGen.GenSerializer(func.Args, typeNumber: func.TypeNumber, "ITgSerializable.Serialize"),
                         Line(""),
-                        resultDeserializer
+                        resultDeserializer,
+                        Line(""),
+                        Line(""),
+                        isWrapper
+                            ? EmptyScope()
+                            : YamlifierGen.GenTagYamlifier(func.Args, funcName)
                     )
                 ),
                 Line("}")
@@ -286,7 +294,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 RelationsGen.GenEqRelations(typeName, cmpPairName),
                 RelationsGen.GenCmpRelations(typeName, cmpPairName),
                 RelationsGen.GenGetHashCode(cmpPairName),
-                RelationsGen.GenToString($"$\"{typeName}.{{_tag.GetType().Name}}{{_tag}}\"")
+                YamlifierGen.GenUnionYamlifier(typeTags, typeName)
             );
 
             var def = Scope(
