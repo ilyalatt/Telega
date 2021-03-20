@@ -32,7 +32,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                 const string sectionMark = "---";
                 var sectionStartIdx = s.IndexOf(sectionMark, lastIdx, StringComparison.Ordinal);
                 if (sectionStartIdx == -1) {
-                    res.Add((lastType, s.Substring(lastIdx)));
+                    res.Add((lastType, s[lastIdx..]));
                     break;
                 }
 
@@ -49,13 +49,13 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
 
                 var sectionEndShiftedIdx = sectionEndIdx + sectionMark.Length;
 
-                var sectionName = s.Substring(sectionStartShiftedIdx, sectionEndIdx - sectionStartShiftedIdx);
+                var sectionName = s[sectionStartShiftedIdx..sectionEndIdx];
                 var sectionType = sectionName ==
                     "types" ? SectionType.Types
                     : sectionName == "functions" ? SectionType.Functions
                     : throw Exception("unknown section type");
 
-                res.Add((lastType, s.Substring(lastIdx, sectionStartIdx - lastIdx)));
+                res.Add((lastType, s[lastIdx..sectionStartIdx]));
 
                 lastIdx = sectionEndShiftedIdx;
                 lastType = sectionType;
@@ -76,13 +76,13 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         static Option<(string, Flag)> ParseFlag(string s) =>
             s.Apply(Optional).Filter(x => x.StartsWith(FlagMarker))
                .Map(ss => ss
-                   .Apply(x => x.Substring(FlagMarker.Length))
+                   .Apply(x => x[FlagMarker.Length..])
                    .Apply(x => x.Split('?'))
                    .Apply(Optional)
                    .Filter(x => x.Length == 2)
                    .GetOrThrow(Ex("bad flag param"))
                    .Apply(x => (parseInt(x[0]), x[1]))
-                   .Apply(t => t.Item1.Map(p1 => (p1, t.Item2)))
+                   .Apply(t => t.Item1.Map(Item1 => (Item1, t.Item2)))
                    .Filter(t => 0 <= t.Item1 && t.Item1 < 32)
                    .Map(t => (t.Item2, new Flag("flags", t.Item1)))
                    .GetOrThrow(Ex("can not parse a flag bit"))
@@ -90,27 +90,26 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
 
         static TgType ParseType(string s) {
             const string vector = "vector";
-            string GetVectorType(string ss) => ss.Substring(vector.Length).Apply(x => x.Substring(1, x.Length - 2));
+            string GetVectorType(string ss) => ss[vector.Length..].Apply(x => x[1..^1]);
             if (s.StartsWith(vector, true, null)) {
                 return s.Apply(GetVectorType).Apply(ParseType).ToSome().Apply(TgType.OfVector);
             }
 
             PrimitiveType? TryParsePrimitive() {
-                switch (s.ToLower()) {
-                    case "#":
-                    case "int":
-                        return PrimitiveType.Int;
-                    case "uint": return PrimitiveType.Uint;
-                    case "long": return PrimitiveType.Long;
-                    case "double": return PrimitiveType.Double;
-                    case "string": return PrimitiveType.String;
-                    case "bytes": return PrimitiveType.Bytes;
-                    case "true": return PrimitiveType.True;
-                    case "bool": return PrimitiveType.Bool;
-                    case "int128": return PrimitiveType.Int128;
-                    case "int256": return PrimitiveType.Int256;
-                    default: return null;
-                }
+                return s.ToLower() switch
+                {
+                    "#" or "int" => PrimitiveType.Int,
+                    "uint" => PrimitiveType.Uint,
+                    "long" => PrimitiveType.Long,
+                    "double" => PrimitiveType.Double,
+                    "string" => PrimitiveType.String,
+                    "bytes" => PrimitiveType.Bytes,
+                    "true" => PrimitiveType.True,
+                    "bool" => PrimitiveType.Bool,
+                    "int128" => PrimitiveType.Int128,
+                    "int256" => PrimitiveType.Int256,
+                    _ => null,
+                };
             }
 
             return TryParsePrimitive().ToOption().Map(TgType.OfPrimitive).IfNone(() => TgType.OfTypeRef(s));

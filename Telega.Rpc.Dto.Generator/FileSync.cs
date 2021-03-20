@@ -36,7 +36,7 @@ namespace Telega.Rpc.Dto.Generator {
                 throw new Exception("WTF");
             }
 
-            var fileSubDir = file.Namespace.Substring(Project.Length).TrimStart('.').Apply(NamespaceToPath);
+            var fileSubDir = file.Namespace[Project.Length..].TrimStart('.').Apply(NamespaceToPath);
             var filePathDir = Path.Combine(BasePath, fileSubDir);
             var filePath = Path.Combine(filePathDir, file.Name + ".cs");
 

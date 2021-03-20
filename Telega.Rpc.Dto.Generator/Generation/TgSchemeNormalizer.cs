@@ -9,7 +9,7 @@ using StringHashSet = System.Collections.Generic.HashSet<string>;
 
 namespace Telega.Rpc.Dto.Generator.Generation {
     static class TgSchemeNormalizer {
-        static string UpperFirst(string s) => s[0].Apply(char.ToUpper).Apply(fc => fc + s.Substring(1));
+        static string UpperFirst(string s) => s[0].Apply(char.ToUpper).Apply(fc => fc + s[1..]);
 
         static string LowerCapsAndUpperSomeCases(string origStr) =>
             (str: origStr, subs: List<string>()).Generate(s => {
@@ -29,11 +29,11 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                             ? s.str.TakeWhile(char.IsUpper).Count().Apply(x => x == len || char.IsDigit(s.str[x]) ? x : x - 1)
                             : s.str.Map((i, x) => (i, x)).Skip(1).Find(t => char.IsUpper(t.x) || char.IsDigit(t.x)).Map(t => t.i).IfNone(len);
                 var sub = s.str.Substring(0, subLen);
-                var rest = s.str.Substring(subLen);
+                var rest = s.str[subLen..];
                 return (rest, s.subs.Add(sub));
             })
            .Last().Apply(s => s.subs)
-           .Map(sub => sub.Length > 1 ? char.ToUpper(sub[0]) + sub.Substring(1).ToLower() : sub).AsEnumerable().Apply(string.Concat);
+           .Map(sub => sub.Length > 1 ? char.ToUpper(sub[0]) + sub[1..].ToLower() : sub).AsEnumerable().Apply(string.Concat);
 
         static string NormalizeName(string name) => name
            .Split('_').Map(UpperFirst).Apply(string.Concat)
@@ -108,7 +108,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             new[] { 0 }.Concat(UpperChars(s)).Concat(new[] { s.Length })
                .Pairwise()
                .Filter(t => t.Item1 != t.Item2)
-               .Map(t => s.Substring(t.Item1, t.Item2 - t.Item1));
+               .Map(t => s[t.Item1..t.Item2]);
 
 
         static int CasedLcpLen(string test, string s) => test
@@ -123,7 +123,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
            .Sum(t => t.Item1.Length);
 
         static Func<string, string> RemoveLcp(string test) => s =>
-            s.Substring(CasedLcpLen(test, s));
+            s[CasedLcpLen(test, s)..];
 
         static Func<string, string> RemoveLcs(string test) => s =>
             s.Substring(0, s.Length - CasedLcsLen(test, s));
