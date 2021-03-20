@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Net;
 using LanguageExt;
 using Telega.Auth;
@@ -118,7 +118,17 @@ namespace Telega {
             var authData = TgMarshal.ReadBytes(br);
             var isAuthorized = TgMarshal.ReadBool(br);
 
-            return new(apiId: apiId, id: id, salt: salt, sequence: sequence, lastMessageId: lastMessageId, timeOffset: timeOffset, endpoint: ep, authKey: AuthKey.Deserialize(authData), isAuthorized: isAuthorized);
+            return new(
+                apiId: apiId,
+                id: id,
+                salt: salt,
+                sequence: sequence,
+                lastMessageId: lastMessageId,
+                timeOffset: timeOffset,
+                endpoint: ep,
+                authKey: AuthKey.Deserialize(authData),
+                isAuthorized: isAuthorized
+            );
         }
     }
 }

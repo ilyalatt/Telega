@@ -4,7 +4,7 @@ using LanguageExt;
 namespace Telega.Rpc.Dto {
     public struct Bytes : IEquatable<Bytes>, IComparable<Bytes> {
         internal readonly byte[] Ref;
-        internal Bytes(byte[] @ref) => Ref = @ref ?? throw new(nameof(@ref));
+        internal Bytes(byte[] @ref) => Ref = @ref ?? throw new ArgumentNullException(nameof(@ref));
 
 
         static byte[] Copy(byte[] bts) {
