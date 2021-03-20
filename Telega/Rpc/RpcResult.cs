@@ -16,10 +16,10 @@ namespace Telega.Rpc
         }
 
         public static RpcResult OfSuccess(long msgId, BinaryReader msgBody) =>
-            new RpcResult(msgId, msgBody, null);
+            new(msgId, msgBody, null);
 
         public static RpcResult OfFail(long msgId, TgException exception) =>
-            new RpcResult(msgId, null, exception);
+            new(msgId, null, exception);
 
         public bool IsSuccess => Body != null;
         public bool IsFail => Exception != null;

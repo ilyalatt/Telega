@@ -13,7 +13,7 @@ namespace Telega.CallMiddleware
 
         public TgCallMiddlewareChain With(
             Arr<ITgCallMiddleware>? middleware = null
-        ) => new TgCallMiddlewareChain(
+        ) => new(
             middleware: middleware ?? Middleware
         );
 
@@ -22,7 +22,7 @@ namespace Telega.CallMiddleware
         );
 
 
-        public static readonly TgCallMiddlewareChain Empty = new TgCallMiddlewareChain(
+        public static readonly TgCallMiddlewareChain Empty = new(
             Arr<ITgCallMiddleware>.Empty
         );
 

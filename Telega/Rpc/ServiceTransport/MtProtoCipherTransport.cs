@@ -34,10 +34,10 @@ namespace Telega.Rpc.ServiceTransport
         }
 
         static ArraySegment<byte> Slice(byte[] buffer, int offset, int count) =>
-            new ArraySegment<byte>(buffer, offset, count);
+            new(buffer, offset, count);
 
         static ArraySegment<byte> AsSlice(byte[] buffer) =>
-            new ArraySegment<byte>(buffer, 0, buffer.Length);
+            new(buffer, 0, buffer.Length);
 
         static byte[] Concat(params ArraySegment<byte>[] btsArr)
         {

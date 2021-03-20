@@ -48,7 +48,7 @@ namespace Telega.Connect
         }
 
         public TgBellhop Fork() =>
-            new TgBellhop(ConnectionPool, CurrentConnection.Get());
+            new(ConnectionPool, CurrentConnection.Get());
 
         public static async Task<TgBellhop> Connect(
             ConnectInfo connectInfo,

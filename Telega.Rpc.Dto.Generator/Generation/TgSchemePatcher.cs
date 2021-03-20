@@ -6,21 +6,11 @@ namespace Telega.Rpc.Dto.Generator.Generation
 {
     static class TgSchemePatcher
     {
-        static Arg SetBytesType(Arg arg) => new Arg(
-            name: arg.Name,
-            type: TgType.OfPrimitive(PrimitiveType.Bytes),
-            kind: arg.Kind
-        );
+        static Arg SetBytesType(Arg arg) => new(name: arg.Name, type: TgType.OfPrimitive(PrimitiveType.Bytes), kind: arg.Kind);
 
-        static Signature ChangeStringToByteArgs(Signature signature) => new Signature(
-            name: signature.Name,
-            typeNumber: signature.TypeNumber,
-            args: signature.Args.Map(x => x.Type == TgType.OfPrimitive(PrimitiveType.String) ? SetBytesType(x) : x),
-            resultType: signature.ResultType
-        );
+        static Signature ChangeStringToByteArgs(Signature signature) => new(name: signature.Name, typeNumber: signature.TypeNumber, args: signature.Args.Map(x => x.Type == TgType.OfPrimitive(PrimitiveType.String) ? SetBytesType(x) : x), resultType: signature.ResultType);
 
-        static readonly StringHashSet StringToBytes = new StringHashSet
-        {
+        static readonly StringHashSet StringToBytes = new() {
             // types
             "resPQ",
             "p_q_inner_data",
@@ -41,11 +31,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
             signature.Apply(PatchStringToBytes);
 
 
-        static Scheme Patch(Scheme scheme) => new Scheme(
-            types: scheme.Types.Map(Patch),
-            functions: scheme.Functions.Map(Patch),
-            layerVersion: scheme.LayerVersion
-        );
+        static Scheme Patch(Scheme scheme) => new(types: scheme.Types.Map(Patch), functions: scheme.Functions.Map(Patch), layerVersion: scheme.LayerVersion);
 
         public static Scheme Patch(Some<Scheme> scheme) => Patch(scheme.Value);
     }

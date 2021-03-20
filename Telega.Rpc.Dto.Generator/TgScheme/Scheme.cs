@@ -49,9 +49,9 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
         public override int GetHashCode() => _tag.GetHashCode();
         public override string ToString() => _tag.ToString();
 
-        public static TgType OfPrimitive(PrimitiveType type) => new TgType(new Primitive(type));
-        public static TgType OfVector(Some<TgType> type) => new TgType(new Vector(type));
-        public static TgType OfTypeRef(Some<string> name) => new TgType(new TypeRef(name));
+        public static TgType OfPrimitive(PrimitiveType type) => new(new Primitive(type));
+        public static TgType OfVector(Some<TgType> type) => new(new Vector(type));
+        public static TgType OfTypeRef(Some<string> name) => new(new TypeRef(name));
 
 
         public T Match<T>(
@@ -115,9 +115,9 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
         public override int GetHashCode() => _tag.GetHashCode();
         public override string ToString() => _tag.ToString();
 
-        public static ArgKind OfRequired() => new ArgKind(new Required());
-        public static ArgKind OfOptional(Some<Flag> flag) => new ArgKind(new Optional(flag));
-        public static ArgKind OfFlags() => new ArgKind(new Flags());
+        public static ArgKind OfRequired() => new(new Required());
+        public static ArgKind OfOptional(Some<Flag> flag) => new(new Optional(flag));
+        public static ArgKind OfFlags() => new(new Flags());
 
 
         public T Match<T>(

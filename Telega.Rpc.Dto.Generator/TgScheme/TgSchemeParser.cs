@@ -12,7 +12,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
     static class TgSchemeParser
     {
         static TgSchemeParserException Exception(string msg)
-            => new TgSchemeParserException(msg);
+            => new(msg);
 
         static Func<Exception> Ex(string msg) =>
             () => Exception(msg);
@@ -164,7 +164,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme
             "int128 4*[ int ] = Int128;",
             "int256 8*[ int ] = Int256;"
         };
-        
+
         public static Scheme Parse(Some<string> tgScheme)
         {
             var sections = SplitBySections(tgScheme.Value);

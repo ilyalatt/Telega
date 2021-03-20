@@ -109,7 +109,7 @@ namespace Telega
         }
 
 
-        static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new GetFile(
+        static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new(
             precise: true,
             cdnSupported: false,
             location: location,

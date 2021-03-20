@@ -135,7 +135,7 @@ namespace Telega
         }
 
         static BigInteger UnsignedNum(byte[] bts) =>
-            new BigInteger(1, bts);
+            new(1, bts);
 
         static (BigInteger, byte[], BigInteger) GenerateAndCheckRandom(BigInteger g, byte[] bigB, BigInteger p)
         {

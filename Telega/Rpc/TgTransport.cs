@@ -17,12 +17,12 @@ namespace Telega.Rpc
     {
         readonly Var<Session> _session;
         readonly MtProtoCipherTransport _transport;
-        readonly TaskQueue _rpcQueue = new TaskQueue();
-        readonly ConcurrentStack<long> _unconfirmedMsgIds = new ConcurrentStack<long>(); // such a bad design
+        readonly TaskQueue _rpcQueue = new();
+        readonly ConcurrentStack<long> _unconfirmedMsgIds = new(); // such a bad design
 
         readonly Task _receiveLoopTask;
         readonly ConcurrentDictionary<long, TaskCompletionSource<RpcResult>> _rpcFlow =
-            new ConcurrentDictionary<long, TaskCompletionSource<RpcResult>>();
+            new();
 
         public CustomObservable<UpdatesType> Updates { get; } = new CustomObservable<UpdatesType>();
 

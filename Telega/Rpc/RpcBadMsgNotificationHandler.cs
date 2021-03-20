@@ -26,7 +26,7 @@ namespace Telega.Rpc
         public static TgRpcBadMsgException ToException(BadMsgNotification.Tag error)
         {
             var code = error.ErrorCode;
-            TgRpcBadMsgException Ex(string msg) => new TgRpcBadMsgException(code, msg);
+            TgRpcBadMsgException Ex(string msg) => new(code, msg);
 
             switch (code)
             {

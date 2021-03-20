@@ -20,10 +20,10 @@ namespace Telega.Connect
         }
 
         public static ConnectInfo FromSession(Some<Session> session) =>
-            new ConnectInfo(session, 0, null);
+            new(session, 0, null);
 
         public static ConnectInfo FromInfo(int apiId, Some<IPEndPoint> endpoint) =>
-            new ConnectInfo(null, apiId, endpoint);
+            new(null, apiId, endpoint);
 
         public bool NeedsInAuth => _original == null || !_original.IsAuthorized;
         public void SetAuth(Step3Res auth) => _auth = auth;

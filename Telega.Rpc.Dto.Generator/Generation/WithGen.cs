@@ -14,7 +14,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 .Map(arg => $"{TgTypeConverter.WrapArgTypeWithNullable(arg)} {Helpers.LowerFirst(arg.Name)} = null")
                 .Map(Line)
             ),
-            Line($") => new {typeName}("),
+            Line($") => new("),
             IndentedScope(1, "," + Environment.NewLine, args
                 .Map(arg => arg.Name).Map(argName => $"{Helpers.LowerFirst(argName)} ?? {argName}")
                 .Map(Line)

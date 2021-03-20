@@ -55,7 +55,7 @@ namespace Telega
             int? timeOffset = null,
             long? lastMessageId = null,
             IPEndPoint? endpoint = null
-        ) => new Session(
+        ) => new(
             apiId ?? ApiId,
             id ?? Id,
             authKey ?? AuthKey,
@@ -67,17 +67,7 @@ namespace Telega
             endpoint ?? Endpoint
         );
 
-        public static Session New(int apiId, Some<IPEndPoint> endpoint, Some<AuthKey> authKey, int timeOffset) => new Session(
-            apiId: apiId,
-            id: Rnd.NextInt64(),
-            authKey: authKey,
-            isAuthorized: false,
-            sequence: 0,
-            salt: 0,
-            timeOffset: timeOffset,
-            lastMessageId: 0,
-            endpoint
-        );
+        public static Session New(int apiId, Some<IPEndPoint> endpoint, Some<AuthKey> authKey, int timeOffset) => new(apiId: apiId, id: Rnd.NextInt64(), authKey: authKey, isAuthorized: false, sequence: 0, salt: 0, timeOffset: timeOffset, lastMessageId: 0, endpoint);
 
         internal static long GetNewMessageId(Var<Session> sessionVar)
         {
@@ -121,17 +111,7 @@ namespace Telega
             var authData = TgMarshal.ReadBytes(br);
             var isAuthorized = TgMarshal.ReadBool(br);
 
-            return new Session(
-                apiId: apiId,
-                id: id,
-                salt: salt,
-                sequence: sequence,
-                lastMessageId: lastMessageId,
-                timeOffset: timeOffset,
-                endpoint: ep,
-                authKey: AuthKey.Deserialize(authData),
-                isAuthorized: isAuthorized
-            );
+            return new(apiId: apiId, id: id, salt: salt, sequence: sequence, lastMessageId: lastMessageId, timeOffset: timeOffset, endpoint: ep, authKey: AuthKey.Deserialize(authData), isAuthorized: isAuthorized);
         }
     }
 }

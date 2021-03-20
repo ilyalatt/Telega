@@ -70,8 +70,8 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 WithGen.GenWith(argsWithoutFlags, tagName),
                 Line(""),
                 typeName != tagName ? Scope(
-                    Line($"public static implicit operator {typeName}({tagName} tag) => new {typeName}(tag);"),
-                    Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new {typeName}(tag);"),
+                    Line($"public static implicit operator {typeName}({tagName} tag) => new(tag);"),
+                    Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new(tag);"),
                     Line("")
                 ) : EmptyScope(),
                 RelationsGen.GenRelations(tagName, argsWithoutFlags),
@@ -248,7 +248,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                 IndentedScope(1, $",{Environment.NewLine}", matchArgFns.Map(Line)),
                 Line(") => Match("),
                 IndentedScope(1, $",{Environment.NewLine}",
-                    Line(@"() => throw new Exception(""WTF"")").Singleton(),
+                    Line(@"() => throw new(""WTF"")").Singleton(),
                     typeTags.Map(tag =>
                     {
                         var tagName = tag.Name;
@@ -276,7 +276,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
                     Line("{"),
                     IndentedScope(1,
                         typeTags.Map((idx, x) => $"case {x.Name} _: return {idx};").Map(Line).Scope(),
-                        Line("default: throw new Exception(\"WTF\");")
+                        Line("default: throw new(\"WTF\");")
                     ),
                     Line("}")
                 ),

@@ -34,16 +34,16 @@ namespace Telega.Connect
         }
 
         readonly ConcurrentDictionary<int, Task<TgConnection>> _connTasks =
-            new ConcurrentDictionary<int, Task<TgConnection>>();
+            new();
 
         readonly ConcurrentDictionary<int, TgConnection> _conns =
-            new ConcurrentDictionary<int, TgConnection>();
+            new();
 
         // TODO: refactor the common part of Connect & ReConnect
 
         public async Task<TgConnection> Connect(TgConnection src, int dstDcId)
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(TgConnectionPool));
+            if (_isDisposed) throw new(nameof(TgConnectionPool));
 
             // it is not perfect but it should work right almost every time
             if (_connTasks.TryGetValue(dstDcId, out var connTask)) return await connTask;
@@ -63,7 +63,7 @@ namespace Telega.Connect
 
         public async Task<TgConnection> ReConnect(int dcId)
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(TgConnectionPool));
+            if (_isDisposed) throw new(nameof(TgConnectionPool));
 
             // it is not perfect but it should work right almost every time
             if (_connTasks.TryGetValue(dcId, out var connTask)) return await connTask;

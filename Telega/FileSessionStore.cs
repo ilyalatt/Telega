@@ -10,7 +10,7 @@ namespace Telega
     {
         readonly string _fileName;
         readonly string _backupFileName;
-        readonly TaskQueue _taskQueue = new TaskQueue();
+        readonly TaskQueue _taskQueue = new();
 
         public FileSessionStore(Some<string> name)
         {

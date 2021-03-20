@@ -4,7 +4,7 @@ namespace Telega.Rpc.Dto.Generator.Generation
 {
     static class Helpers
     {
-        static readonly System.Collections.Generic.HashSet<string> CsKeywords = new System.Collections.Generic.HashSet<string>() {
+        static readonly System.Collections.Generic.HashSet<string> CsKeywords = new() {
             "null",
             "out",
             "long",

@@ -6,7 +6,7 @@ namespace Telega.Rpc.Dto
     public struct Bytes : IEquatable<Bytes>, IComparable<Bytes>
     {
         internal readonly byte[] Ref;
-        internal Bytes(byte[] @ref) => Ref = @ref ?? throw new ArgumentNullException(nameof(@ref));
+        internal Bytes(byte[] @ref) => Ref = @ref ?? throw new(nameof(@ref));
 
 
         static byte[] Copy(byte[] bts)
@@ -17,7 +17,7 @@ namespace Telega.Rpc.Dto
         }
 
         public static Bytes New(Some<byte[]> bytes) =>
-            new Bytes(Copy(bytes));
+            new(Copy(bytes));
 
         public byte[] ToArray() =>
             Copy(Ref);
@@ -81,7 +81,7 @@ namespace Telega.Rpc.Dto
     public static class BytesExtensions
     {
         public static Bytes ToBytes(this byte[] bts) => Bytes.New(bts);
-        public static Bytes ToBytesUnsafe(this byte[] bts) => new Bytes(bts);
+        public static Bytes ToBytesUnsafe(this byte[] bts) => new(bts);
         public static byte[] ToArrayUnsafe(this Bytes bytes) => bytes.Ref;
     }
 }

@@ -27,8 +27,8 @@ namespace Telega.Rpc.Dto.Generator.TextModel
         readonly object _tag;
         Text(object tag) => _tag = tag;
 
-        public static Text CreateString(Some<string> value) => new Text(new String(value));
-        public static Text CreateScope(Some<Arr<Text>> values, Some<Text> separator) => new Text(new Scope(values, separator));
+        public static Text CreateString(Some<string> value) => new(new String(value));
+        public static Text CreateScope(Some<Arr<Text>> values, Some<Text> separator) => new(new Scope(values, separator));
 
 
         public static implicit operator Text(string value) => CreateString(value);
