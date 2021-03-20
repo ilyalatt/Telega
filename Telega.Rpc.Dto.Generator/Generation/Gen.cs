@@ -67,8 +67,8 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line(""),
                 typeName != tagName
                     ? Scope(
-                        Line($"public static implicit operator {typeName}({tagName} tag) => new {typeName}(tag);"),
-                        Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new {typeName}(tag);"),
+                        Line($"public static implicit operator {typeName}({tagName} tag) => new(tag);"),
+                        Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new(tag);"),
                         Line("")
                     )
                     : EmptyScope(),
