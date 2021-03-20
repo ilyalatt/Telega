@@ -145,7 +145,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                        .Head()
                        .Apply(ParseType);
 
-                    var args = argsStr.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    var args = argsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                        .Filter(x => x != "{X:Type}") // meh
                        .Map(ParseArg)
                        .ToArr();

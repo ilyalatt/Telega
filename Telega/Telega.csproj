@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -9,7 +9,7 @@
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
-    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <WarningsAsErrors>nullable;CS8785</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,6 +22,15 @@
 
     <VersionPrefix>0.4.0</VersionPrefix>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference
+      Include="../Telega.Rpc.Dto.Generator/Telega.Rpc.Dto.Generator.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
+    <AdditionalFiles Include="Rpc/Dto/SchemeInfo.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BigMathNetStandard" Version="1.0.0" />
