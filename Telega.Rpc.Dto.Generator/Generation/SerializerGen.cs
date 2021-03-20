@@ -22,7 +22,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
             Option<Text> GenNonFlagArgSerializer(Arg arg) =>
                 arg.Kind.Match(
-                    _: () => throw new Exception("WTF"),
+                    _: () => throw new("WTF"),
                     required: _ => GenSerializer(arg.Type).Apply(Some),
                     optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True)
                         ? None
