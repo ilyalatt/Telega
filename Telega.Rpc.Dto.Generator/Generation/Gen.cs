@@ -244,7 +244,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 IndentedScope(1, $",{Environment.NewLine}", matchArgFns.Map(Line)),
                 Line(") => Match("),
                 IndentedScope(1, $",{Environment.NewLine}",
-                    Line(@"() => throw new Exception(""WTF"")").Singleton(),
+                    Line(@"() => throw new(""WTF"")").Singleton(),
                     typeTags.Map(tag => {
                         var tagName = tag.Name;
                         var tagNameLower = Helpers.LowerFirst(tagName);
@@ -271,7 +271,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     Line("{"),
                     IndentedScope(1,
                         typeTags.Map((idx, x) => $"case {x.Name} _: return {idx};").Map(Line).Scope(),
-                        Line("default: throw new Exception(\"WTF\");")
+                        Line("default: throw new(\"WTF\");")
                     ),
                     Line("}")
                 ),

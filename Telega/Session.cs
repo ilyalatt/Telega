@@ -118,17 +118,7 @@ namespace Telega {
             var authData = TgMarshal.ReadBytes(br);
             var isAuthorized = TgMarshal.ReadBool(br);
 
-            return new Session(
-                apiId: apiId,
-                id: id,
-                salt: salt,
-                sequence: sequence,
-                lastMessageId: lastMessageId,
-                timeOffset: timeOffset,
-                endpoint: ep,
-                authKey: AuthKey.Deserialize(authData),
-                isAuthorized: isAuthorized
-            );
+            return new(apiId: apiId, id: id, salt: salt, sequence: sequence, lastMessageId: lastMessageId, timeOffset: timeOffset, endpoint: ep, authKey: AuthKey.Deserialize(authData), isAuthorized: isAuthorized);
         }
     }
 }

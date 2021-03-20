@@ -165,9 +165,7 @@ namespace Telega.Auth {
                 w.s1 = (carry >> 32) + r2 + u1 * v1;
             }
 
-            public static void Multiply(out UInt128 c, ulong a, ulong b) {
-                Multiply64(out c, a, b);
-            }
+            public static void Multiply(out UInt128 c, ulong a, ulong b) => Multiply64(out c, a, b);
         }
 
         static ulong MulMod(ulong a, ulong b, ulong m) {
