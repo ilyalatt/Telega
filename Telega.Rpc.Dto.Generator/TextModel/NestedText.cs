@@ -49,12 +49,13 @@ namespace Telega.Rpc.Dto.Generator.TextModel {
                 throw new ArgumentNullException(nameof(_));
             }
 
-            switch (_tag) {
-                case Indent x when indent != null: return indent(x);
-                case Line x when line != null: return line(x);
-                case Scope x when scope != null: return scope(x);
-                default: return _();
-            }
+            return _tag switch
+            {
+                Indent x when indent != null => indent(x),
+                Line x when line != null => line(x),
+                Scope x when scope != null => scope(x),
+                _ => _(),
+            };
         }
 
         public T Match<T>(

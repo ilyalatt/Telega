@@ -13,6 +13,7 @@
   
   <ItemGroup>
     <PackageReference Include="LanguageExt.Core" Version="3.4.15" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="IndexRange" Version="1.0.0" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="IsExternalInit" Version="1.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -25,7 +26,8 @@
 
   <Target Name="GetDependencyTargetPaths">
     <ItemGroup>
-      <TargetPathWithTargetPlatformMoniker Include="$(PKGLanguageExt_Core)\lib\netstandard2.0\LanguageExt.Core.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGLanguageExt_Core)/lib/netstandard2.0/LanguageExt.Core.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(PKGIndexRange)/lib/netstandard2.0/IndexRange.dll" IncludeRuntimeDependency="false" />
     </ItemGroup>
   </Target>
 

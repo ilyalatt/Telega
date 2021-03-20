@@ -5,12 +5,13 @@ namespace Telega.Rpc.Dto.Generator.Generation {
     static class TgTypeConverter {
         public static string ConvertType(TgType type) => type.Match(
             primitive: x => {
-                switch (x.Type) {
-                    case PrimitiveType.Bytes: return "Bytes";
-                    case PrimitiveType.Int128: return "BigMath.Int128";
-                    case PrimitiveType.Int256: return "BigMath.Int256";
-                    default: return x.Type.ToString().ToLower();
-                }
+                return x.Type switch
+                {
+                    PrimitiveType.Bytes => "Bytes",
+                    PrimitiveType.Int128 => "BigMath.Int128",
+                    PrimitiveType.Int256 => "BigMath.Int256",
+                    _ => x.Type.ToString().ToLower(),
+                };
             },
             vector: x => $"Arr<{ConvertType(x.Type)}>",
             typeRef: x => x.Name == "X" || x.Name == "!X" ? "TFunc" : $"T.{x.Name}"

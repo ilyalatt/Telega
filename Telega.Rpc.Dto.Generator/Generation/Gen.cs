@@ -183,13 +183,13 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line($"internal static Option<{typeName}> TryDeserialize(uint typeNumber, BinaryReader br)"),
                 Line("{"),
                 IndentedScope(1,
-                    Line("switch (typeNumber)"),
+                    Line("return typeNumber switch"),
                     Line("{"),
                     IndentedScope(1,
-                        typeTags.Map(x => Line($"case {x.Name}.TypeNumber: return ({typeName}) {x.Name}.DeserializeTag(br);")).Scope(),
-                        Line("default: return Prelude.None;")
+                        typeTags.Map(x => Line($"{x.Name}.TypeNumber => ({typeName}) {x.Name}.DeserializeTag(br),")).Scope(),
+                        Line("_ => Prelude.None,")
                     ),
-                    Line("}")
+                    Line("};")
                 ),
                 Line("}")
             );
@@ -224,17 +224,17 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line(") {"),
                 IndentedScope(1,
                     Line("if (_ == null) throw new ArgumentNullException(nameof(_));"),
-                    Line("switch (_tag)"),
+                    Line("return _tag switch"),
                     Line("{"),
                     IndentedScope(1,
                         typeTags.Map(tag => {
                             var tagName = tag.Name;
                             var tagNameLower = Helpers.LowerFirst(tagName);
-                            return Line($"case {tagName} x when {tagNameLower} != null: return {tagNameLower}(x);");
+                            return Line($"{tagName} x when {tagNameLower} != null => {tagNameLower}(x),");
                         }).Scope(),
-                        Line("default: return _();")
+                        Line("_ => _(),")
                     ),
-                    Line("}")
+                    Line("};")
                 ),
                 Line("}")
             );
@@ -267,13 +267,13 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line("int GetTagOrder()"),
                 Line("{"),
                 IndentedScope(1,
-                    Line("switch (_tag)"),
+                    Line("return _tag switch"),
                     Line("{"),
                     IndentedScope(1,
-                        typeTags.Map((idx, x) => $"case {x.Name} _: return {idx};").Map(Line).Scope(),
-                        Line("default: throw new(\"WTF\");")
+                        typeTags.Map((idx, x) => $"{x.Name} => {idx},").Map(Line).Scope(),
+                        Line("_ => throw new(\"WTF\"),")
                     ),
-                    Line("}")
+                    Line("};")
                 ),
                 Line("}"),
                 Line("[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]"),

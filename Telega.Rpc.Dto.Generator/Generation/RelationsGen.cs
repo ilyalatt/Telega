@@ -11,7 +11,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             var equality = Concat(
                 "public bool Equals(",
                 $"{typeName}?",
-                " other) => !ReferenceEquals(other, null) && (ReferenceEquals(this, other) || ",
+                " other) => other is not null && (ReferenceEquals(this, other) || ",
                 cmpBy, " == other!.", cmpBy, ");"
             ).Apply(Line);
             var equalityLegacy = Concat(
@@ -20,7 +20,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 " x && Equals(x);"
             ).Apply(Line);
             var equalityOps = Scope(
-                Line($"public static bool operator ==({typeName}? x, {typeName}? y) => x?.Equals(y) ?? ReferenceEquals(y, null);"),
+                Line($"public static bool operator ==({typeName}? x, {typeName}? y) => x?.Equals(y) ?? y is null;"),
                 Line($"public static bool operator !=({typeName}? x, {typeName}? y) => !(x == y);")
             );
             return Scope(equality, equalityLegacy, equalityOps);
@@ -30,7 +30,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             var cmp = Concat(
                 "public int CompareTo(",
                 typeName,
-                " other) => ReferenceEquals(other, null)",
+                " other) => other is null",
                 " ? throw new ArgumentNullException(nameof(other))",
                 " : ReferenceEquals(this, other)",
                 " ? 0",

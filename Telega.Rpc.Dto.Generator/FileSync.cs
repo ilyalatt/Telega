@@ -72,7 +72,7 @@ namespace Telega.Rpc.Dto.Generator {
                 throw new($"A file namespace must start with '{prefix}' prefix.");
             }
 
-            var fileSubDir = file.Namespace.Substring(prefix.Length).TrimStart('.').Apply(NamespaceToPath);
+            var fileSubDir = file.Namespace[prefix.Length..].TrimStart('.').Apply(NamespaceToPath);
             var filePathDir = Path.Combine(ctx.DtoDirPath, fileSubDir);
             var filePath = Path.Combine(filePathDir, file.Name + ".cs");
 
