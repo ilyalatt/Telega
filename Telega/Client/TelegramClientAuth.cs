@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Security;
 using System.Threading.Tasks;
 using LanguageExt;
 using Microsoft.Extensions.Logging;
@@ -60,7 +61,7 @@ namespace Telega.Client {
         public async Task<Password> GetPasswordInfo() =>
             await _tg.Call(new GetPassword());
 
-        public async Task<User> CheckPassword(Some<Password> passwordInfo, Some<string> passwordStr) {
+        public async Task<User> CheckPassword(Some<Password> passwordInfo, Some<SecureString> password) {
             var pwdInfo = passwordInfo.Value;
             if (!pwdInfo.HasPassword) {
                 throw new ArgumentException("the account does not have a password", nameof(pwdInfo));
@@ -72,10 +73,18 @@ namespace Telega.Client {
                .IfNone(() => throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo)));
 
             var request = await TaskWrapper.Wrap(() =>
-                PasswordCheckHelper.GenRequest(pwdInfo, algo, passwordStr)
+                PasswordCheckHelper.GenRequest(pwdInfo, algo, password.Value)
             ).ConfigureAwait(false);
             var res = await _tg.Call(request).ConfigureAwait(false);
             return SetAuthorized(res.AsTag().Single().User);
+        }
+
+        public async Task<User> CheckPassword(Some<Password> passwordInfo, Some<string> password) {
+            var ss = new SecureString();
+            foreach (var x in password.Value) {
+                ss.AppendChar(x);
+            }
+            return await CheckPassword(passwordInfo, ss);
         }
 
         public async Task<User> SignUp(

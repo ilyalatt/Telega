@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using BigMath;
@@ -17,6 +19,13 @@ namespace Telega {
             using var sha = SHA256.Create();
             bts.SkipLast(1).Iter(x => sha.TransformBlock(x, 0, x.Length, null, 0));
             bts.Last().With(x => sha.TransformFinalBlock(x, 0, x.Length));
+            return sha.Hash;
+        }
+        
+        static byte[] Sha256(params ArraySegment<byte>[] bts) {
+            using var sha = SHA256.Create();
+            bts.SkipLast(1).Iter(x => sha.TransformBlock(x.Array, 0, x.Count, null, 0));
+            bts.Last().With(x => sha.TransformFinalBlock(x.Array, 0, x.Count));
             return sha.Hash;
         }
 
@@ -72,12 +81,37 @@ namespace Telega {
             return dk;
         }
 
-        static byte[] ComputeHash(Algo algo, string passwordStr) {
-            var salt1 = algo.Salt1.ToArrayUnsafe();
-            var salt2 = algo.Salt2.ToArrayUnsafe();
-            var passwordBytes = Encoding.UTF8.GetBytes(passwordStr);
+        static T UseSecureStringUtf8Representation<T>(SecureString s, Func<ArraySegment<byte>, T> mapper) {
+            var chars = new char[s.Length];
+            var charsHandle = GCHandle.Alloc(chars, GCHandleType.Pinned);
+            var bytes = new byte[Encoding.UTF8.GetMaxByteCount(s.Length)];
+            var bytesHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            var bstr = IntPtr.Zero;
+            try {
+                bstr = Marshal.SecureStringToBSTR(s);
+                Marshal.Copy(bstr, chars, 0, chars.Length);
+                var bytesCount = Encoding.UTF8.GetBytes(chars, 0, chars.Length, bytes, 0);
+                var segment = new ArraySegment<byte>(bytes, 0, bytesCount);
+                return mapper(segment);
+            }
+            finally {
+                Array.Clear(chars, 0, chars.Length);
+                charsHandle.Free();
+                Array.Clear(bytes, 0, bytes.Length);
+                bytesHandle.Free();
+                Marshal.ZeroFreeBSTR(bstr);
+            }
+        }
 
-            var hash1 = Sha256(salt1, passwordBytes, salt1);
+        static byte[] ComputeHash(Algo algo, SecureString passwordStr) {
+            var salt1 = algo.Salt1.ToArrayUnsafe();
+            var salt1Segment = new ArraySegment<byte>(salt1);
+            var salt2 = algo.Salt2.ToArrayUnsafe();
+
+            var hash1 = UseSecureStringUtf8Representation(
+                passwordStr,
+                pwd => Sha256(salt1Segment, pwd, salt1Segment)
+            );
             var hash2 = Sha256(salt2, hash1, salt2);
             var hash3 = Pbkdf2Sha512(64, hash2, salt1, 100000);
             return Sha256(salt2, hash3, salt2);
@@ -146,7 +180,7 @@ namespace Telega {
             }
         }
 
-        public static CheckPassword GenRequest(Password pwdInfo, Algo algo, string passwordStr) {
+        public static CheckPassword GenRequest(Password pwdInfo, Algo algo, SecureString passwordStr) {
             var hash = ComputeHash(algo, passwordStr);
 
             var pBytes = algo.P.ToArrayUnsafe().Apply(WithHashPadding);
