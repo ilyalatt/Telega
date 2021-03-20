@@ -40,11 +40,12 @@ namespace Telega.Rpc.Dto.Generator.TextModel {
                 throw new ArgumentNullException(nameof(_));
             }
 
-            switch (_tag) {
-                case String x when str != null: return str(x);
-                case Scope x when scope != null: return scope(x);
-                default: return _();
-            }
+            return _tag switch
+            {
+                String x when str != null => str(x),
+                Scope x when scope != null => scope(x),
+                _ => _(),
+            };
         }
 
         public T Match<T>(

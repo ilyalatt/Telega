@@ -96,21 +96,20 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
             }
 
             PrimitiveType? TryParsePrimitive() {
-                switch (s.ToLower()) {
-                    case "#":
-                    case "int":
-                        return PrimitiveType.Int;
-                    case "uint": return PrimitiveType.Uint;
-                    case "long": return PrimitiveType.Long;
-                    case "double": return PrimitiveType.Double;
-                    case "string": return PrimitiveType.String;
-                    case "bytes": return PrimitiveType.Bytes;
-                    case "true": return PrimitiveType.True;
-                    case "bool": return PrimitiveType.Bool;
-                    case "int128": return PrimitiveType.Int128;
-                    case "int256": return PrimitiveType.Int256;
-                    default: return null;
-                }
+                return s.ToLower() switch
+                {
+                    "#" or "int" => PrimitiveType.Int,
+                    "uint" => PrimitiveType.Uint,
+                    "long" => PrimitiveType.Long,
+                    "double" => PrimitiveType.Double,
+                    "string" => PrimitiveType.String,
+                    "bytes" => PrimitiveType.Bytes,
+                    "true" => PrimitiveType.True,
+                    "bool" => PrimitiveType.Bool,
+                    "int128" => PrimitiveType.Int128,
+                    "int256" => PrimitiveType.Int256,
+                    _ => null,
+                };
             }
 
             return TryParsePrimitive().ToOption().Map(TgType.OfPrimitive).IfNone(() => TgType.OfTypeRef(s));

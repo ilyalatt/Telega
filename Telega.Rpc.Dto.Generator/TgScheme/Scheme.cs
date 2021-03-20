@@ -36,9 +36,9 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         readonly object _tag;
         TgType(object tag) => _tag = tag;
 
-        bool Equals(TgType other) => !ReferenceEquals(other, null) && _tag.Equals(other._tag);
+        bool Equals(TgType other) => other is not null && _tag.Equals(other._tag);
         public override bool Equals(object obj) => obj is TgType x && Equals(x);
-        public static bool operator ==(TgType a, TgType b) => a?.Equals(b) ?? ReferenceEquals(b, null);
+        public static bool operator ==(TgType a, TgType b) => a?.Equals(b) ?? b is null;
         public static bool operator !=(TgType a, TgType b) => !(a == b);
         public override int GetHashCode() => _tag.GetHashCode();
         public override string ToString() => _tag.ToString();
@@ -58,12 +58,13 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                 throw new ArgumentNullException(nameof(_));
             }
 
-            switch (_tag) {
-                case Primitive x when primitive != null: return primitive(x);
-                case Vector x when vector != null: return vector(x);
-                case TypeRef x when typeRef != null: return typeRef(x);
-                default: return _();
-            }
+            return _tag switch
+            {
+                Primitive x when primitive != null => primitive(x),
+                Vector x when vector != null => vector(x),
+                TypeRef x when typeRef != null => typeRef(x),
+                _ => _(),
+            };
         }
 
         public T Match<T>(
@@ -102,7 +103,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         readonly object _tag;
         ArgKind(object tag) => _tag = tag;
 
-        bool Equals(ArgKind other) => !ReferenceEquals(other, null) && _tag.Equals(other._tag);
+        bool Equals(ArgKind other) => other is not null && _tag.Equals(other._tag);
         public override bool Equals(object obj) => obj is ArgKind x && Equals(x);
         public override int GetHashCode() => _tag.GetHashCode();
         public override string ToString() => _tag.ToString();
@@ -122,12 +123,13 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                 throw new ArgumentNullException(nameof(_));
             }
 
-            switch (_tag) {
-                case Required x when required != null: return required(x);
-                case Optional x when optional != null: return optional(x);
-                case Flags x when flags != null: return flags(x);
-                default: return _();
-            }
+            return _tag switch
+            {
+                Required x when required != null => required(x),
+                Optional x when optional != null => optional(x),
+                Flags x when flags != null => flags(x),
+                _ => _(),
+            };
         }
 
         public T Match<T>(
