@@ -77,8 +77,7 @@ namespace Telega.Playground {
                 Console.WriteLine("Type the password.");
                 var password = ReadPassword();
                 try {
-                    var pwdInfo = await tg.Auth.GetPasswordInfo();
-                    await tg.Auth.CheckPassword(pwdInfo, password);
+                    await tg.Auth.CheckPassword(password);
                     break;
                 }
                 catch (TgInvalidPasswordException) {

@@ -61,30 +61,30 @@ namespace Telega.Client {
         public async Task<Password> GetPasswordInfo() =>
             await _tg.Call(new GetPassword());
 
-        public async Task<User> CheckPassword(Some<Password> passwordInfo, Some<SecureString> password) {
-            var pwdInfo = passwordInfo.Value;
-            if (!pwdInfo.HasPassword) {
-                throw new ArgumentException("the account does not have a password", nameof(pwdInfo));
+        public async Task<User> CheckPassword(Some<SecureString> password) {
+            var passwordInfo = await GetPasswordInfo().ConfigureAwait(false);
+            if (!passwordInfo.HasPassword) {
+                throw new ArgumentException("the account does not have a password", nameof(passwordInfo));
             }
 
-            var algo = pwdInfo.CurrentAlgo
+            var algo = passwordInfo.CurrentAlgo
                .IfNone(() => throw new ArgumentException("there is no CurrentAlgo", nameof(passwordInfo)))
                .Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow
                ?? throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo));
 
             var request = await TaskWrapper.Wrap(() =>
-                PasswordCheckHelper.GenRequest(pwdInfo, algo, password.Value)
+                PasswordCheckHelper.GenRequest(passwordInfo, algo, password.Value)
             ).ConfigureAwait(false);
             var res = await _tg.Call(request).ConfigureAwait(false);
             return SetAuthorized(res.Default!.User);
         }
 
-        public async Task<User> CheckPassword(Some<Password> passwordInfo, Some<string> password) {
+        public async Task<User> CheckPassword(Some<string> password) {
             var ss = new SecureString();
             foreach (var x in password.Value) {
                 ss.AppendChar(x);
             }
-            return await CheckPassword(passwordInfo, ss);
+            return await CheckPassword(ss);
         }
 
         public async Task<User> SignUp(
