@@ -1,4 +1,4 @@
-# build artefacts
+# Build artefacts
 bin
 obj
 
@@ -15,3 +15,10 @@ obj
 # Telega.Playground
 Telega.Playground/*.json
 Telega.Playground/*.dat
+
+# Documentation
+/node_modules
+/build
+.docusaurus
+.cache-loader
+
