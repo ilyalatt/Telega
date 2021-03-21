@@ -63,12 +63,12 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
 
             return res;
         }
-
+        
         static Option<int> ExtractLayerVersion(string s) =>
             new Regex(@"\/\/ LAYER (.+)$").Match(s).Groups[1].Value
-               .Apply(Optional).Filter(x => x.Length > 0)
-               .Map(parseInt)
-               .Map(x => x.GetOrThrow(Ex("can not parse a version of '// LAYER={version}'")));
+                .Apply(Optional).Filter(x => x.Length > 0)
+                .Map(parseInt)
+                .Map(x => x.GetOrThrow(Ex("can not parse a version of '// LAYER={version}'")));
 
         // works only with flags variable for now
         const string FlagMarker = "flags.";
@@ -96,8 +96,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
             }
 
             PrimitiveType? TryParsePrimitive() {
-                return s.ToLower() switch
-                {
+                return s.ToLower() switch {
                     "#" or "int" => PrimitiveType.Int,
                     "uint" => PrimitiveType.Uint,
                     "long" => PrimitiveType.Long,
@@ -117,37 +116,37 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
 
         static Arg ParseArg(string s) {
             var spl = s.Split(':')
-               .Apply(Optional).Filter(x => x.Length == 2).GetOrThrow(Ex("bad signature"));
+                .Apply(Optional).Filter(x => x.Length == 2).GetOrThrow(Ex("bad signature"));
             var name = spl[0];
             var typeStr = spl[1];
 
             var flag = ParseFlag(typeStr);
             var type = flag.Map(t => t.Item1).IfNone(typeStr).Apply(ParseType);
             var argKind = flag.Map(t => t.Item2)
-               .Map(SomeExt.ToSome).Map(ArgKind.OfOptional)
-               .IfNone(typeStr == "#" ? ArgKind.OfFlags() : ArgKind.OfRequired());
+                .Map(SomeExt.ToSome).Map(ArgKind.OfOptional)
+                .IfNone(typeStr == "#" ? ArgKind.OfFlags() : ArgKind.OfRequired());
             return new Arg(name, type, argKind);
         }
 
         static Signature ParseSignature(string s) =>
             s.Split(new[] { '#', ' ' }, 3, StringSplitOptions.RemoveEmptyEntries)
-               .Apply(Optional).Filter(x => x.Length == 3).GetOrThrow(Ex("bad signature"))
-               .Apply(spl => {
+                .Apply(Optional).Filter(x => x.Length == 3).GetOrThrow(Ex("bad signature"))
+                .Apply(spl => {
                     var name = spl[0];
                     var typeNumber = spl[1].Apply(ParseHexInt).GetOrThrow(Ex("bad signature code"));
                     var spl2 = spl[2].Split('=')
-                       .Map(x => x.Trim()).ToArray()
-                       .Apply(Optional).Filter(x => x.Length == 2).GetOrThrow(Ex("bad signature"));
+                        .Map(x => x.Trim()).ToArray()
+                        .Apply(Optional).Filter(x => x.Length == 2).GetOrThrow(Ex("bad signature"));
                     var argsStr = spl2[0];
                     var resultType = spl2[1].Split(';')
-                       .Apply(Optional).Filter(x => x.Length == 2).GetOrThrow(Ex(""))
-                       .Head()
-                       .Apply(ParseType);
+                        .Apply(Optional).Filter(x => x.Length == 2).GetOrThrow(Ex(""))
+                        .Head()
+                        .Apply(ParseType);
 
                     var args = argsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                       .Filter(x => x != "{X:Type}") // meh
-                       .Map(ParseArg)
-                       .ToArr();
+                        .Filter(x => x != "{X:Type}") // meh
+                        .Map(ParseArg)
+                        .ToArr();
 
                     return new Signature(name, typeNumber, args, resultType);
                 });
@@ -168,16 +167,16 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
             var sections = SplitBySections(tgScheme.Value);
             var version = ExtractLayerVersion(tgScheme);
             var signatures = sections
-               .Map(t => (t.Item1, t.Item2
-                       .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                       .Map(x => x.Trim())
-                       .Filter(x => !string.IsNullOrEmpty(x))
-                       .Filter(x => !x.StartsWith("//"))
-                       .Filter(x => !IgnoredLines.Contains(x))
-                       .Filter(x => !x.StartsWith("tls"))
-                       .Map(ParseSignature)
-                    ))
-               .GroupBy(t => t.Item1).ToDictionary(g => g.Key, g => g.Bind(x => x.Item2).ToArr());
+                .Map(t => (t.Item1, t.Item2
+                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Map(x => x.Trim())
+                    .Filter(x => !string.IsNullOrEmpty(x))
+                    .Filter(x => !x.StartsWith("//"))
+                    .Filter(x => !IgnoredLines.Contains(x))
+                    .Filter(x => !x.StartsWith("tls"))
+                    .Map(ParseSignature)
+                ))
+                .GroupBy(t => t.Item1).ToDictionary(g => g.Key, g => g.Bind(x => x.Item2).ToArr());
             return new Scheme(
                 version,
                 signatures[SectionType.Types],

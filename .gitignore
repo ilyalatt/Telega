@@ -12,10 +12,6 @@ obj
 # macOS
 .DS_Store
 
-# Telega
-Telega/Rpc/Dto/Types
-Telega/Rpc/Dto/Functions
-
 # Telega.Playground
 Telega.Playground/*.json
 Telega.Playground/*.dat

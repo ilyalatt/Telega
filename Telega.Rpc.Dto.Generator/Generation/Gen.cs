@@ -362,12 +362,13 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         );
 
         public static IEnumerable<GenFile> GenTypes(Scheme scheme) => scheme.Types
-           .GroupBy(x => x.ResultType)
-           .Choose(x => x
-               .Key.Match(_: () => None, typeRef: Some)
-               .Map(custom => (name: custom.Name, tags: x.ToArr()))
+            .GroupBy(x => x.ResultType)
+            .Choose(x => x
+                .Key.Match(_: () => None, typeRef: Some)
+                .Map(custom => (name: custom.Name, tags: x.ToArr()))
             )
-           .Map(type => {
+            .AsParallel()
+            .Map(type => {
                 var (rawNameSpace, name) = TgSchemeNormalizer.SplitName(type.name);
                 var nameSpace = string.Join(".", new[] { "Telega.Rpc.Dto.Types", rawNameSpace }.Choose(identity));
                 var def = GenType(name, type.tags).Apply(WrapIntoNamespace(nameSpace));
@@ -376,7 +377,8 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             });
 
         public static IEnumerable<GenFile> GenFunctions(Scheme scheme) => scheme.Functions
-           .Map(func => {
+            .AsParallel()
+            .Map(func => {
                 var (rawNameSpace, name) = TgSchemeNormalizer.SplitName(func.Name);
                 var nameSpace = string.Join(".", new[] { "Telega.Rpc.Dto.Functions", rawNameSpace }.Choose(identity));
                 var def = GenFunc(func, name).Apply(WrapIntoNamespace(nameSpace));
