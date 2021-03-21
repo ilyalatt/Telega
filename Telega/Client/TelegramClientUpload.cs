@@ -83,7 +83,7 @@ namespace Telega.Client {
                     name: name,
                     parts: chunksCount
                 )
-                : (InputFile) new InputFile.Tag(
+                : (InputFile) new InputFile.DefaultTag(
                     id: fileId,
                     name: name,
                     parts: chunksCount,
@@ -124,7 +124,7 @@ namespace Telega.Client {
             var tg = _tg.Fork();
             var resp = await tg.Call(GenSmallestGetFileRequest(location)).ConfigureAwait(false);
             var res = resp.Match(
-                tag: identity,
+                defaultTag: identity,
                 cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
             );
             return res.Type;
@@ -138,7 +138,7 @@ namespace Telega.Client {
 
             var stream = someStream.Value;
             var offset = 0;
-            var prevFile = default(File.Tag);
+            var prevFile = default(File.DefaultTag);
             while (true) {
                 var resp = await tg.Call(new GetFile(
                     precise: true,
@@ -148,7 +148,7 @@ namespace Telega.Client {
                     limit: ChunkSize
                 )).ConfigureAwait(false);
                 var res = prevFile = resp.Match(
-                    tag: identity,
+                    defaultTag: identity,
                     cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
                 );
 

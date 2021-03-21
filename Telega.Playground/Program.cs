@@ -12,6 +12,7 @@ using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using static LanguageExt.Prelude;
+using Telega.Utils;
 
 namespace Telega.Playground {
     static class Exts {
@@ -22,14 +23,14 @@ namespace Telega.Playground {
     static class Program {
         static async Task DownloadFirstChannelPictureExample(TelegramClient tg) {
             var chatsType = await tg.Messages.GetDialogs();
-            var chats = chatsType.AsTag().IfNone(() => throw new NotImplementedException());
-            var channels = chats.Chats.Choose(Chat.AsChannelTag);
+            var chats = chatsType.Default!;
+            var channels = chats.Chats.NChoose(x => x.Channel);
 
             var firstChannel = channels
                .HeadOrNone()
                .IfNone(() => throw new Exception("A channel is not found"));
             var photo = firstChannel.Photo
-               .AsTag().IfNone(() => throw new Exception("The first channel does not have a photo"));
+                .Default ?? throw new Exception("The first channel does not have a photo");
             var bigPhotoFile = photo.PhotoBig;
 
             var photoLoc = new InputFileLocation.PeerPhotoTag(
@@ -51,7 +52,7 @@ namespace Telega.Playground {
 
         static async Task DownloadLastMovieFromSavedMessagesExample(TelegramClient tg) {
             var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
-            var userInfo = fullUserInfo.User.AsTag().AssertSome();
+            var userInfo = fullUserInfo.User.Default!;
 
             var chatPeer = (InputPeer) new InputPeer.UserTag(
                 userId: userInfo.Id,
@@ -59,7 +60,7 @@ namespace Telega.Playground {
             );
             const int batchLimit = 100;
 
-            async Task<IEnumerable<Document.Tag>> GetHistory(int offset = 0) {
+            async Task<IEnumerable<Document.DefaultTag>> GetHistory(int offset = 0) {
                 var resp = await tg.Call(new GetHistory(
                     peer: chatPeer,
                     addOffset: offset,
@@ -70,22 +71,22 @@ namespace Telega.Playground {
                     offsetDate: 0,
                     offsetId: 0
                 ));
-                var messages = resp.AsSliceTag().AssertSome().Messages;
+                var messages = resp.Slice!.Messages;
                 var docs = messages
                    .Reverse()
-                   .Choose(Message.AsTag)
+                   .NChoose(x => x.Default)
                    .Choose(message => message.Media)
-                   .Choose(MessageMedia.AsDocumentTag)
+                   .NChoose(x => x.Document)
                    .Choose(x => x.Document)
-                   .Choose(Document.AsTag);
+                   .NChoose(x => x.Default);
                 return messages.Count == 0
                     ? docs
                     : (await GetHistory(offset + batchLimit)).Concat(docs);
             }
 
             var history = await GetHistory();
-            var video = history.Last(x => x.Attributes.Choose(DocumentAttribute.AsVideoTag).Any());
-            var videoName = video.Attributes.Choose(DocumentAttribute.AsFilenameTag).Single().FileName;
+            var video = history.Last(x => x.Attributes.NChoose(x => x.Video).Any());
+            var videoName = video.Attributes.NChoose(x => x.Filename).Single().FileName;
 
             var videoLocation = new InputFileLocation.EncryptedTag(
                 id: video.Id,
@@ -97,8 +98,8 @@ namespace Telega.Playground {
 
         static async Task PrintFirstChannelTop100MessagesExample(TelegramClient tg) {
             var chatsType = await tg.Messages.GetDialogs();
-            var chats = chatsType.AsTag().AssertSome();
-            var channels = chats.Chats.Choose(Chat.AsChannelTag);
+            var chats = chatsType.Default!;
+            var channels = chats.Chats.NChoose(x => x.Channel);
 
             var firstChannel = channels
                .HeadOrNone()
@@ -109,7 +110,7 @@ namespace Telega.Playground {
                 accessHash: firstChannel.AccessHash.AssertSome()
             );
             var top100Messages = await tg.Messages.GetHistory(inputPeer, limit: 100);
-            top100Messages.AsChannelTag().AssertSome().Messages.Iter(msg => {
+            top100Messages.Channel!.Messages.Iter(msg => {
                 Console.WriteLine(msg);
                 Console.WriteLine();
             });
@@ -200,10 +201,10 @@ namespace Telega.Playground {
                         updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
                         updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
                         updateShortTag: update => update.Update.Match(
-                            newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
-                            editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
+                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message).Apply(Optional),
+                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message).Apply(Optional),
                             editChannelMessageTag: msg =>
-                                msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message).Apply(Optional),
                             _: () => None
                         ),
                         _: () => None
@@ -215,15 +216,14 @@ namespace Telega.Playground {
 
             tg.Updates.Stream.Subscribe(
                 onNext: updatesType => {
-                    updatesType.AsUpdateShortTag().Bind(x => x.Update.AsNewMessageTag()).IfSome(msg => { });
                     var messageText = updatesType.Match(
                         updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
                         updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
                         updateShortTag: update => update.Update.Match(
-                            newMessageTag: msg => msg.Message.AsTag().Map(x => "newMessageTag: " + x.Message),
-                            editMessageTag: msg => msg.Message.AsTag().Map(x => "editMessageTag: " + x.Message),
+                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message).Apply(Optional),
+                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message).Apply(Optional),
                             editChannelMessageTag: msg =>
-                                msg.Message.AsTag().Map(x => "editChannelMessageTag: " + x.Message),
+                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message).Apply(Optional),
                             _: () => None
                         ),
                         _: () => None
@@ -236,7 +236,7 @@ namespace Telega.Playground {
             await Task.Delay(Timeout.Infinite);
         }
 
-        static async Task<Arr<(int userIdx, User.Tag user)>> ImportUsers(
+        static async Task<Arr<(int userIdx, User.DefaultTag user)>> ImportUsers(
             TelegramClient tg,
             IEnumerable<(string phone, string firstName, string lastName)> users
         ) {
@@ -248,7 +248,7 @@ namespace Telega.Playground {
                     lastName: user.lastName
                 )).ToArr()
             ));
-            var usersMap = resp.Users.Choose(User.AsTag).ToDictionary(x => x.Id);
+            var usersMap = resp.Users.NChoose(x => x.Default).ToDictionary(x => x.Id);
             return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
         }
 
@@ -257,12 +257,12 @@ namespace Telega.Playground {
             const string counterFormat = "000";
 
             var dialogs = await tg.Messages.GetDialogs();
-            var chat = dialogs.AsTag().AssertSome().Chats.Choose(Chat.AsTag).Single(x => x.Title == groupName);
+            var chat = dialogs.Default!.Chats.NChoose(x => x.Default).Single(x => x.Title == groupName);
             var chatPeer = new InputPeer.ChatTag(chatId: chat.Id);
 
             const int batchLimit = 100;
 
-            async Task<IEnumerable<Photo.Tag>> GetHistory(int offset = 0) {
+            async Task<IEnumerable<Photo.DefaultTag>> GetHistory(int offset = 0) {
                 var resp = await tg.Call(new GetHistory(
                     peer: chatPeer,
                     addOffset: offset,
@@ -273,14 +273,14 @@ namespace Telega.Playground {
                     offsetDate: 0,
                     offsetId: 0
                 ));
-                var messages = resp.AsSliceTag().AssertSome().Messages;
+                var messages = resp.Slice!.Messages;
                 var photos = messages
                    .Reverse()
-                   .Choose(Message.AsTag)
+                   .NChoose(x => x.Default)
                    .Choose(message => message.Media)
-                   .Choose(MessageMedia.AsPhotoTag)
+                   .NChoose(x => x.Photo)
                    .Choose(x => x.Photo)
-                   .Choose(Photo.AsTag);
+                   .NChoose(x => x.Default);
                 return messages.Count == 0
                     ? photos
                     : (await GetHistory(offset + batchLimit)).Concat(photos);
@@ -297,7 +297,7 @@ namespace Telega.Playground {
             Console.WriteLine("Downloading images");
             var counter = 1;
             foreach (var photo in allPhotos) {
-                var biggestSize = photo.Sizes.Choose(PhotoSize.AsTag).OrderByDescending(x => x.Size).First();
+                var biggestSize = photo.Sizes.NChoose(x => x.Default).OrderByDescending(x => x.Size).First();
                 var location = biggestSize.Location;
 
                 var photoFileLocation = new InputFileLocation.PhotoTag(

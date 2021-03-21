@@ -30,7 +30,7 @@ namespace Telega.Auth {
             var p = new BigInteger(pLong);
             var q = new BigInteger(qLong);
 
-            var pqInnerData = new PqInnerData.Tag(
+            var pqInnerData = new PqInnerData.DefaultTag(
                 pq: resPq.Pq,
                 p: p.ToByteArrayUnsigned().ToBytesUnsafe(),
                 q: q.ToByteArrayUnsigned().ToBytesUnsafe(),

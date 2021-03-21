@@ -131,17 +131,18 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         static Signature NormalizeType(Signature signature) => Normalize(
             signature,
             typeName => rawName => rawName
-               .Apply(SplitName).Apply(t => t.Item2)
-               .Apply(name =>
+                .Apply(SplitName).Apply(t => t.Item2)
+                .Apply(name =>
                     name.Apply(RemoveLcp(typeName)).Apply(RemoveLcs(typeName))
-                       .Apply(Optional).Filter(x => x.Length != name.Length)
-                       .IfNone(() =>
+                        .Apply(Optional).Filter(x => x.Length != name.Length)
+                        .IfNone(() =>
                             name.IndexOf(typeName, StringComparison.Ordinal).Apply(Optional).Filter(x => x != -1)
-                               .Map(idx => name.Remove(idx, typeName.Length))
-                               .IfNone(name)
+                                .Map(idx => name.Remove(idx, typeName.Length))
+                                .IfNone(name)
                         )
                 )
-               .Apply(name => name + "Tag")
+                .Apply(name => name.Length == 0 ? "Default" : name) 
+                .Apply(name => name + "Tag")
         );
 
         static Signature NormalizeFunc(Signature signature) =>

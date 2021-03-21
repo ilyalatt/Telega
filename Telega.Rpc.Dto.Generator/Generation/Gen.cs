@@ -251,12 +251,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line(");")
             );
 
+            static string TrimTagSuffix(string s) => s.EndsWith("Tag") ? s[..^3] : s;
             var castHelpersDef = Scope(
-                typeTags.Map(tag => $"public Option<{tag.Name}> As{tag.Name}() => _tag is {tag.Name} x ? Prelude.Some(x) : Prelude.None;").Map(Line)
-            );
-
-            var staticCastHelpersDef = Scope(
-                typeTags.Map(tag => $"public static Option<{tag.Name}> As{tag.Name}({typeName} type) => type.As{tag.Name}();").Map(Line)
+                typeTags.Map(tag => $"public {tag.Name}? {TrimTagSuffix(tag.Name)} => _tag as {tag.Name};").Map(Line)
             );
 
             var cmpPairName = String("CmpPair");
@@ -284,7 +281,6 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 matchOptDef,
                 matchDef,
                 castHelpersDef,
-                staticCastHelpersDef,
                 helpersDef,
                 RelationsGen.GenEqRelations(typeName, isRecord: false, cmpPairName),
                 RelationsGen.GenCmpRelations(typeName, cmpPairName),

@@ -94,8 +94,8 @@ namespace Telega.Rpc {
         }
 
         static RpcResult HandleBadMsgNotification(BinaryReader br) {
-            EnsureTypeNumber(br, BadMsgNotification.Tag.TypeNumber);
-            var badMsg = BadMsgNotification.Tag.DeserializeTag(br);
+            EnsureTypeNumber(br, BadMsgNotification.DefaultTag.TypeNumber);
+            var badMsg = BadMsgNotification.DefaultTag.DeserializeTag(br);
             return badMsg
                .Apply(RpcBadMsgNotificationHandler.ToException)
                .Apply(exc => RpcResult.OfFail(badMsg.BadMsgId, exc));
@@ -141,7 +141,7 @@ namespace Telega.Rpc {
                     ctx.Ack.Add(msgId);
                     ctx.RpcResults.Add(HandleRpcResult(br));
                     return unit;
-                case BadMsgNotification.Tag.TypeNumber:
+                case BadMsgNotification.DefaultTag.TypeNumber:
                     ctx.RpcResults.Add(HandleBadMsgNotification(br));
                     return unit;
                 case BadMsgNotification.ServerSaltTag.TypeNumber:
@@ -165,7 +165,7 @@ namespace Telega.Rpc {
                 case FutureSalts.TypeNumber:
                     return unit;
 
-                case MsgDetailedInfo.Tag.TypeNumber:
+                case MsgDetailedInfo.DefaultTag.TypeNumber:
                     return unit;
 
                 case MsgDetailedInfo.NewTag.TypeNumber:

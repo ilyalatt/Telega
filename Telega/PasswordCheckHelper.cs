@@ -221,7 +221,7 @@ namespace Telega {
                 bigK
             );
 
-            return new CheckPassword(password: new InputCheckPasswordSrp.Tag(
+            return new CheckPassword(password: new InputCheckPasswordSrp.DefaultTag(
                 srpId: pwdInfo.SrpId.IfNone(0),
                 a: bigABytes.ToBytesUnsafe(),
                 m1: bigM1.ToBytesUnsafe()

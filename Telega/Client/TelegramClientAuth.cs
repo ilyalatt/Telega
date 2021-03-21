@@ -55,7 +55,7 @@ namespace Telega.Client {
                 phoneCode: code
             )).ConfigureAwait(false);
 
-            return SetAuthorized(res.AsTag().Single().User);
+            return SetAuthorized(res.Default!.User);
         }
 
         public async Task<Password> GetPasswordInfo() =>
@@ -69,14 +69,14 @@ namespace Telega.Client {
 
             var algo = pwdInfo.CurrentAlgo
                .IfNone(() => throw new ArgumentException("there is no CurrentAlgo", nameof(passwordInfo)))
-               .AsSha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPowTag()
-               .IfNone(() => throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo)));
+               .Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow
+               ?? throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo));
 
             var request = await TaskWrapper.Wrap(() =>
                 PasswordCheckHelper.GenRequest(pwdInfo, algo, password.Value)
             ).ConfigureAwait(false);
             var res = await _tg.Call(request).ConfigureAwait(false);
-            return SetAuthorized(res.AsTag().Single().User);
+            return SetAuthorized(res.Default!.User);
         }
 
         public async Task<User> CheckPassword(Some<Password> passwordInfo, Some<string> password) {
@@ -99,7 +99,7 @@ namespace Telega.Client {
                 firstName: firstName,
                 lastName: lastName
             )).ConfigureAwait(false);
-            return SetAuthorized(res.AsTag().Single().User);
+            return SetAuthorized(res.Default!.User);
         }
     }
 }

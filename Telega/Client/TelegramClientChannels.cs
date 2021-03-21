@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Channels;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Messages;
 using static LanguageExt.Prelude;
+using Telega.Utils;
 
 namespace Telega.Client {
     public sealed class TelegramClientChannels {
@@ -33,7 +35,7 @@ namespace Telega.Client {
         /// <param name="channel"></param>
         /// <param name="messageId"></param>
         /// <returns>Grouped messages</returns>
-        public async Task<Arr<Message.Tag>> GetGroupedMessages(
+        public async Task<Arr<Message.DefaultTag>> GetGroupedMessages(
             Some<InputChannel> channel,
             int messageId
         ) {
@@ -43,17 +45,16 @@ namespace Telega.Client {
                .ToArr();
 
             var messagesResponse = await GetMessages(channel, messageIds);
-            var messages = messagesResponse
-               .AsChannelTag()
-               .Bind(x => x.Messages)
-               .Choose(Message.AsTag)
-               .ToArr();
+            var messages = messagesResponse.Channel?.Messages.NChoose(x => x.Default).ToList();
+            if (messages == null) {
+                return Empty;
+            }
 
-            var mainMessage = messages.Find(x => x.Id == messageId);
-            var groupId = mainMessage.Bind(x => x.GroupedId);
+            var mainMessage = messages.FirstOrDefault(x => x.Id == messageId);
+            var groupId = mainMessage?.GroupedId;
             return groupId.Match(
-                Some: _ => messages.Filter(x => x.GroupedId == groupId),
-                None: () => mainMessage.ToArr()
+                Some: _ => messages.Where(x => x.GroupedId == groupId).ToArray(),
+                None: () => Array(mainMessage!)
             );
         }
     }

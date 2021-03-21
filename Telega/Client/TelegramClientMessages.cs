@@ -136,11 +136,10 @@ namespace Telega.Client {
                         var photo = photoTag.Photo
                            .HeadOrNone()
                            .IfNone(() => throw new TgInternalException("Unable to get photo", None))
-                           .AsTag()
-                           .HeadOrNone()
-                           .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
+                           .Default
+                           ?? throw new TgInternalException("Unable to get photo tag", None);
                         return new InputMedia.PhotoTag(
-                            id: new InputPhoto.Tag(
+                            id: new InputPhoto.DefaultTag(
                                 id: photo.Id,
                                 accessHash: photo.AccessHash,
                                 fileReference: photo.FileReference
@@ -152,12 +151,11 @@ namespace Telega.Client {
                         var document = documentTag.Document
                            .HeadOrNone()
                            .IfNone(() => throw new TgInternalException("Unable to get document", None))
-                           .AsTag()
-                           .HeadOrNone()
-                           .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
+                           .Default
+                           ?? throw new TgInternalException("Unable to get document tag", None);
                         return
                             new InputMedia.DocumentTag(
-                                id: new InputDocument.Tag(
+                                id: new InputDocument.DefaultTag(
                                     id: document.Id,
                                     accessHash: document.AccessHash,
                                     fileReference: document.FileReference
@@ -196,12 +194,11 @@ namespace Telega.Client {
                                 var photo = photoTag.Photo
                                    .HeadOrNone()
                                    .IfNone(() => throw new TgInternalException("Unable to get photo", None))
-                                   .AsTag()
-                                   .HeadOrNone()
-                                   .IfNone(() => throw new TgInternalException("Unable to get photo tag", None));
+                                   .Default
+                                   ?? throw new TgInternalException("Unable to get photo tag", None);
                                 return new InputSingleMedia(
                                     media: new InputMedia.PhotoTag(
-                                        id: new InputPhoto.Tag(
+                                        id: new InputPhoto.DefaultTag(
                                             id: photo.Id,
                                             accessHash: photo.AccessHash,
                                             fileReference: photo.FileReference
@@ -217,12 +214,11 @@ namespace Telega.Client {
                                 var document = documentTag.Document
                                    .HeadOrNone()
                                    .IfNone(() => throw new TgInternalException("Unable to get document", None))
-                                   .AsTag()
-                                   .HeadOrNone()
-                                   .IfNone(() => throw new TgInternalException("Unable to get document tag", None));
+                                   .Default
+                                   ?? throw new TgInternalException("Unable to get document tag", None);
                                 return new InputSingleMedia(
                                     media: new InputMedia.DocumentTag(
-                                        id: new InputDocument.Tag(
+                                        id: new InputDocument.DefaultTag(
                                             id: document.Id,
                                             accessHash: document.AccessHash,
                                             fileReference: document.FileReference
