@@ -1,4 +1,6 @@
-# Telega [![NuGet version](https://badge.fury.io/nu/Telega.svg)](https://www.nuget.org/packages/Telega)
+# Telega
+
+[![NuGet version](https://badge.fury.io/nu/Telega.svg)](https://www.nuget.org/packages/Telega)
 
 A simple Telegram MTProto client that keeps up with latest layers.
 Check out [documentation prototype](https://ilyalatt.github.io/Telega/docs).
@@ -15,9 +17,9 @@ If you are not familiar with functional programming you can read [LanguageExt in
 If you are not familiar with LanguageExt you can read [LanguageExt readme](https://github.com/louthy/language-ext).
 Also you can read my [introduction to functional concepts](https://github.com/ilyalatt/Telega/wiki/Introduction).
 
-## Difference from TLSharp
+## TLSharp
 
-The reason of Telega existance are TLSharp problems. Here is how the library different.
+The reason of Telega existence are TLSharp issues. Here are pros of Telega:
 
 * Layer 124 generated directly from Telegram Desktop .tl scheme
 * Netstandard 2.0 and 2.1 targets
