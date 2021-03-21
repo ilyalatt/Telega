@@ -11,11 +11,11 @@ namespace Telega.CallMiddleware {
                 throw new TgFloodException(lockSpan);
             }
 
-            var receive = await next(func);
+            var receive = await next(func).ConfigureAwait(false);
 
             async Task<T> ReceiveWrapper() {
                 try {
-                    return await receive;
+                    return await receive.ConfigureAwait(false);
                 }
                 catch (TgFloodException e) {
                     _unlockTimestamp = DateTime.Now + e.Delay;

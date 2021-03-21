@@ -88,7 +88,7 @@ namespace Telega.Auth {
                 nonce: dh.Nonce,
                 serverNonce: dh.ServerNonce,
                 encryptedData: dhInnerDataHashedEncryptedBytes.ToBytesUnsafe()
-            ));
+            )).ConfigureAwait(false);
             var res = resp.Match(
                 dhGenOkTag: identity,
                 dhGenFailTag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_fail"),

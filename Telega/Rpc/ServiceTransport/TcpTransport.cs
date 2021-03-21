@@ -45,12 +45,12 @@ namespace Telega.Rpc.ServiceTransport {
                 bw.Write(computedCrc32);
             });
 
-            await _tcpClient.GetStream().WriteAsync(bts, 0, bts.Length);
+            await _tcpClient.GetStream().WriteAsync(bts, 0, bts.Length).ConfigureAwait(false);
         }
 
         public async Task Send(byte[] packet) {
             try {
-                await SendImpl(packet);
+                await SendImpl(packet).ConfigureAwait(false);
             }
             catch (IOException exc) {
                 throw new TgTransportException("TcpTransport.Send IO exception.", exc);
@@ -63,7 +63,7 @@ namespace Telega.Rpc.ServiceTransport {
 
             var totalReceived = 0;
             while (totalReceived < count) {
-                var received = await stream.ReadAsync(res, totalReceived, count - totalReceived);
+                var received = await stream.ReadAsync(res, totalReceived, count - totalReceived).ConfigureAwait(false);
                 if (received == 0) {
                     throw new TgBrokenConnectionException();
                 }
@@ -77,16 +77,16 @@ namespace Telega.Rpc.ServiceTransport {
         async Task<byte[]> ReceiveImpl() {
             var stream = _tcpClient.GetStream();
 
-            var packetLengthBytes = await ReadBytes(stream, 4);
+            var packetLengthBytes = await ReadBytes(stream, 4).ConfigureAwait(false);
             var packetLength = BitConverter.ToInt32(packetLengthBytes, 0);
 
-            var seqBytes = await ReadBytes(stream, 4);
+            var seqBytes = await ReadBytes(stream, 4).ConfigureAwait(false);
             var seqNo = BitConverter.ToInt32(seqBytes, 0);
 
             var bodyLen = packetLength - 12;
-            var body = await ReadBytes(stream, bodyLen);
+            var body = await ReadBytes(stream, bodyLen).ConfigureAwait(false);
 
-            var crcBytes = await ReadBytes(stream, 4);
+            var crcBytes = await ReadBytes(stream, 4).ConfigureAwait(false);
             var packetCrc32 = BitConverter.ToUInt32(crcBytes, 0);
 
             var computedCrc32 = ComputeCrc32(packetLengthBytes, seqBytes, body);
@@ -99,7 +99,7 @@ namespace Telega.Rpc.ServiceTransport {
 
         public async Task<byte[]> Receive() {
             try {
-                var body = await ReceiveImpl();
+                var body = await ReceiveImpl().ConfigureAwait(false);
 
                 const uint protocolViolationCode = 0xfffffe6c;
                 var isProtocolViolated = body.Length == 4 && BitConverter.ToUInt32(body, 0) == protocolViolationCode;

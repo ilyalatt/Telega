@@ -23,7 +23,7 @@ namespace Telega.Client {
                 offsetId: 0,
                 hash: 0,
                 folderId: None
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<Messages> GetHistory(
             Some<InputPeer> peer,
@@ -44,7 +44,7 @@ namespace Telega.Client {
                 maxId,
                 minId,
                 hash
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMessage(
             Some<InputPeer> peer,
@@ -63,7 +63,7 @@ namespace Telega.Client {
                 replyMarkup: None,
                 entities: None,
                 scheduleDate: scheduleDate
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendPhoto(
             Some<InputPeer> peer,
@@ -87,7 +87,7 @@ namespace Telega.Client {
                 message: message,
                 silent: false,
                 scheduleDate: scheduleDate
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendDocument(
             Some<InputPeer> peer,
@@ -118,7 +118,7 @@ namespace Telega.Client {
                 entities: None,
                 message: message,
                 scheduleDate: scheduleDate
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMedia(
             Some<InputPeer> peer,
@@ -172,7 +172,7 @@ namespace Telega.Client {
                 entities: None,
                 message: message,
                 scheduleDate: scheduleDate
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMultimedia(
             Some<InputPeer> peer,
@@ -234,14 +234,14 @@ namespace Telega.Client {
                         )
                     )),
                 scheduleDate: scheduleDate
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<bool> SendTyping(Some<InputPeer> peer) =>
             await _tg.Call(new SetTyping(
                 action: new SendMessageAction.TypingTag(),
                 peer: peer,
                 topMsgId: None
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<MessageMedia> UploadMediaAsPhoto(
             Some<InputPeer> peer,
@@ -254,7 +254,7 @@ namespace Telega.Client {
                     stickers: None,
                     ttlSeconds: None
                 )
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<MessageMedia> UploadMediaAsDocument(
             Some<InputPeer> peer,
@@ -274,7 +274,7 @@ namespace Telega.Client {
                     ttlSeconds: None,
                     forceFile: false
                 )
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<MessageMedia> UploadMediaAsDocument(
             Some<InputPeer> peer,
@@ -286,6 +286,6 @@ namespace Telega.Client {
                     url,
                     None
                 )
-            ));
+            )).ConfigureAwait(false);
     }
 }

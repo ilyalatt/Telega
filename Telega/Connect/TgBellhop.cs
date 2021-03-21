@@ -33,7 +33,7 @@ namespace Telega.Connect {
 
         async Task<TgConnection> ChangeConn(Func<TgConnection, Task<TgConnection>> f) {
             var oldConn = CurrentConnection.Get();
-            var newConn = await f(oldConn);
+            var newConn = await f(oldConn).ConfigureAwait(false);
             CurrentConnection.Set(newConn);
             MirrorUpdates(newConn);
             return newConn;
@@ -66,24 +66,24 @@ namespace Telega.Connect {
         async Task<T> CallWithReConnect<T>(ITgFunc<T> func) {
             try {
                 var conn = CurrentConnection.Get();
-                return await conn.Transport.Call(func);
+                return await conn.Transport.Call(func).ConfigureAwait(false);
             }
             catch (TgTransportException) {
                 var oldConn = CurrentConnection.Get();
                 oldConn.Dispose();
 
-                var conn = await ChangeConn(x => ConnectionPool.ReConnect(x.Config.ThisDc));
-                return await conn.Transport.Call(func);
+                var conn = await ChangeConn(x => ConnectionPool.ReConnect(x.Config.ThisDc)).ConfigureAwait(false);
+                return await conn.Transport.Call(func).ConfigureAwait(false);
             }
         }
 
         async Task<T> CallWithMigration<T>(ITgFunc<T> func) {
             try {
-                return await CallWithReConnect(func);
+                return await CallWithReConnect(func).ConfigureAwait(false);
             }
             catch (TgDataCenterMigrationException e) {
-                await ChangeConn(x => ConnectionPool.Connect(x, e.Dc));
-                return await CallWithReConnect(func);
+                await ChangeConn(x => ConnectionPool.Connect(x, e.Dc)).ConfigureAwait(false);
+                return await CallWithReConnect(func).ConfigureAwait(false);
             }
         }
 

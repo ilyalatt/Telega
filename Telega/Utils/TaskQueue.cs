@@ -7,9 +7,9 @@ namespace Telega.Utils {
         readonly SemaphoreSlim _queue = new(1, 1);
 
         public async Task<T> Put<T>(Func<Task<T>> func) {
-            await _queue.WaitAsync();
+            await _queue.WaitAsync().ConfigureAwait(false);
             try {
-                return await func();
+                return await func().ConfigureAwait(false);
             }
             finally {
                 _queue.Release(1);
@@ -17,9 +17,9 @@ namespace Telega.Utils {
         }
 
         public async Task Put(Func<Task> func) {
-            await _queue.WaitAsync();
+            await _queue.WaitAsync().ConfigureAwait(false);
             try {
-                await func();
+                await func().ConfigureAwait(false);
             }
             finally {
                 _queue.Release(1);

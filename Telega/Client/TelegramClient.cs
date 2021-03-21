@@ -79,7 +79,7 @@ namespace Telega.Client {
                .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
                .IfNone(ConnectInfo.FromInfo(apiId, ep));
 
-            return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler);
+            return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler).ConfigureAwait(false);
         }
 
         public static async Task<TelegramClient> Connect(
@@ -91,7 +91,7 @@ namespace Telega.Client {
             store ??= new FileSessionStore(DefaultSessionName);
             var connectInfo = ConnectInfo.FromSession(session);
 
-            return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler);
+            return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler).ConfigureAwait(false);
         }
 
         public Task<T> Call<T>(ITgFunc<T> func) =>

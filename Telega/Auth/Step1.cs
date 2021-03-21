@@ -9,7 +9,7 @@ using Telega.Utils;
 namespace Telega.Auth {
     static class Step1 {
         public static async Task<ResPq> Do(Int128 nonce, Some<MtProtoPlainTransport> transport) {
-            var res = await transport.Value.Call(new ReqPq(nonce));
+            var res = await transport.Value.Call(new ReqPq(nonce)).ConfigureAwait(false);
             Helpers.Assert(res.Nonce == nonce, "auth step1: invalid nonce");
             return res;
         }

@@ -18,8 +18,8 @@ namespace Telega.Connect {
             }
 
             try {
-                var auth = await src.Transport.Call(new ExportAuthorization(dst.Config.ThisDc));
-                await dst.Transport.Call(new ImportAuthorization(auth.Id, auth.Bytes));
+                var auth = await src.Transport.Call(new ExportAuthorization(dst.Config.ThisDc)).ConfigureAwait(false);
+                await dst.Transport.Call(new ImportAuthorization(auth.Id, auth.Bytes)).ConfigureAwait(false);
             }
             catch (TgNotAuthenticatedException) { }
         }
@@ -27,8 +27,8 @@ namespace Telega.Connect {
         async Task<TgConnection> EstablishForkConnection(TgConnection srcConn, int dcId) {
             var ep = DcInfoKeeper.FindEndpoint(dcId);
             var connectInfo = ConnectInfo.FromInfo(srcConn.Session.Get().ApiId, ep);
-            var dstConn = await TgConnectionEstablisher.EstablishConnection(_logger, connectInfo, _callMiddlewareChain, _connHandler);
-            await TryExportAuth(srcConn, dstConn);
+            var dstConn = await TgConnectionEstablisher.EstablishConnection(_logger, connectInfo, _callMiddlewareChain, _connHandler).ConfigureAwait(false);
+            await TryExportAuth(srcConn, dstConn).ConfigureAwait(false);
             return dstConn;
         }
 
@@ -45,7 +45,7 @@ namespace Telega.Connect {
 
             // it is not perfect but it should work right almost every time
             if (_connTasks.TryGetValue(dstDcId, out var connTask)) {
-                return await connTask;
+                return await connTask.ConfigureAwait(false);
             }
 
             if (_conns.TryGetValue(dstDcId, out var conn)) {
@@ -55,7 +55,7 @@ namespace Telega.Connect {
             var task = _connTasks[dstDcId] = EstablishForkConnection(src, dstDcId);
 
             try {
-                return _conns[dstDcId] = await task;
+                return _conns[dstDcId] = await task.ConfigureAwait(false);
             }
             finally {
                 _connTasks.TryRemove(dstDcId, out _);
@@ -69,7 +69,7 @@ namespace Telega.Connect {
 
             // it is not perfect but it should work right almost every time
             if (_connTasks.TryGetValue(dcId, out var connTask)) {
-                return await connTask;
+                return await connTask.ConfigureAwait(false);
             }
 
             if (!_conns.TryGetValue(dcId, out var conn)) {
@@ -80,7 +80,7 @@ namespace Telega.Connect {
             var newConnTask = _connTasks[dcId] = TgConnectionEstablisher.EstablishConnection(_logger, connectInfo, _callMiddlewareChain, _connHandler);
 
             try {
-                return _conns[dcId] = await newConnTask;
+                return _conns[dcId] = await newConnTask.ConfigureAwait(false);
             }
             finally {
                 _connTasks.TryRemove(dcId, out _);

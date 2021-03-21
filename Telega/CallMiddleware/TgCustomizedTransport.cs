@@ -25,8 +25,8 @@ namespace Telega.CallMiddleware {
             var currentAttempt = 1;
             while (true) {
                 try {
-                    var respTask = await handler(func);
-                    return await respTask;
+                    var respTask = await handler(func).ConfigureAwait(false);
+                    return await respTask.ConfigureAwait(false);
                 }
                 catch (TgBadSaltException) when (currentAttempt < attemptsCount) { }
                 catch (TgRpcBadMsgException e) when (currentAttempt < attemptsCount && e.ErrorCode == TgRpcBadMsgCodes.MsgSeqNoLow) { }

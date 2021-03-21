@@ -83,12 +83,12 @@ namespace Telega.Rpc.ServiceTransport {
                 bw.Write(session.AuthKey.KeyId);
                 bw.Write(msgKey);
                 bw.Write(cipherText);
-            }).Apply(_transport.Send);
+            }).Apply(_transport.Send).ConfigureAwait(false);
         }
 
 
         async Task<byte[]> ReceivePlainText() {
-            var body = await _transport.Receive();
+            var body = await _transport.Receive().ConfigureAwait(false);
             return body.Apply(BtHelpers.Deserialize(br => {
                 var authKeyId = br.ReadUInt64(); // TODO: check auth key id
                 var msgKey = br.ReadBytes(16); // TODO: check msg_key correctness
@@ -104,7 +104,7 @@ namespace Telega.Rpc.ServiceTransport {
         }
 
         public async Task<BinaryReader> Receive() {
-            var plainText = await ReceivePlainText();
+            var plainText = await ReceivePlainText().ConfigureAwait(false);
             return plainText.Apply(BtHelpers.Deserialize(br => {
                 var remoteSalt = br.ReadUInt64();
                 var remoteSessionId = br.ReadUInt64();

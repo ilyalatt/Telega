@@ -19,11 +19,11 @@ namespace Telega.Connect {
             TcpClientConnectionHandler? connHandler = null
         ) {
             if (connHandler != null) {
-                return await connHandler(endpoint);
+                return await connHandler(endpoint).ConfigureAwait(false);
             }
 
             var res = new System.Net.Sockets.TcpClient(endpoint.AddressFamily);
-            await res.ConnectAsync(endpoint.Address, endpoint.Port);
+            await res.ConnectAsync(endpoint.Address, endpoint.Port).ConfigureAwait(false);
             return res;
         }
 
@@ -35,12 +35,12 @@ namespace Telega.Connect {
         ) {
             var endpoint = connectInfo.Endpoint;
             Helpers.Assert(endpoint != null, "endpoint == null");
-            var tcpClient = await CreateTcpClient(endpoint!, connHandler);
+            var tcpClient = await CreateTcpClient(endpoint!, connHandler).ConfigureAwait(false);
             var tcpTransport = new TcpTransport(tcpClient);
 
             if (connectInfo.NeedsInAuth) {
                 var mtPlainTransport = new MtProtoPlainTransport(tcpTransport);
-                var result = await Authenticator.DoAuthentication(mtPlainTransport);
+                var result = await Authenticator.DoAuthentication(mtPlainTransport).ConfigureAwait(false);
                 connectInfo.SetAuth(result);
             }
 
@@ -66,7 +66,7 @@ namespace Telega.Connect {
                 layer: SchemeInfo.LayerVersion,
                 query: request
             );
-            var cfg = await transport.Call(invokeWithLayer);
+            var cfg = await transport.Call(invokeWithLayer).ConfigureAwait(false);
 
             DcInfoKeeper.Update(cfg);
             return new TgConnection(session, transport, cfg);

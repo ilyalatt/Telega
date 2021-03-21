@@ -18,7 +18,7 @@ namespace Telega.Client {
         ) =>
             await _tg.Call(new JoinChannel(
                 channel: channel
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<Messages> GetMessages(
             Some<InputChannel> channel,
@@ -27,7 +27,7 @@ namespace Telega.Client {
             await _tg.Call(new GetMessages(
                 channel: channel,
                 id: messages
-            ));
+            )).ConfigureAwait(false);
 
         /// <summary>
         /// Get grouped messages (including albums)
@@ -44,7 +44,7 @@ namespace Telega.Client {
                .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
                .ToArr();
 
-            var messagesResponse = await GetMessages(channel, messageIds);
+            var messagesResponse = await GetMessages(channel, messageIds).ConfigureAwait(false);
             var messages = messagesResponse.Channel?.Messages.NChoose(x => x.Default).ToList();
             if (messages == null) {
                 return Empty;

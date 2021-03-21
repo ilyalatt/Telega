@@ -20,10 +20,10 @@ namespace Telega.Rpc.ServiceTransport {
 
                 bw.Write(msg.Length);
                 bw.Write(msg);
-            }).Apply(_transport.Send);
+            }).Apply(_transport.Send).ConfigureAwait(false);
 
         async Task<byte[]> Receive() {
-            var body = await _transport.Receive();
+            var body = await _transport.Receive().ConfigureAwait(false);
             return body.Apply(BtHelpers.Deserialize(br => {
                 var authKeyId = br.ReadInt64(); // 0
                 var messageId = br.ReadInt64();
@@ -35,8 +35,8 @@ namespace Telega.Rpc.ServiceTransport {
         }
 
         public async Task<T> Call<T>(ITgFunc<T> func) {
-            await BtHelpers.UsingMemBinWriter(func.Serialize).Apply(Send);
-            return await Receive().Map(BtHelpers.Deserialize(func.DeserializeResult));
+            await BtHelpers.UsingMemBinWriter(func.Serialize).Apply(Send).ConfigureAwait(false);
+            return await Receive().Map(BtHelpers.Deserialize(func.DeserializeResult)).ConfigureAwait(false);
         }
     }
 }

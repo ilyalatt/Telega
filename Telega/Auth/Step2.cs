@@ -53,10 +53,10 @@ namespace Telega.Auth {
                 q: pqInnerData.Q,
                 publicKeyFingerprint: fingerprint,
                 encryptedData: cipherText.ToBytesUnsafe()
-            ));
+            )).ConfigureAwait(false);
             var res = resp.Match(
                 okTag: x => x,
-                failTag: x => throw Helpers.FailedAssertion("auth step2: server_DH_params_fail")
+                failTag: _ => throw Helpers.FailedAssertion("auth step2: server_DH_params_fail")
             );
 
             Helpers.Assert(res.Nonce == pqInnerData.Nonce, "auth step2: invalid nonce");

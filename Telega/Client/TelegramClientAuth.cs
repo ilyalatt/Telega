@@ -59,7 +59,7 @@ namespace Telega.Client {
         }
 
         public async Task<Password> GetPasswordInfo() =>
-            await _tg.Call(new GetPassword());
+            await _tg.Call(new GetPassword()).ConfigureAwait(false);
 
         public async Task<User> CheckPassword(Some<SecureString> password) {
             var passwordInfo = await GetPasswordInfo().ConfigureAwait(false);
@@ -84,7 +84,7 @@ namespace Telega.Client {
             foreach (var x in password.Value) {
                 ss.AppendChar(x);
             }
-            return await CheckPassword(ss);
+            return await CheckPassword(ss).ConfigureAwait(false);
         }
 
         public async Task<User> SignUp(

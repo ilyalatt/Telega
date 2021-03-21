@@ -11,13 +11,13 @@ namespace Telega.Utils {
 
         public static async Task<byte[]> ReadToEndAsync(this Stream stream) {
             var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
+            await stream.CopyToAsync(ms).ConfigureAwait(false);
             return ms.ToArray();
         }
 
         public static async Task WriteAsync(this Stream stream, byte[] bytes) {
             var ms = new MemoryStream(bytes);
-            await ms.CopyToAsync(stream);
+            await ms.CopyToAsync(stream).ConfigureAwait(false);
         }
     }
 }

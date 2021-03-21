@@ -11,7 +11,7 @@ namespace Telega.Client {
 
 
         public async Task<Contacts> GetContacts() =>
-            await _tg.Call(new GetContacts(hash: 0));
+            await _tg.Call(new GetContacts(hash: 0)).ConfigureAwait(false);
 
         public async Task<Found> Search(
             Some<string> q,
@@ -20,13 +20,13 @@ namespace Telega.Client {
             await _tg.Call(new Search(
                 q: q,
                 limit: limit
-            ));
+            )).ConfigureAwait(false);
 
         public async Task<ResolvedPeer> ResolveUsername(
             Some<string> username
         ) =>
             await _tg.Call(new ResolveUsername(
                 username: username
-            ));
+            )).ConfigureAwait(false);
     }
 }

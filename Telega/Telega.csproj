@@ -9,7 +9,7 @@
   <PropertyGroup>
     <Nullable>enable</Nullable>
     <NullableContextOptions>enable</NullableContextOptions>
-    <WarningsAsErrors>nullable;CS8785</WarningsAsErrors>
+    <WarningsAsErrors>nullable;CS8785;CAC001</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Telega.Rpc.Dto.Generator/Telega.Rpc.Dto.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <AdditionalFiles Include="Rpc/Dto/SchemeInfo.cs" />
+    <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="5.0.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

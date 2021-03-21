@@ -35,12 +35,12 @@ namespace Telega.CallMiddleware {
             var isDelayNeeded = timeSinceLastReq.TotalMilliseconds < MaxMsDelay && !IsIgnored(func);
 
             if (isDelayNeeded) {
-                await Task.Delay(Rnd.NextInt32(MinMsDelay, MaxMsDelay));
+                await Task.Delay(Rnd.NextInt32(MinMsDelay, MaxMsDelay)).ConfigureAwait(false);
             }
 
             _lastReqTimestamp = DateTime.Now;
 
-            return await next(func);
+            return await next(func).ConfigureAwait(false);
         });
     }
 }

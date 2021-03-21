@@ -21,7 +21,7 @@ namespace Telega {
                 return None;
             }
 
-            var bts = await FileHelpers.ReadFileBytes(fileName);
+            var bts = await FileHelpers.ReadFileBytes(fileName).ConfigureAwait(false);
             return bts.Apply(BtHelpers.Deserialize(Session.Deserialize));
         }
 
@@ -39,7 +39,7 @@ namespace Telega {
 
         async Task<Option<Session>> LoadImpl() {
             RestoreBackup();
-            return await Read(_fileName);
+            return await Read(_fileName).ConfigureAwait(false);
         }
 
         public Task<Option<Session>> Load() =>
@@ -61,16 +61,16 @@ namespace Telega {
 
         static async Task Save(string fileName, Session session) {
             var bts = BtHelpers.UsingMemBinWriter(session.Serialize);
-            await FileHelpers.WriteFileBytes(fileName, bts);
+            await FileHelpers.WriteFileBytes(fileName, bts).ConfigureAwait(false);
         }
 
         async Task SaveImpl(Session session) {
             CreateBackup();
-            await Save(_fileName, session);
+            await Save(_fileName, session).ConfigureAwait(false);
             DeleteBackup();
         }
 
         public async Task Save(Some<Session> someSession) =>
-            await _taskQueue.Put(() => SaveImpl(someSession));
+            await _taskQueue.Put(() => SaveImpl(someSession)).ConfigureAwait(false);
     }
 }
