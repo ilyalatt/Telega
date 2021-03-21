@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,20 +24,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference
-      Include="../Telega.Rpc.Dto.Generator/Telega.Rpc.Dto.Generator.csproj"
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="false"
-    />
+    <ProjectReference Include="../Telega.Rpc.Dto.Generator/Telega.Rpc.Dto.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <AdditionalFiles Include="Rpc/Dto/SchemeInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BigMathNetStandard" Version="1.0.0" />
-    <PackageReference Include="IsExternalInit" Version="1.0.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="IsExternalInit" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="LanguageExt.Core" Version="3.4.15" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
