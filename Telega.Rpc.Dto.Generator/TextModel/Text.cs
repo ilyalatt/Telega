@@ -3,20 +3,19 @@ using LanguageExt;
 
 namespace Telega.Rpc.Dto.Generator.TextModel {
     class Text {
-        public class String {
-            public string Value { get; }
+        public record String {
+            public string Value { get; init; }
 
-            public String(Some<string> value) => Value = value;
+            public String(Some<string> value) =>
+                Value = value;
         }
 
-        public class Scope {
-            public Arr<Text> Values { get; }
-            public Text Separator { get; }
+        public record Scope {
+            public Arr<Text> Values { get; init; }
+            public Text Separator { get; init; }
 
-            public Scope(Some<Arr<Text>> values, Some<Text> separator) {
-                Values = values;
-                Separator = separator;
-            }
+            public Scope(Some<Arr<Text>> values, Some<Text> separator) =>
+                (Values, Separator) = (values, separator);
         }
 
         readonly object _tag;

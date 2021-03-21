@@ -22,11 +22,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
         static NestedText GenTypeTagBody(string typeName, string tagName, Signature tag) {
             var modifiedArgs = tag.Args
-               .Map(x => new Arg(
-                    name: x.Name == tagName ? $"{x.Name}Value" : x.Name, // TODO: move to normalizer
-                    type: x.Type,
-                    kind: x.Kind
-                ))
+               .Map(x => x with {
+                   Name = x.Name == tagName ? $"{x.Name}Value" : x.Name, // TODO: move to normalizer
+               })
                .ToArr();
             var argsWithoutFlags = modifiedArgs
                .Filter(x => x.Kind.Match(_: () => true, flags: _ => false))
@@ -63,8 +61,6 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     Line("}")
                 ),
                 Line(""),
-                WithGen.GenWith(argsWithoutFlags, tagName),
-                Line(""),
                 typeName != tagName
                     ? Scope(
                         Line($"public static implicit operator {typeName}({tagName} tag) => new(tag);"),
@@ -72,7 +68,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                         Line("")
                     )
                     : EmptyScope(),
-                RelationsGen.GenRelations(tagName, argsWithoutFlags),
+                RelationsGen.GenRelations(tagName, isRecord: true, argsWithoutFlags),
                 Line(""),
                 Line(""),
                 SerializerGen.GenSerializer(modifiedArgs, typeNumber: None, "ITgTypeTag.SerializeTag"),
@@ -88,7 +84,8 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             var tagName = tag.Name;
 
             return Scope(
-                Line($"public sealed class {tagName} : ITgTypeTag, IEquatable<{tagName}>, IComparable<{tagName}>, IComparable"),
+                Line($"public sealed record {tagName}"),
+                Line($": ITgTypeTag, IComparable<{tagName}>, IComparable"),
                 Line("{"),
                 Indent(1, GenTypeTagBody(typeName, tagName, tag)),
                 Line("}")
@@ -114,7 +111,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             var classTemplates = isWrapper ? "<TFunc, TFuncRes>" : "";
             var classAnnotations = isWrapper
                 ? $": ITgFunc<{resType}> where TFunc : class, ITgFunc<{resType}>"
-                : $": ITgFunc<{resType}>, IEquatable<{funcName}>, IComparable<{funcName}>, IComparable";
+                : $": ITgFunc<{resType}>, IComparable<{funcName}>, IComparable";
 
             var resDes = isWrapper
                 ? "Query.DeserializeResult(br);" // it is 'Query' all the time, i am too lazy
@@ -125,9 +122,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             return Scope(
-                Line($"{classAccess}sealed class {funcName}{classTemplates} {classAnnotations} {{"),
+                Line($"{classAccess}sealed record {funcName}{classTemplates} {classAnnotations} {{"),
                 IndentedScope(1,
-                    funcArgs.Map(arg => Line($"public {arg.type} {arg.name} {{ get; }}")).Scope(),
+                    funcArgs.Map(arg => Line($"public {arg.type} {arg.name} {{ get; init; }}")).Scope(),
                     Scope(
                         Line(""),
                         Scope(
@@ -149,9 +146,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                         isWrapper
                             ? EmptyScope()
                             : Scope(
-                                WithGen.GenWith(argsWithoutFlags, funcName),
-                                Line(""),
-                                RelationsGen.GenRelations(funcName, argsWithoutFlags),
+                                RelationsGen.GenRelations(funcName, isRecord: true, argsWithoutFlags),
                                 Line("")
                             ),
                         SerializerGen.GenSerializer(func.Args, typeNumber: func.TypeNumber, "ITgSerializable.Serialize"),
@@ -291,7 +286,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 castHelpersDef,
                 staticCastHelpersDef,
                 helpersDef,
-                RelationsGen.GenEqRelations(typeName, cmpPairName),
+                RelationsGen.GenEqRelations(typeName, isRecord: false, cmpPairName),
                 RelationsGen.GenCmpRelations(typeName, cmpPairName),
                 RelationsGen.GenGetHashCode(cmpPairName),
                 YamlifierGen.GenUnionYamlifier(typeTags, typeName)
@@ -352,7 +347,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             return Scope(
-                Line($"public sealed class {typeName} : ITgType, ITgTypeTag, IEquatable<{typeName}>, IComparable<{typeName}>, IComparable {{"),
+                Line($"public sealed record {typeName} : ITgType, ITgTypeTag, IComparable<{typeName}>, IComparable {{"),
                 Indent(1, bodyDef),
                 Line("}")
             );

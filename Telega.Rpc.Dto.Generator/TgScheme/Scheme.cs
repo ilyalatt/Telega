@@ -17,18 +17,18 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
     }
 
     class TgType {
-        public class Primitive : Record<Primitive> {
-            public PrimitiveType Type { get; }
+        public record Primitive {
+            public PrimitiveType Type { get; init; }
             public Primitive(PrimitiveType type) => Type = type;
         }
 
-        public class Vector : Record<Vector> {
-            public TgType Type { get; }
+        public record Vector {
+            public TgType Type { get; init; }
             public Vector(Some<TgType> type) => Type = type;
         }
 
-        public class TypeRef : Record<TypeRef> {
-            public string Name { get; }
+        public record TypeRef {
+            public string Name { get; init; }
             public TypeRef(Some<string> name) => Name = name;
         }
 
@@ -79,9 +79,9 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         );
     }
 
-    struct Flag {
-        public string ArgName { get; }
-        public int Bit { get; }
+    record Flag {
+        public string ArgName { get; init; }
+        public int Bit { get; init; }
 
         public Flag(Some<string> argName, int bit) {
             ArgName = argName;
@@ -91,14 +91,14 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
 
     // TODO: enhance the model
     class ArgKind {
-        public class Required : Record<Required> { }
+        public record Required { }
 
-        public class Optional : Record<Optional> {
-            public Flag Flag { get; }
+        public record Optional {
+            public Flag Flag { get; init; }
             public Optional(Some<Flag> flag) => Flag = flag;
         }
 
-        public class Flags : Record<Flags> { }
+        public record Flags { }
 
         readonly object _tag;
         ArgKind(object tag) => _tag = tag;
@@ -144,10 +144,10 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         );
     }
 
-    class Arg : Record<Arg> {
-        public string Name { get; }
-        public TgType Type { get; }
-        public ArgKind Kind { get; }
+    record Arg {
+        public string Name { get; init; }
+        public TgType Type { get; init; }
+        public ArgKind Kind { get; init; }
 
         public Arg(Some<string> name, Some<TgType> type, Some<ArgKind> kind) {
             Name = name;
@@ -156,11 +156,11 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         }
     }
 
-    struct Signature {
-        public string Name { get; }
-        public int TypeNumber { get; }
-        public Arr<Arg> Args { get; }
-        public TgType ResultType { get; }
+    record Signature {
+        public string Name { get; init; }
+        public int TypeNumber { get; init; }
+        public Arr<Arg> Args { get; init; }
+        public TgType ResultType { get; init; }
 
         public Signature(
             Some<string> name,
@@ -175,10 +175,10 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
         }
     }
 
-    class Scheme {
-        public Option<int> LayerVersion { get; }
-        public Arr<Signature> Types { get; }
-        public Arr<Signature> Functions { get; }
+    record Scheme {
+        public Option<int> LayerVersion { get; init; }
+        public Arr<Signature> Types { get; init; }
+        public Arr<Signature> Functions { get; init; }
 
         public Scheme(
             Option<int> layerVersion,

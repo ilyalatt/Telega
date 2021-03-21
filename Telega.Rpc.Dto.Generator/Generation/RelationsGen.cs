@@ -7,7 +7,7 @@ using static Telega.Rpc.Dto.Generator.TextModel.NestedTextAbbreviations;
 
 namespace Telega.Rpc.Dto.Generator.Generation {
     static class RelationsGen {
-        public static NestedText GenEqRelations(string typeName, Text cmpBy) {
+        public static NestedText GenEqRelations(string typeName, bool isRecord, Text cmpBy) {
             var equality = Concat(
                 "public bool Equals(",
                 $"{typeName}?",
@@ -23,7 +23,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Line($"public static bool operator ==({typeName}? x, {typeName}? y) => x?.Equals(y) ?? y is null;"),
                 Line($"public static bool operator !=({typeName}? x, {typeName}? y) => !(x == y);")
             );
-            return Scope(equality, equalityLegacy, equalityOps);
+            return isRecord
+                ? equality
+                : Scope(equality, equalityLegacy, equalityOps);
         }
 
         public static NestedText GenCmpRelations(string typeName, Text cmpBy) {
@@ -55,7 +57,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         public static NestedText GenGetHashCode(Text by) =>
             Concat("public override int GetHashCode() => ", by, ".GetHashCode();").Apply(Line);
 
-        public static NestedText GenRelations(string typeName, Arr<Arg> args) {
+        public static NestedText GenRelations(string typeName, bool isRecord, Arr<Arg> args) {
             var cmpTupleName = String("CmpTuple");
 
 
@@ -81,7 +83,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
             return Scope(Environment.NewLine + Environment.NewLine,
                 cmpTuple,
-                GenEqRelations(typeName, cmpTupleName),
+                GenEqRelations(typeName, isRecord, cmpTupleName),
                 GenCmpRelations(typeName, cmpTupleName),
                 GenGetHashCode(cmpTupleName)
             );

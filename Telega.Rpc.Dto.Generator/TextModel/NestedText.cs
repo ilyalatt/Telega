@@ -3,30 +3,27 @@ using LanguageExt;
 
 namespace Telega.Rpc.Dto.Generator.TextModel {
     class NestedText {
-        public class Indent {
-            public int Offset { get; }
-            public NestedText Text { get; }
+        public record Indent {
+            public int Offset { get; init; }
+            public NestedText Text { get; init; }
 
-            public Indent(int offset, Some<NestedText> text) {
-                Offset = offset;
-                Text = text;
-            }
+            public Indent(int offset, Some<NestedText> text) =>
+                (Offset, Text) = (offset, text);
         }
 
-        public class Line {
+        public record Line {
             public Text Value { get; }
 
-            public Line(Some<Text> value) => Value = value;
+            public Line(Some<Text> value) => 
+                Value = value;
         }
 
-        public class Scope {
-            public Arr<NestedText> Values { get; }
-            public Text Separator { get; }
+        public record Scope {
+            public Arr<NestedText> Values { get; init; }
+            public Text Separator { get; init; }
 
-            public Scope(Some<Arr<NestedText>> values, Some<Text> separator) {
-                Values = values;
-                Separator = separator;
-            }
+            public Scope(Some<Arr<NestedText>> values, Some<Text> separator) =>
+                (Values, Separator) = (values, separator);
         }
 
         readonly object _tag;
