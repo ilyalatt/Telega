@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-./generate-dto.sh
-
 cd Telega
 rm -rf bin
 
