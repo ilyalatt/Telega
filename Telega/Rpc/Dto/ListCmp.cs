@@ -33,6 +33,12 @@ namespace Telega.Rpc.Dto {
                 return true;
             }
 
+            public override bool Equals(object obj) =>
+                obj is Wrapper<T> v && Equals(v);
+
+            public override int GetHashCode() =>
+                Fnv32.Hash(_v);
+
             public int CompareTo(Wrapper<T> other) {
                 var x = _v;
                 var y = other._v;
@@ -51,6 +57,14 @@ namespace Telega.Rpc.Dto {
 
                 return x.Count.CompareTo(y.Count);
             }
+
+            public static bool operator ==(Wrapper<T> x, Wrapper<T> y) => x.Equals(y);
+            public static bool operator !=(Wrapper<T> x, Wrapper<T> y) => !(x == y);
+
+            public static bool operator <=(Wrapper<T> x, Wrapper<T> y) => x.CompareTo(y) <= 0;
+            public static bool operator <(Wrapper<T> x, Wrapper<T> y) => x.CompareTo(y) < 0;
+            public static bool operator >(Wrapper<T> x, Wrapper<T> y) => x.CompareTo(y) > 0;
+            public static bool operator >=(Wrapper<T> x, Wrapper<T> y) => x.CompareTo(y) >= 0;
         }
 
         public static Wrapper<T> Wrap<T>(IReadOnlyList<T> value) where T : IEquatable<T>, IComparable<T> =>

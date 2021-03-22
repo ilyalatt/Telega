@@ -3,7 +3,7 @@ using Telega.Rpc.Dto.Generator.TgScheme;
 
 namespace Telega.Rpc.Dto.Generator.Generation {
     static class TgTypeConverter {
-        public static string ConvertType(TgType type) => type.Match(
+        public static string ConvertType(TgType type, bool cmpWrapper) => type.Match(
             primitive: x => {
                 return x.Type switch
                 {
@@ -13,7 +13,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     _ => x.Type.ToString().ToLower(),
                 };
             },
-            vector: x => $"Arr<{ConvertType(x.Type)}>",
+            vector: x => cmpWrapper
+                ? $"ListCmp.Wrapper<{ConvertType(x.Type, true)}>"
+                : $"IReadOnlyList<{ConvertType(x.Type, false)}>",
             typeRef: x => x.Name == "X" || x.Name == "!X" ? "TFunc" : $"T.{x.Name}"
         );
 
@@ -23,9 +25,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             typeRef: _ => true
         );
 
-        public static string ConvertArgType(Arg arg) => arg.Kind.Match(
-            required: x => ConvertType(arg.Type),
-            optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True) ? "bool" : $"Option<{ConvertType(arg.Type)}>",
+        public static string ConvertArgType(Arg arg, bool cmpWrapper) => arg.Kind.Match(
+            required: x => ConvertType(arg.Type, cmpWrapper),
+            optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True) ? "bool" : $"Option<{ConvertType(arg.Type, cmpWrapper)}>",
             flags: _ => "int"
         );
 
@@ -35,7 +37,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             flags: _ => false
         );
 
-        public static string WrapArgTypeWithNullable(Arg arg) => ConvertArgType(arg)
+        public static string WrapArgTypeWithNullable(Arg arg, bool cmpWrapper) => ConvertArgType(arg, cmpWrapper)
            .Apply(x => $"{x}?");
     }
 }

@@ -236,7 +236,7 @@ namespace Telega.Playground {
             await Task.Delay(Timeout.Infinite);
         }
 
-        static async Task<Arr<(int userIdx, User.DefaultTag user)>> ImportUsers(
+        static async Task<List<(int userIdx, User.DefaultTag user)>> ImportUsers(
             TelegramClient tg,
             IEnumerable<(string phone, string firstName, string lastName)> users
         ) {
@@ -249,7 +249,7 @@ namespace Telega.Playground {
                 )).ToArr()
             ));
             var usersMap = resp.Users.NChoose(x => x.Default).ToDictionary(x => x.Id);
-            return resp.Imported.Map(x => ((int) x.ClientId, usersMap[x.UserId]));
+            return resp.Imported.Select(x => ((int) x.ClientId, usersMap[x.UserId])).ToList();
         }
 
         static async Task DownloadGroupImages(TelegramClient tg) {

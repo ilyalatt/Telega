@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using BigMath;
@@ -138,7 +139,7 @@ namespace Telega.Rpc {
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Func<BinaryReader, Arr<T>> ReadVector<T>(
+        public static Func<BinaryReader, IReadOnlyList<T>> ReadVector<T>(
             Func<BinaryReader, T> deserializer
         ) => br => {
             var typeNumber = ReadUint(br);
@@ -152,11 +153,11 @@ namespace Telega.Rpc {
                 arr[i] = deserializer(br);
             }
 
-            return arr.ToArr();
+            return arr;
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Action<BinaryWriter, Arr<T>> WriteVector<T>(
+        public static Action<BinaryWriter, IReadOnlyList<T>> WriteVector<T>(
             Action<BinaryWriter, T> serializer
         ) => (bw, vector) => {
             WriteUint(bw, VectorNum);

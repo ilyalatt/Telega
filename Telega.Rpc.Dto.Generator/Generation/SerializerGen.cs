@@ -14,7 +14,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 primitive: x => $"Write{x.Type}",
                 typeRef: x => "WriteSerializable",
                 vector: x => Concat(
-                    $"WriteVector<{TgTypeConverter.ConvertType(x.Type)}>(",
+                    $"WriteVector<{TgTypeConverter.ConvertType(x.Type, cmpWrapper: false)}>(",
                     GenSerializer(x.Type),
                     ")"
                 )
@@ -27,7 +27,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True)
                         ? None
                         : Concat(
-                            $"WriteOption<{TgTypeConverter.ConvertType(arg.Type)}>(",
+                            $"WriteOption<{TgTypeConverter.ConvertType(arg.Type, cmpWrapper: false)}>(",
                             GenSerializer(arg.Type),
                             ")"
                         ).Apply(Some)

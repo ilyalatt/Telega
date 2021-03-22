@@ -112,7 +112,7 @@ namespace Telega.Rpc.Dto {
                 }
             };
 
-        public static Stringifier<Arr<T>> StringifyVector<T>(
+        public static Stringifier<IReadOnlyList<T>> StringifyVector<T>(
             Stringifier<T> stringify
         ) => vector => ctx => {
             if (vector.Count == 0) {

@@ -20,9 +20,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             Text GenYamlifier(bool tagOnly, TgType type) =>
                 type.Match(
                     primitive: x => $"Yamlifier.Write{x.Type}",
-                    typeRef: x => $"{TgTypeConverter.ConvertType(type)}.Yamlify(tagOnly: {(tagOnly ? "true" : "false")})",
+                    typeRef: x => $"{TgTypeConverter.ConvertType(type, cmpWrapper: false)}.Yamlify(tagOnly: {(tagOnly ? "true" : "false")})",
                     vector: x => Concat(
-                        $"Yamlifier.StringifyVector<{TgTypeConverter.ConvertType(x.Type)}>(",
+                        $"Yamlifier.StringifyVector<{TgTypeConverter.ConvertType(x.Type, cmpWrapper: false)}>(",
                         GenYamlifier(tagOnly, x.Type),
                         ")"
                     )
@@ -41,7 +41,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True)
                         ? None
                         : Concat(
-                            $"Yamlifier.StringifyOption<{TgTypeConverter.ConvertType(arg.Type)}>(",
+                            $"Yamlifier.StringifyOption<{TgTypeConverter.ConvertType(arg.Type, cmpWrapper: false)}>(",
                             GenYamlifier(tagOnly: IsTypeRef(arg), arg.Type),
                             ")"
                         ).Apply(Some)

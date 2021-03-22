@@ -62,7 +62,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
 
             Text EmPt(Text text) => Concat("(", text, ")");
-
+            
             Func<Arr<Text>, Text> Tuple(bool type) => xs =>
                 xs.Count == 0 ? (type ? "Unit" : "Unit.Default") :
                 xs.Count == 1 ? xs[0] :
@@ -72,8 +72,14 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                .Map(argStr)
                .Apply(Tuple(type));
 
-            var argsTuple = ArgsTuple(false, x => x.Name);
-            var argsTupleType = ArgsTuple(true, x => TgTypeConverter.ConvertArgType(x));
+            var argsTuple = ArgsTuple(false, x =>
+                x.Type.Match(vector: _ => true, _: () => false)
+                ? x.Kind.Match(optional: _ => true, _: () => false)
+                    ? $"{x.Name}.Map(ListCmp.Wrap)"
+                    : $"ListCmp.Wrap({x.Name})"
+                : $"{x.Name}"
+            );
+            var argsTupleType = ArgsTuple(true, x => TgTypeConverter.ConvertArgType(x, cmpWrapper: true));
 
             var cmpTuple = Scope(
                 Line("[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]"),

@@ -14,6 +14,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
     static class Gen {
         static readonly NestedText Header = Scope(
             Line("using System;"),
+            Line("using System.Collections.Generic;"),
             Line("using System.IO;"),
             Line("using LanguageExt;"),
             Line("using static Telega.Rpc.TgMarshal;"),
@@ -33,7 +34,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                .Map(x => (
                     name: x.Name,
                     lowerName: Helpers.LowerFirst(x.Name),
-                    type: TgTypeConverter.ConvertArgType(x),
+                    type: TgTypeConverter.ConvertArgType(x, cmpWrapper: false),
                     isRef: TgTypeConverter.IsRefArgType(x)
                 )).ToArray();
 
@@ -100,13 +101,13 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                .Map(x => (
                     name: x.Name,
                     lowerName: Helpers.LowerFirst(x.Name),
-                    type: TgTypeConverter.ConvertArgType(x),
+                    type: TgTypeConverter.ConvertArgType(x, cmpWrapper: false),
                     isRef: TgTypeConverter.IsRefArgType(x)
                 )).ToArray();
 
             // usually it is a higher-order function, i am too lazy to modify the scheme just for this case
             var isWrapper = func.Args.Exists(x => x.Type == TgType.OfTypeRef("X") || x.Type == TgType.OfTypeRef("!X"));
-            var resType = isWrapper ? "TFuncRes" : TgTypeConverter.ConvertType(func.ResultType);
+            var resType = isWrapper ? "TFuncRes" : TgTypeConverter.ConvertType(func.ResultType, cmpWrapper: false);
             var classAccess = isWrapper ? "" : "public ";
             var classTemplates = isWrapper ? "<TFunc, TFuncRes>" : "";
             var classAnnotations = isWrapper
