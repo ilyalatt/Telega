@@ -41,12 +41,12 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True)
                         ? None
                         : Concat(
-                            $"Yamlifier.StringifyOption<{TgTypeConverter.ConvertType(arg.Type, cmpWrapper: false)}>(",
+                            $"Yamlifier.StringifyOption{arg.StructClassSuffix()}<{TgTypeConverter.ConvertType(arg.Type, cmpWrapper: false)}>(",
                             GenYamlifier(tagOnly: IsTypeRef(arg), arg.Type),
                             ")"
                         ).Apply(Some)
                 ).Map(s =>
-                    Concat("Yamlifier.Stringify(", s, $", v.{arg.Name})")
+                    Concat(s, $"(v.{arg.Name}!)")
                 );
 
             Option<Text> GenArgYamlifier(Arg arg) => arg.Kind.Match(
@@ -57,11 +57,8 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             var stringifierBody = args
                .Choose(x => GenArgYamlifier(x).Map(y => {
                    var isTypeRef = IsTypeRef(x);
-                   var isOptional = IsOptional(x);
                    var argName = x.Name;
-                   var tagName = !isOptional
-                       ? $"v.{argName}._TagName"
-                       : $"v.{argName}.IfNoneUnsafe(() => null!)?._TagName";
+                   var tagName = $"v.{argName}?._TagName";
                    var nameofFieldName = $"nameof(v.{argName})";
                    return (
                        arg: !isTypeRef

@@ -27,7 +27,11 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
         public static string ConvertArgType(Arg arg, bool cmpWrapper) => arg.Kind.Match(
             required: x => ConvertType(arg.Type, cmpWrapper),
-            optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True) ? "bool" : $"Option<{ConvertType(arg.Type, cmpWrapper)}>",
+            optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True)
+                ? "bool"
+                : cmpWrapper
+                    ? $"OptionCmp.Wrapper<{ConvertType(arg.Type, true)}>"
+                    : $"{ConvertType(arg.Type, false)}?",
             flags: _ => "int"
         );
 
@@ -39,5 +43,13 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
         public static string WrapArgTypeWithNullable(Arg arg, bool cmpWrapper) => ConvertArgType(arg, cmpWrapper)
            .Apply(x => $"{x}?");
+        
+        public static string StructClassSuffix(this TgType type) => type.Match(
+            primitive: x => x.Type != PrimitiveType.String,
+            _: () => false
+        ) ? "Struct" : "Class";
+
+        public static string StructClassSuffix(this Arg arg) =>
+            arg.Type.StructClassSuffix();
     }
 }

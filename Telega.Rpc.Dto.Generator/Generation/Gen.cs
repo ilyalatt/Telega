@@ -16,7 +16,6 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             Line("using System;"),
             Line("using System.Collections.Generic;"),
             Line("using System.IO;"),
-            Line("using LanguageExt;"),
             Line("using static Telega.Rpc.TgMarshal;"),
             Line("using T = Telega.Rpc.Dto.Types;")
         );
@@ -65,7 +64,6 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 typeName != tagName
                     ? Scope(
                         Line($"public static implicit operator {typeName}({tagName} tag) => new(tag);"),
-                        Line($"public static implicit operator Some<{typeName}>({tagName} tag) => new(tag);"),
                         Line("")
                     )
                     : EmptyScope(),
@@ -182,12 +180,12 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var staticTryDeserializeDef = Scope(
-                Line($"internal static Option<{typeName}> TryDeserialize(uint typeNumber, BinaryReader br) {{"),
+                Line($"internal static {typeName}? TryDeserialize(uint typeNumber, BinaryReader br) {{"),
                 IndentedScope(1,
                     Line("return typeNumber switch {"),
                     IndentedScope(1,
                         typeTags.Map(x => Line($"{x.Name}.TypeNumber => ({typeName}) {x.Name}.DeserializeTag(br),")).Scope(),
-                        Line("_ => Prelude.None,")
+                        Line("_ => default,")
                     ),
                     Line("};")
                 ),
@@ -199,11 +197,10 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 IndentedScope(1,
                     Line("var typeNumber = ReadUint(br);"),
                     Line(Concat(
-                        "return TryDeserialize(typeNumber, br).IfNone(() => ",
+                        "return TryDeserialize(typeNumber, br) ?? ",
                         "throw TgRpcDeserializeException.UnexpectedTypeNumber(actual: typeNumber, expected: new[] { ",
                         typeTags.Map(x => $"{x.Name}.TypeNumber").Map(String).Apply(xs => Join(", ", xs)),
-                        " })",
-                        ");"
+                        " });"
                     ))
                 ),
                 Line("}")
@@ -249,7 +246,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                         return Line($"{tagNameLower} ?? throw new ArgumentNullException(nameof({tagNameLower}))");
                     })
                 ),
-                Line(");")
+                Line(")!;")
             );
 
             static string TrimTagSuffix(string s) => s.EndsWith("Tag") ? s[..^3] : s;
@@ -311,11 +308,11 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             );
 
             var staticTryDeserializeDef = Scope(
-                Line($"internal static Option<{typeName}> TryDeserialize(uint typeNumber, BinaryReader br) =>"),
+                Line($"internal static {typeName}? TryDeserialize(uint typeNumber, BinaryReader br) =>"),
                 Indent(1, Line(Concat(
                     "typeNumber == TypeNumber",
-                    " ? Prelude.Some(DeserializeTag(br))",
-                    " : Prelude.None;"
+                    " ? DeserializeTag(br)",
+                    " : default;"
                 )))
             );
 
@@ -324,13 +321,8 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 IndentedScope(1,
                     Line("var typeNumber = ReadUint(br);"),
                     Line(Concat(
-                        "return TryDeserialize(typeNumber, br).IfNone(() => ",
-                        Concat(
-                            "throw TgRpcDeserializeException.UnexpectedTypeNumber(actual: typeNumber, expected: new[] { ",
-                            "TypeNumber",
-                            " })"
-                        ),
-                        ");"
+                        "return TryDeserialize(typeNumber, br) ?? ",
+                        "throw TgRpcDeserializeException.UnexpectedTypeNumber(actual: typeNumber, expected: new[] { TypeNumber });"
                     ))
                 ),
                 Line("}")

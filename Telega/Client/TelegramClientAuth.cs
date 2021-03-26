@@ -67,8 +67,9 @@ namespace Telega.Client {
                 throw new ArgumentException("the account does not have a password", nameof(passwordInfo));
             }
 
-            var algo = passwordInfo.CurrentAlgo
-               .IfNone(() => throw new ArgumentException("there is no CurrentAlgo", nameof(passwordInfo)))
+            var currentAlgo = passwordInfo.CurrentAlgo
+                ?? throw new ArgumentException("there is no CurrentAlgo", nameof(passwordInfo));
+            var algo = currentAlgo
                .Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow
                ?? throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo));
 

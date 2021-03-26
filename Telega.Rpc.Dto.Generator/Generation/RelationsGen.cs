@@ -62,9 +62,9 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
 
             Text EmPt(Text text) => Concat("(", text, ")");
-            
+
             Func<Arr<Text>, Text> Tuple(bool type) => xs =>
-                xs.Count == 0 ? (type ? "Unit" : "Unit.Default") :
+                xs.Count == 0 ? (type ? "bool" : "default") :
                 xs.Count == 1 ? xs[0] :
                 Join(", ", xs).Apply(EmPt);
 
@@ -72,13 +72,25 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                .Map(argStr)
                .Apply(Tuple(type));
 
-            var argsTuple = ArgsTuple(false, x =>
-                x.Type.Match(vector: _ => true, _: () => false)
-                ? x.Kind.Match(optional: _ => true, _: () => false)
-                    ? $"{x.Name}.Map(ListCmp.Wrap)"
-                    : $"ListCmp.Wrap({x.Name})"
-                : $"{x.Name}"
-            );
+            static bool IsVector(Arg x) =>
+                x.Type.Match(vector: _ => true, _: () => false);
+            
+            static TgType VectorType(Arg x) =>
+                x.Type.Match(vector: x => x.Type, _: () => throw new Exception("WTF"));
+
+            static string WrapIfVector(Arg x) => IsVector(x)
+                ? $"ListCmp.Wrap({x.Name})"
+                : x.Name;
+
+            static Text WrapIfOption(Arg x) =>
+                x.Kind.Match(optional: _ => true, _: () => false) &&
+                x.Type.Match(primitive: x => x.Type != PrimitiveType.True, _: () => true)
+                    ? IsVector(x)
+                        ? $"OptionCmp.WrapList{VectorType(x).StructClassSuffix()}({x.Name})"
+                        : $"OptionCmp.Wrap({x.Name})"
+                    : WrapIfVector(x);
+
+            var argsTuple = ArgsTuple(false, WrapIfOption);
             var argsTupleType = ArgsTuple(true, x => TgTypeConverter.ConvertArgType(x, cmpWrapper: true));
 
             var cmpTuple = Scope(

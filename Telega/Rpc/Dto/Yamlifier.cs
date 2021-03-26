@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using BigMath;
-using LanguageExt;
+using Telega.Utils;
 
 namespace Telega.Rpc.Dto {
     static class Yamlifier {
@@ -131,18 +131,43 @@ namespace Telega.Rpc.Dto {
             );
         };
 
-        public static Stringifier<Option<T>> StringifyOption<T>(
-            Stringifier<T> stringifier
-        ) => option => ctx => {
-            option.Match(
-                Some: x => {
-                    Write(ctx, stringifier(x));
+        static Writer WriteOption<T>(
+            Stringifier<T> stringify,
+            T? v
+        ) where T : struct => ctx => {
+            v.NMatch(
+                some: x => {
+                    Write(ctx, stringify(x));
                 },
-                None: () => {
+                none: () => {
                     ctx.Output.Append("~");
                 }
             );
         };
+        
+        static Writer WriteOption<T>(
+            Stringifier<T> stringifier,
+            T? v
+        ) where T : class => ctx => {
+            v.NMatch(
+                some: x => {
+                    Write(ctx, stringifier(x));
+                },
+                none: () => {
+                    ctx.Output.Append("~");
+                }
+            );
+        };
+
+        public static Func<T?, Writer> StringifyOptionStruct<T>(
+            Stringifier<T> stringify
+        ) where T : struct => option =>
+            WriteOption(stringify, option);
+        
+        public static Func<T?, Writer> StringifyOptionClass<T>(
+            Stringifier<T> stringify
+        ) where T : class => option =>
+            WriteOption(stringify, option);
 
         public static Writer WriteMapping(
             params (string?, Writer)[] kvps
@@ -183,7 +208,7 @@ namespace Telega.Rpc.Dto {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Writer Stringify<T>(Stringifier<T> stringifier, T v) =>
             stringifier(v);
-
+        
         public static string Yamlify(Writer writer) {
             var ctx = EmptyContext;
             Write(ctx, writer);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using LanguageExt;
 using Telega.Connect;
@@ -22,11 +23,11 @@ namespace Telega.Client {
                 excludePinned: false,
                 offsetId: 0,
                 hash: 0,
-                folderId: None
+                folderId: null
             )).ConfigureAwait(false);
 
         public async Task<Messages> GetHistory(
-            Some<InputPeer> peer,
+            InputPeer peer,
             int offsetId = 0,
             int offsetDate = 0,
             int addOffset = 0,
@@ -49,7 +50,7 @@ namespace Telega.Client {
         public async Task<UpdatesType> SendMessage(
             Some<InputPeer> peer,
             Some<string> message,
-            Option<int> scheduleDate = default
+            int? scheduleDate = default
         ) =>
             await _tg.Call(new SendMessage(
                 peer: peer,
@@ -59,17 +60,17 @@ namespace Telega.Client {
                 silent: false,
                 background: false,
                 clearDraft: false,
-                replyToMsgId: None,
-                replyMarkup: None,
-                entities: None,
+                replyToMsgId: null,
+                replyMarkup: null,
+                entities: null,
                 scheduleDate: scheduleDate
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendPhoto(
-            Some<InputPeer> peer,
-            Some<InputFile> file,
-            Some<string> message,
-            Option<int> scheduleDate = default
+            InputPeer peer,
+            InputFile file,
+            string message, 
+            int? scheduleDate = default
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
@@ -77,13 +78,13 @@ namespace Telega.Client {
                 clearDraft: false,
                 media: new InputMedia.UploadedPhotoTag(
                     file: file,
-                    stickers: None,
-                    ttlSeconds: None
+                    stickers: null,
+                    ttlSeconds: null
                 ),
                 peer: peer,
-                entities: None,
-                replyToMsgId: None,
-                replyMarkup: None,
+                entities: null,
+                replyToMsgId: null,
+                replyMarkup: null,
                 message: message,
                 silent: false,
                 scheduleDate: scheduleDate
@@ -95,7 +96,7 @@ namespace Telega.Client {
             Some<string> mimeType,
             Some<string> message,
             Arr<DocumentAttribute> attributes = default,
-            Option<int> scheduleDate = default
+            int? scheduleDate = default
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
@@ -107,52 +108,46 @@ namespace Telega.Client {
                     file: file,
                     mimeType: mimeType,
                     attributes: attributes,
-                    thumb: None,
-                    stickers: None,
-                    ttlSeconds: None
+                    thumb: null,
+                    stickers: null,
+                    ttlSeconds: null
                 ),
                 peer: peer,
                 silent: false,
-                replyToMsgId: None,
-                replyMarkup: None,
-                entities: None,
+                replyToMsgId: null,
+                replyMarkup: null,
+                entities: null,
                 message: message,
                 scheduleDate: scheduleDate
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMedia(
             Some<InputPeer> peer,
-            Some<MessageMedia> file,
+            MessageMedia file,
             Some<string> message,
-            Option<int> scheduleDate = default
+            int? scheduleDate = null
         ) =>
             await _tg.Call(new SendMedia(
                 randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
-                media: file.Head().Match<InputMedia>(
+                media: file.Match<InputMedia>(
                     _: () => throw new NotImplementedException(),
                     photoTag: photoTag => {
-                        var photo = photoTag.Photo
-                           .HeadOrNone()
-                           .IfNone(() => throw new TgInternalException("Unable to get photo", None))
-                           .Default
-                           ?? throw new TgInternalException("Unable to get photo tag", None);
+                        var photoContainer = photoTag.Photo ?? throw new TgInternalException("Unable to get photo", None); 
+                        var photo = photoContainer.Default ?? throw new TgInternalException("Unable to get photo tag", None);
                         return new InputMedia.PhotoTag(
                             id: new InputPhoto.DefaultTag(
                                 id: photo.Id,
                                 accessHash: photo.AccessHash,
                                 fileReference: photo.FileReference
                             ),
-                            ttlSeconds: None
+                            ttlSeconds: null
                         );
                     },
                     documentTag: documentTag => {
-                        var document = documentTag.Document
-                           .HeadOrNone()
-                           .IfNone(() => throw new TgInternalException("Unable to get document", None))
-                           .Default
-                           ?? throw new TgInternalException("Unable to get document tag", None);
+                        var documentContainer = documentTag.Document ?? throw new TgInternalException("Unable to get document", None);
+                        var document = documentContainer .Default ?? throw new TgInternalException("Unable to get document tag", None);
                         return
                             new InputMedia.DocumentTag(
                                 id: new InputDocument.DefaultTag(
@@ -160,42 +155,39 @@ namespace Telega.Client {
                                     accessHash: document.AccessHash,
                                     fileReference: document.FileReference
                                 ),
-                                ttlSeconds: None,
-                                query: None
+                                ttlSeconds: null,
+                                query: null
                             );
                     }
                 ),
                 peer: peer,
                 silent: false,
-                replyToMsgId: None,
-                replyMarkup: None,
-                entities: None,
+                replyToMsgId: null,
+                replyMarkup: null,
+                entities: null,
                 message: message,
                 scheduleDate: scheduleDate
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMultimedia(
-            Some<InputPeer> peer,
-            Arr<MessageMedia> attachments,
-            Option<string> message = default,
-            Option<int> scheduleDate = default
+            InputPeer peer,
+            IReadOnlyList<MessageMedia> attachments,
+            string? message = null,
+            int? scheduleDate = null
         ) =>
             await _tg.Call(new SendMultiMedia(
                 silent: false,
                 background: false,
                 clearDraft: false,
                 peer: peer,
-                replyToMsgId: None,
+                replyToMsgId: null,
                 multiMedia: new Arr<InputSingleMedia>(
                     attachments.Choose<MessageMedia, InputSingleMedia>((i, x) =>
                         x.Match(
                             _: () => throw new NotImplementedException(),
                             photoTag: photoTag => {
-                                var photo = photoTag.Photo
-                                   .HeadOrNone()
-                                   .IfNone(() => throw new TgInternalException("Unable to get photo", None))
-                                   .Default
-                                   ?? throw new TgInternalException("Unable to get photo tag", None);
+                                var photoContainer = photoTag.Photo ?? throw new TgInternalException("Unable to get photo", None);
+                                var photo = photoContainer.Default ?? throw new TgInternalException("Unable to get photo tag", None);
                                 return new InputSingleMedia(
                                     media: new InputMedia.PhotoTag(
                                         id: new InputPhoto.DefaultTag(
@@ -203,19 +195,16 @@ namespace Telega.Client {
                                             accessHash: photo.AccessHash,
                                             fileReference: photo.FileReference
                                         ),
-                                        ttlSeconds: None
+                                        ttlSeconds: null
                                     ),
                                     randomId: Rnd.NextInt64(),
-                                    message: i == 0 ? message.IfNone(string.Empty) : string.Empty,
-                                    entities: None
+                                    message: i == 0 ? message ?? string.Empty : string.Empty,
+                                    entities: null
                                 );
                             },
                             documentTag: documentTag => {
-                                var document = documentTag.Document
-                                   .HeadOrNone()
-                                   .IfNone(() => throw new TgInternalException("Unable to get document", None))
-                                   .Default
-                                   ?? throw new TgInternalException("Unable to get document tag", None);
+                                var documentContainer = documentTag.Document ?? throw new TgInternalException("Unable to get document", None);
+                                var document = documentContainer.Default ?? throw new TgInternalException("Unable to get document tag", None);
                                 return new InputSingleMedia(
                                     media: new InputMedia.DocumentTag(
                                         id: new InputDocument.DefaultTag(
@@ -223,12 +212,12 @@ namespace Telega.Client {
                                             accessHash: document.AccessHash,
                                             fileReference: document.FileReference
                                         ),
-                                        ttlSeconds: None,
-                                        query: None
+                                        ttlSeconds: null,
+                                        query: null
                                     ),
                                     randomId: Rnd.NextInt64(),
-                                    message: i == 0 ? message.IfNone(string.Empty) : string.Empty,
-                                    entities: None
+                                    message: i == 0 ? message ?? string.Empty : string.Empty,
+                                    entities: null
                                 );
                             }
                         )
@@ -240,7 +229,7 @@ namespace Telega.Client {
             await _tg.Call(new SetTyping(
                 action: new SendMessageAction.TypingTag(),
                 peer: peer,
-                topMsgId: None
+                topMsgId: null
             )).ConfigureAwait(false);
 
         public async Task<MessageMedia> UploadMediaAsPhoto(
@@ -251,8 +240,8 @@ namespace Telega.Client {
                 peer: peer,
                 media: new InputMedia.UploadedPhotoTag(
                     file: file,
-                    stickers: None,
-                    ttlSeconds: None
+                    stickers: null,
+                    ttlSeconds: null
                 )
             )).ConfigureAwait(false);
 
@@ -269,9 +258,9 @@ namespace Telega.Client {
                     file: file,
                     mimeType: mimeType,
                     attributes: attributes,
-                    thumb: None,
-                    stickers: None,
-                    ttlSeconds: None,
+                    thumb: null,
+                    stickers: null,
+                    ttlSeconds: null,
                     forceFile: false
                 )
             )).ConfigureAwait(false);
@@ -284,7 +273,7 @@ namespace Telega.Client {
                 peer: peer,
                 media: new InputMedia.DocumentExternalTag(
                     url,
-                    None
+                    null
                 )
             )).ConfigureAwait(false);
     }

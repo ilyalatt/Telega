@@ -4,9 +4,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using BigMath;
 using BigMath.Utils;
-using LanguageExt;
 using Telega.Rpc.Dto;
-using static LanguageExt.Prelude;
+using Telega.Utils;
 
 namespace Telega.Rpc {
     static class TgMarshal {
@@ -167,32 +166,38 @@ namespace Telega.Rpc {
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Func<BinaryReader, Option<T>> ReadOption<T>(
+        public static Func<BinaryReader, T?> ReadOptionStruct<T>(
             int mask,
             int bit,
             Func<BinaryReader, T> deserializer
-        ) => br => (mask & (1 << bit)) == 0 ? None : Some(deserializer(br));
+        ) where T : struct => br => (mask & (1 << bit)) == 0 ? default : deserializer(br);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Func<BinaryReader, T?> ReadOptionClass<T>(
+            int mask,
+            int bit,
+            Func<BinaryReader, T> deserializer
+        ) where T : class => br => (mask & (1 << bit)) == 0 ? default : deserializer(br);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Func<BinaryReader, bool> ReadOption(
+        public static Func<BinaryReader, bool> ReadOptionStruct(
             int mask,
             int bit
         ) => _ => (mask & (1 << bit)) != 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int MaskBit<T>(int bit, Option<T> option) =>
-            option.IsNone ? 0 : 1 << bit;
+        public static int MaskBit<T>(int bit, T? value) where T : struct =>
+            value.HasValue ? 1 << bit : 0;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int MaskBit<T>(int bit, T? value) where T : class =>
+            value != null ? 1 << bit : 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int MaskBit(int bit, bool value) =>
             value ? 1 << bit : 0;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Action<BinaryWriter, Option<T>> WriteOption<T>(
-            Action<BinaryWriter, T> serializer
-        ) => (bw, option) => option.Iter(x => serializer(bw, x));
-
-
+       
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteSerializable<T>(BinaryWriter bw, T value) where T : ITgSerializable =>
             value.Serialize(bw);
@@ -209,6 +214,20 @@ namespace Telega.Rpc {
             T value,
             BinaryWriter bw,
             Action<BinaryWriter, T> serializer
-        ) => serializer(bw, value);
+        ) => serializer(bw, value!);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteOption<T>(
+            T? option,
+            BinaryWriter bw,
+            Action<BinaryWriter, T> serializer
+        ) where T : struct => option.NIter(x => serializer(bw, x));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteOption<T>(
+            T? option,
+            BinaryWriter bw,
+            Action<BinaryWriter, T> serializer
+        ) where T : class => option.NIter(x => serializer(bw, x));
     }
 }

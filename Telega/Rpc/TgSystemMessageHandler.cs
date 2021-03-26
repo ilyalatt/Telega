@@ -177,11 +177,13 @@ namespace Telega.Rpc {
                 default:
                     EnsureTypeNumber(br, typeNumber);
 
-                    UpdatesType.TryDeserialize(typeNumber, br).Match(updates => {
+                    UpdatesType.TryDeserialize(typeNumber, br).NMatch(
+                        updates => {
                             ctx.Ack.Add(msgId);
                             ctx.Updates.Add(updates);
                         },
-                        () => { ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8")); });
+                        () => { ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8")); }
+                    );
 
                     return unit;
             }

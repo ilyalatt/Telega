@@ -26,15 +26,13 @@ namespace Telega.Playground {
             var chats = chatsType.Default!;
             var channels = chats.Chats.NChoose(x => x.Channel);
 
-            var firstChannel = channels
-               .HeadOrNone()
-               .IfNone(() => throw new Exception("A channel is not found"));
+            var firstChannel = channels.FirstOrDefault() ?? throw new Exception("A channel is not found");
             var photo = firstChannel.Photo
                 .Default ?? throw new Exception("The first channel does not have a photo");
             var bigPhotoFile = photo.PhotoBig;
 
             var photoLoc = new InputFileLocation.PeerPhotoTag(
-                peer: new InputPeer.ChannelTag(firstChannel.Id, firstChannel.AccessHash.AssertSome()),
+                peer: new InputPeer.ChannelTag(firstChannel.Id, firstChannel.AccessHash!.Value),
                 volumeId: bigPhotoFile.VolumeId,
                 localId: bigPhotoFile.LocalId,
                 big: true
@@ -56,7 +54,7 @@ namespace Telega.Playground {
 
             var chatPeer = (InputPeer) new InputPeer.UserTag(
                 userId: userInfo.Id,
-                accessHash: userInfo.AccessHash.AssertSome()
+                accessHash: userInfo.AccessHash!.Value
             );
             const int batchLimit = 100;
 
@@ -75,9 +73,9 @@ namespace Telega.Playground {
                 var docs = messages
                    .Reverse()
                    .NChoose(x => x.Default)
-                   .Choose(message => message.Media)
+                   .NChoose(message => message.Media)
                    .NChoose(x => x.Document)
-                   .Choose(x => x.Document)
+                   .NChoose(x => x.Document)
                    .NChoose(x => x.Default);
                 return messages.Count == 0
                     ? docs
@@ -107,7 +105,7 @@ namespace Telega.Playground {
 
             var inputPeer = new InputPeer.ChannelTag(
                 channelId: firstChannel.Id,
-                accessHash: firstChannel.AccessHash.AssertSome()
+                accessHash: firstChannel.AccessHash!.Value
             );
             var top100Messages = await tg.Messages.GetHistory(inputPeer, limit: 100);
             top100Messages.Channel!.Messages.Iter(msg => {
@@ -126,7 +124,7 @@ namespace Telega.Playground {
                 peer: new InputPeer.SelfTag(),
                 file: tgPhoto,
                 message: "Sent from Telega",
-                scheduleDate: None
+                scheduleDate: null
             );
         }
 
@@ -198,16 +196,16 @@ namespace Telega.Playground {
             tg.Updates.Stream.Subscribe(
                 onNext: updatesType => {
                     var messageText = updatesType.Match(
-                        updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
-                        updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
+                        updateShortMessageTag: x => "updateShortMessageTag: " + x.Message,
+                        updateShortChatMessageTag: x => "updateShortChatMessageTag: " + x.Message,
                         updateShortTag: update => update.Update.Match(
-                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message).Apply(Optional),
-                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message).Apply(Optional),
+                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message),
+                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message),
                             editChannelMessageTag: msg =>
-                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message).Apply(Optional),
-                            _: () => None
+                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message),
+                            _: () => null
                         ),
-                        _: () => None
+                        _: () => null
                     );
                     messageText.Iter(Console.WriteLine);
                 },
@@ -217,16 +215,16 @@ namespace Telega.Playground {
             tg.Updates.Stream.Subscribe(
                 onNext: updatesType => {
                     var messageText = updatesType.Match(
-                        updateShortMessageTag: x => Some("updateShortMessageTag: " + x.Message),
-                        updateShortChatMessageTag: x => Some("updateShortChatMessageTag: " + x.Message),
+                        updateShortMessageTag: x => "updateShortMessageTag: " + x.Message,
+                        updateShortChatMessageTag: x => "updateShortChatMessageTag: " + x.Message,
                         updateShortTag: update => update.Update.Match(
-                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message).Apply(Optional),
-                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message).Apply(Optional),
+                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message),
+                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message),
                             editChannelMessageTag: msg =>
-                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message).Apply(Optional),
-                            _: () => None
+                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message),
+                            _: () => null
                         ),
-                        _: () => None
+                        _: () => null
                     );
                     messageText.Iter(Console.WriteLine);
                 },
@@ -277,9 +275,9 @@ namespace Telega.Playground {
                 var photos = messages
                    .Reverse()
                    .NChoose(x => x.Default)
-                   .Choose(message => message.Media)
+                   .NChoose(message => message.Media)
                    .NChoose(x => x.Photo)
-                   .Choose(x => x.Photo)
+                   .NChoose(x => x.Photo)
                    .NChoose(x => x.Default);
                 return messages.Count == 0
                     ? photos

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using LanguageExt;
 using Telega.Rpc.Dto.Generator.TextModel;
@@ -23,16 +22,22 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             Option<Text> GenNonFlagArgSerializer(Arg arg) =>
                 arg.Kind.Match(
                     _: () => throw new("WTF"),
-                    required: _ => GenSerializer(arg.Type).Apply(Some),
+                    required: _ => Concat(
+                        $"Write<{TgTypeConverter.ConvertArgType(arg, cmpWrapper: false)}>(",
+                        $"{arg.Name}, ",
+                        "bw, ",
+                        GenSerializer(arg.Type),
+                        ");"
+                    ).Apply(Some),
                     optional: x => arg.Type == TgType.OfPrimitive(PrimitiveType.True)
                         ? None
                         : Concat(
                             $"WriteOption<{TgTypeConverter.ConvertType(arg.Type, cmpWrapper: false)}>(",
+                            $"{arg.Name}, ",
+                            "bw, ",
                             GenSerializer(arg.Type),
-                            ")"
+                            ");"
                         ).Apply(Some)
-                ).Map(s =>
-                    Concat($"Write({arg.Name}, bw, ", s, ");")
                 );
 
             Text GenMaskSerializer(IEnumerable<(string, int)> maskArgs) =>
@@ -82,7 +87,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     required: _ => GenTypeDeserializer(arg.Type),
                     flags: _ => GenTypeDeserializer(arg.Type),
                     optional: x => Concat(
-                        "ReadOption(",
+                        $"ReadOption{(arg.StructClassSuffix())}(",
                         Join(", ",
                             new Text[] {
                                 Helpers.LowerFirst(x.Flag.ArgName),

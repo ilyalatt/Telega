@@ -59,8 +59,8 @@ namespace Telega.Connect {
                 systemVersion: "Win 10.0",
                 systemLangCode: "en",
                 langPack: "tdesktop",
-                proxy: None,
-                @params: None
+                proxy: null,
+                @params: null
             );
             var invokeWithLayer = new InvokeWithLayer<InitConnection<GetConfig, Config>, Config>(
                 layer: SchemeInfo.LayerVersion,

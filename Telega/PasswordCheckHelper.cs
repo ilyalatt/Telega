@@ -186,7 +186,7 @@ namespace Telega {
             var pBytes = algo.P.ToArrayUnsafe().Apply(WithHashPadding);
             var p = UnsignedNum(pBytes);
             var g = new BigInteger(algo.G);
-            var bigBBytes = pwdInfo.SrpB.Map(bts => bts.ToArrayUnsafe()).IfNone(() => new byte[0]).Apply(WithHashPadding);
+            var bigBBytes = WithHashPadding(pwdInfo.SrpB?.ToArrayUnsafe() ?? new byte[0]);
             var bigB = UnsignedNum(bigBBytes);
             /*
             if (!MTP::IsPrimeAndGood(algo.p, algo.g)) {

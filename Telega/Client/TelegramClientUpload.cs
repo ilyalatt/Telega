@@ -34,10 +34,10 @@ namespace Telega.Client {
         }
 
         public async Task<InputFile> UploadFile(
-            Some<string> name,
+            string name,
             long fileId,
             int fileLength,
-            Some<Stream> stream
+            Stream stream
         ) {
             if (fileLength <= 0) {
                 throw new ArgumentOutOfRangeException(nameof(fileLength));
@@ -110,7 +110,7 @@ namespace Telega.Client {
         }
 
 
-        static GetFile GenSmallestGetFileRequest(Some<InputFileLocation> location) => new(
+        static GetFile GenSmallestGetFileRequest(InputFileLocation location) => new(
             precise: true,
             cdnSupported: false,
             location: location,
@@ -119,7 +119,7 @@ namespace Telega.Client {
         );
 
         public async Task<FileType> GetFileType(
-            Some<InputFileLocation> location
+            InputFileLocation location
         ) {
             var tg = _tg.Fork();
             var resp = await tg.Call(GenSmallestGetFileRequest(location)).ConfigureAwait(false);
@@ -131,12 +131,11 @@ namespace Telega.Client {
         }
 
         public async Task<FileType> DownloadFile(
-            Some<Stream> someStream,
-            Some<InputFileLocation> location
+            Stream stream,
+            InputFileLocation location
         ) {
             var tg = _tg.Fork();
 
-            var stream = someStream.Value;
             var offset = 0;
             var prevFile = default(File.DefaultTag);
             while (true) {
