@@ -94,7 +94,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 IndentedScope(1,
                     Line("_tag switch {"),
                     IndentedScope(1,
-                        tags.Map(x => $"{x.Name} => nameof({x.Name}),").Map(Line).Scope(),
+                        tags.Map(x => $"{x.Name} => nameof({x.Name[..^3]}),").Map(Line).Scope(),
                         Line("_ => throw new(\"WTF\"),")
                     ),
                     Line("};")
@@ -108,7 +108,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                             .Map(x => Concat(
                                 $"{x.Name} x => Yamlifier.WriteUnion(",
                                 Concat(
-                                    $"!tagOnly ? nameof({x.Name}) : null, ",
+                                    $"!tagOnly ? nameof({x.Name[..^3]}) : null, ",
                                     $"Yamlifier.Stringify({x.Name}.Yamlify(tagOnly: true), x)"
                                 ),
                                 "),"

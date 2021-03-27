@@ -44,6 +44,7 @@ namespace Telega.Playground.Snippets {
         }
 
         public static async Task Run(TelegramClient tg) {
+            Console.WriteLine("Downloading multimedia files from web.");
             const string photoUrl = "https://cdn1.img.jp.sputniknews.com/images/406/99/4069980.png";
             var photoName = Path.GetFileName(path: photoUrl);
             var photo = new WebClient().DownloadData(address: photoUrl);
@@ -54,6 +55,7 @@ namespace Telega.Playground.Snippets {
 
             var inputPeer = new InputPeer.SelfTag();
 
+            Console.WriteLine("Uploading multimedia.");
             var sentImage = await UploadPhoto(tg, photoName, photo, inputPeer);
             var sentVideo = await UploadVideo(tg, videoName, video, inputPeer, "video/mp4");
             await tg.Messages.SendMultimedia(
