@@ -2,11 +2,9 @@
 
 [![NuGet version](https://badge.fury.io/nu/Telega.svg)](https://www.nuget.org/packages/Telega)
 
-You can see the library usage example [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Playground/Program.cs).
-
-Also you can read [the introduction](https://github.com/ilyalatt/Telega/wiki/Introduction).
-
-A simple documentation will be ready soon.
+A simple Telegram MTProto client that keeps up with latest layers.
+Check out [documentation prototype](https://ilyalatt.github.io/Telega/docs).
+You can see the a lot of examples [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Playground/Program.cs).
 
 ## Quick start
 
@@ -17,34 +15,26 @@ A simple documentation will be ready soon.
 
 If you are not familiar with functional programming you can read [LanguageExt introduction](https://github.com/louthy/language-ext/wiki/Thinking-Functionally:-Introduction).
 If you are not familiar with LanguageExt you can read [LanguageExt readme](https://github.com/louthy/language-ext).
+Also you can read my [introduction to functional concepts](https://github.com/ilyalatt/Telega/wiki/Introduction).
 
-## Structure
+## TLSharp
 
-* `Telega.Rpc.Dto.Generator` - a generator of DTO objects.
-* `Telega.Rpc.Dto` - a directory in Telega project that contains generated Types and Functions (they are excluded from git because the size is ~5MB). Based on [LanguageExt](https://github.com/louthy/language-ext). DTOs handle serialization without reflection.
-* `Telega` - the main project that contains [MTProto](https://core.telegram.org/mtproto) and [Telegram API](https://core.telegram.org/api#telegram-api) implementations, TelegramClient and other auxiliary classes.
+The reason of Telega existence are TLSharp issues. Here are pros of Telega:
 
-## Project status
-
-Telega is not actively developed. But it is supported. Feel free to open issues and text me in Telegram :)
-
-## Difference from TLSharp
-
-The root of Telega is TLSharp. However the library is designed completely different.
-
-* netstandard 2.0 target
-* layer 124
-* a new DTO generator which is based on .tl scheme
-* completely redesigned DTOs
-* elimination of all reflection usages (even in deserialization)
-* RPC backround receive (vs pull after sending in the original library)
-* RPC queue (it is needed to fix a simultaneos requests problem)
-* session atomic-like updates (with a backup file usage)
-* enhanced exceptions (no more InvalidOperationException)
-* enhanced factorization via [Pollard's rho algorithm](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm)
+* Layer 124 generated directly from Telegram Desktop .tl scheme
+* Netstandard 2.0 and 2.1 targets
+* Lack of reflection at all (even in deserialization)
+* RPC backround receive (vs pull after sending in TLSharp)
+* Automatic RPC call queuing and delaying to prevent flood errors
+* Atomic-like session updates (with a backup file usage)
+* Simple exceptions instead of meaningless InvalidOperationException
+* Download and Upload with proper DC migration handling
 * MTProto 2.0
-* major refactoring of the whole library
+
+## Status
+
+Telega is not actively developed. But I support it my free time. Feel free to open issues :)
 
 ## Versioning
 
-Telega uses customized [SemVer](https://semver.org/). Before 1.0.0 version is released Minor increments can break compatibility.
+Telega uses [SemVer](https://semver.org/). Before 1.0.0 version minor increments can break compatibility.
