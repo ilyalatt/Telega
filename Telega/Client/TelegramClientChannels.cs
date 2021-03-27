@@ -1,28 +1,27 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Channels;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Messages;
-using static LanguageExt.Prelude;
 using Telega.Utils;
 
 namespace Telega.Client {
     public sealed class TelegramClientChannels {
         readonly TgBellhop _tg;
-        internal TelegramClientChannels(Some<TgBellhop> tg) => _tg = tg;
+        internal TelegramClientChannels(TgBellhop tg) => _tg = tg;
 
         public async Task<UpdatesType> JoinChannel(
-            Some<InputChannel> channel
+            InputChannel channel
         ) =>
             await _tg.Call(new JoinChannel(
                 channel: channel
             )).ConfigureAwait(false);
 
         public async Task<Messages> GetMessages(
-            Some<InputChannel> channel,
-            Arr<InputMessage> messages
+            InputChannel channel,
+            IReadOnlyList<InputMessage> messages
         ) =>
             await _tg.Call(new GetMessages(
                 channel: channel,
@@ -35,27 +34,26 @@ namespace Telega.Client {
         /// <param name="channel"></param>
         /// <param name="messageId"></param>
         /// <returns>Grouped messages</returns>
-        public async Task<Arr<Message.DefaultTag>> GetGroupedMessages(
-            Some<InputChannel> channel,
+        public async Task<IReadOnlyList<Message.DefaultTag>> GetGroupedMessages(
+            InputChannel channel,
             int messageId
         ) {
             const int idRadius = 10;
-            var messageIds = Range(@from: -idRadius, count: idRadius * 2 + 1)
-               .Map(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
-               .ToArr();
+            var messageIds = Enumerable.Range(start: -idRadius, count: idRadius * 2 + 1)
+               .Select(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
+               .ToList();
 
             var messagesResponse = await GetMessages(channel, messageIds).ConfigureAwait(false);
             var messages = messagesResponse.Channel?.Messages.NChoose(x => x.Default).ToList();
             if (messages == null) {
-                return Empty;
+                return new Message.DefaultTag[0];
             }
 
             var mainMessage = messages.FirstOrDefault(x => x.Id == messageId);
             var groupId = mainMessage?.GroupedId;
-            return groupId.Match(
-                Some: _ => messages.Where(x => x.GroupedId == groupId).ToArray(),
-                None: () => Array(mainMessage!)
-            );
+            return groupId != null
+                ? messages.Where(x => x.GroupedId == groupId).ToList()
+                : new[] { mainMessage! };
         }
     }
 }

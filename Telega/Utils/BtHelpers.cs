@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using BigMath;
 using BigMath.Utils;
-using LanguageExt;
 using Telega.Rpc.Dto;
 
 namespace Telega.Utils {
@@ -17,8 +16,11 @@ namespace Telega.Utils {
         public static byte[] WithMemStream(Action<MemoryStream> writer) =>
             new MemoryStream().With(writer).ToArray();
 
-        public static Task<byte[]> WithMemStream(Func<MemoryStream, Task> writer) =>
-            new MemoryStream().With(writer).Map(ms => ms.ToArray());
+        public static async Task<byte[]> WithMemStream(Func<MemoryStream, Task> writer) {
+            var ms = new MemoryStream();
+            await writer(ms).ConfigureAwait(false);
+            return ms.ToArray();
+        }
 
         public static byte[] UsingMemBinWriter(Action<BinaryWriter> serializer) =>
             WithMemStream(ms => serializer(new BinaryWriter(ms)));

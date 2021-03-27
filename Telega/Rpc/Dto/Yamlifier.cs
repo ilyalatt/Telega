@@ -78,7 +78,7 @@ namespace Telega.Rpc.Dto {
             Stringifier<T> stringify,
             IReadOnlyList<T> items
         ) => ctx => {
-            items.Iter((i, x) => {
+            items.Iter((x, i) => {
                 if (i > 0 || !ctx.SkipFirstItemIndent) {
                     AppendNewLine(ctx);
                     AppendIndent(ctx);

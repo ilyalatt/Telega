@@ -1,8 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 
 namespace Telega {
     public class FileSessionStore : ISessionStore {
@@ -10,15 +8,15 @@ namespace Telega {
         readonly string _backupFileName;
         readonly TaskQueue _taskQueue = new();
 
-        public FileSessionStore(Some<string> name) {
+        public FileSessionStore(string name) {
             _fileName = name;
             _backupFileName = _fileName + ".backup";
         }
 
 
-        static async Task<Option<Session>> Read(string fileName) {
+        static async Task<Session?> Read(string fileName) {
             if (!File.Exists(fileName)) {
-                return None;
+                return null;
             }
 
             var bts = await FileHelpers.ReadFileBytes(fileName).ConfigureAwait(false);
@@ -37,12 +35,12 @@ namespace Telega {
             File.Move(_backupFileName, _fileName);
         }
 
-        async Task<Option<Session>> LoadImpl() {
+        async Task<Session?> LoadImpl() {
             RestoreBackup();
             return await Read(_fileName).ConfigureAwait(false);
         }
 
-        public Task<Option<Session>> Load() =>
+        public Task<Session?> Load() =>
             _taskQueue.Put(LoadImpl);
 
 
@@ -70,7 +68,7 @@ namespace Telega {
             DeleteBackup();
         }
 
-        public async Task Save(Some<Session> someSession) =>
-            await _taskQueue.Put(() => SaveImpl(someSession)).ConfigureAwait(false);
+        public async Task Save(Session session) =>
+            await _taskQueue.Put(() => SaveImpl(session)).ConfigureAwait(false);
     }
 }

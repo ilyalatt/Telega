@@ -1,5 +1,4 @@
 using System;
-using LanguageExt;
 
 namespace Telega.Rpc.Dto {
     public struct Bytes : IEquatable<Bytes>, IComparable<Bytes> {
@@ -13,14 +12,14 @@ namespace Telega.Rpc.Dto {
             return res;
         }
 
-        public static Bytes New(Some<byte[]> bytes) =>
+        public static Bytes New(byte[] bytes) =>
             new(Copy(bytes));
 
         public byte[] ToArray() =>
             Copy(Ref);
 
-        public static byte[] ToArray(Some<Bytes> bytes) =>
-            bytes.Value.ToArray();
+        public static byte[] ToArray(Bytes bytes) =>
+            bytes.ToArray();
 
 
         public bool Equals(Bytes other) {

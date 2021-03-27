@@ -1,35 +1,33 @@
 using System;
-using LanguageExt;
-using static LanguageExt.Prelude;
 
 namespace Telega {
     public abstract class TgException : Exception {
-        internal TgException(Some<string> message, Option<Exception> innerException) : base(
+        internal TgException(string message, Exception? innerException) : base(
             message,
-            innerException.IfNoneUnsafe(() => null!)
+            innerException
         ) { }
     }
 
     public class TgTransportException : TgException {
         internal TgTransportException(
-            Some<string> message,
-            Option<Exception> innerException
+            string message,
+            Exception? innerException
         ) : base(message, innerException) { }
     }
 
     public sealed class TgBrokenConnectionException : TgTransportException {
         internal TgBrokenConnectionException() : base(
             "The connection is closed.",
-            None
+            null
         ) { }
     }
 
     sealed class TgProtocolViolation : TgInternalException {
-        public TgProtocolViolation() : base("The protocol is violated.", None) { }
+        public TgProtocolViolation() : base("The protocol is violated.", null) { }
     }
 
     public sealed class TgNotAuthenticatedException : TgException {
-        public TgNotAuthenticatedException() : base("Authentication is required.", None) { }
+        public TgNotAuthenticatedException() : base("Authentication is required.", null) { }
     }
 
     public sealed class TgFloodException : TgException {
@@ -38,7 +36,7 @@ namespace Telega {
         // TODO
         internal TgFloodException(TimeSpan delay) : base(
             $"Flood prevention. Wait {delay.TotalMinutes} minutes.",
-            None
+            null
         ) => Delay = delay;
     }
 
@@ -51,8 +49,8 @@ namespace Telega {
 
     class TgInternalException : TgException {
         internal TgInternalException(
-            Some<string> additionalMessage,
-            Option<Exception> innerException
+            string additionalMessage,
+            Exception? innerException
         ) : base(
             "Telega internal exception. " + additionalMessage,
             innerException
@@ -60,45 +58,45 @@ namespace Telega {
     }
 
     class TgFailedAssertionException : TgInternalException {
-        public TgFailedAssertionException(Some<string> msg) : base($"Assert failed. {msg}", None) { }
+        public TgFailedAssertionException(string msg) : base($"Assert failed. {msg}", null) { }
     }
 
     sealed class TgDataCenterMigrationException : TgInternalException {
         public DcMigrationReason Reason { get; }
         public int Dc { get; }
 
-        internal TgDataCenterMigrationException(DcMigrationReason reason, int dc) : base("Data center migration.", None) {
+        internal TgDataCenterMigrationException(DcMigrationReason reason, int dc) : base("Data center migration.", null) {
             Reason = reason;
             Dc = dc;
         }
     }
 
     sealed class TgBadSaltException : TgInternalException {
-        public TgBadSaltException() : base("bad_server_salt is received.", None) { }
+        public TgBadSaltException() : base("bad_server_salt is received.", null) { }
     }
 
     public sealed class TgInvalidPhoneCodeException : TgException {
         internal TgInvalidPhoneCodeException() : base(
             "The numeric code used to authenticate does not match the numeric code sent by SMS/Telegram.",
-            None
+            null
         ) { }
     }
 
     public sealed class TgInvalidPasswordException : TgException {
         internal TgInvalidPasswordException() : base(
             "The provided password is invalid.",
-            None
+            null
         ) { }
     }
 
     public sealed class TgPhoneNumberUnoccupiedException : TgException {
         internal TgPhoneNumberUnoccupiedException() : base(
             "The phone number is not occupied.",
-            None
+            null
         ) { }
     }
 
     public sealed class TgPasswordNeededException : TgException {
-        internal TgPasswordNeededException() : base("This account has a password.", None) { }
+        internal TgPasswordNeededException() : base("This account has a password.", null) { }
     }
 }

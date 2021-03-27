@@ -2,20 +2,18 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Connect;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Functions.Upload;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Storage;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 using File = Telega.Rpc.Dto.Types.Upload.File;
 
 namespace Telega.Client {
     public sealed class TelegramClientUpload {
         readonly TgBellhop _tg;
-        internal TelegramClientUpload(Some<TgBellhop> tg) => _tg = tg;
+        internal TelegramClientUpload(TgBellhop tg) => _tg = tg;
 
         const int ChunkSize = 512 * 1024;
 
@@ -92,13 +90,13 @@ namespace Telega.Client {
         }
 
         public Task<InputFile> UploadFile(
-            Some<string> name,
+            string name,
             int fileLength,
-            Some<Stream> stream
+            Stream stream
         ) => UploadFile(name, Rnd.NextInt64(), fileLength, stream);
 
         public async Task<InputFile> UploadFile(
-            Some<string> filePath
+            string filePath
         ) {
             var name = Path.GetFileName(filePath);
             using var fs = System.IO.File.OpenRead(filePath);
@@ -124,7 +122,7 @@ namespace Telega.Client {
             var tg = _tg.Fork();
             var resp = await tg.Call(GenSmallestGetFileRequest(location)).ConfigureAwait(false);
             var res = resp.Match(
-                defaultTag: identity,
+                defaultTag: x => x,
                 cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
             );
             return res.Type;
@@ -147,7 +145,7 @@ namespace Telega.Client {
                     limit: ChunkSize
                 )).ConfigureAwait(false);
                 var res = prevFile = resp.Match(
-                    defaultTag: identity,
+                    defaultTag: x => x,
                     cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
                 );
 

@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using System.Security;
 using System.Threading.Tasks;
-using LanguageExt;
 using Microsoft.Extensions.Logging;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Account;
@@ -34,7 +32,7 @@ namespace Telega.Client {
             _tg.Session.IsAuthorized;
 
 
-        public async Task<string> SendCode(Some<string> apiHash, Some<string> phoneNumber) {
+        public async Task<string> SendCode(string apiHash, string phoneNumber) {
             var res = await _tg.Call(new SendCode(
                 phoneNumber: phoneNumber,
                 apiId: _tg.Session.ApiId,
@@ -48,7 +46,7 @@ namespace Telega.Client {
             return res.PhoneCodeHash;
         }
 
-        public async Task<User> SignIn(Some<string> phoneNumber, Some<string> phoneCodeHash, Some<string> code) {
+        public async Task<User> SignIn(string phoneNumber, string phoneCodeHash, string code) {
             var res = await _tg.Call(new SignIn(
                 phoneNumber: phoneNumber,
                 phoneCodeHash: phoneCodeHash,
@@ -61,7 +59,7 @@ namespace Telega.Client {
         public async Task<Password> GetPasswordInfo() =>
             await _tg.Call(new GetPassword()).ConfigureAwait(false);
 
-        public async Task<User> CheckPassword(Some<SecureString> password) {
+        public async Task<User> CheckPassword(SecureString password) {
             var passwordInfo = await GetPasswordInfo().ConfigureAwait(false);
             if (!passwordInfo.HasPassword) {
                 throw new ArgumentException("the account does not have a password", nameof(passwordInfo));
@@ -74,25 +72,25 @@ namespace Telega.Client {
                ?? throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo));
 
             var request = await TaskWrapper.Wrap(() =>
-                PasswordCheckHelper.GenRequest(passwordInfo, algo, password.Value)
+                PasswordCheckHelper.GenRequest(passwordInfo, algo, password)
             ).ConfigureAwait(false);
             var res = await _tg.Call(request).ConfigureAwait(false);
             return SetAuthorized(res.Default!.User);
         }
 
-        public async Task<User> CheckPassword(Some<string> password) {
+        public async Task<User> CheckPassword(string password) {
             var ss = new SecureString();
-            foreach (var x in password.Value) {
+            foreach (var x in password) {
                 ss.AppendChar(x);
             }
             return await CheckPassword(ss).ConfigureAwait(false);
         }
 
         public async Task<User> SignUp(
-            Some<string> phoneNumber,
-            Some<string> phoneCodeHash,
-            Some<string> firstName,
-            Some<string> lastName
+            string phoneNumber,
+            string phoneCodeHash,
+            string firstName,
+            string lastName
         ) {
             var res = await _tg.Call(new SignUp(
                 phoneNumber: phoneNumber,

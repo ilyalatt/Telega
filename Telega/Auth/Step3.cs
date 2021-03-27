@@ -4,25 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using BigMath;
 using BigMath.Utils;
-using LanguageExt;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Functions;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 using static Telega.Utils.BtHelpers;
 
 namespace Telega.Auth {
-    struct Step3Res {
-        public AuthKey AuthKey { get; }
-        public int TimeOffset { get; }
-
-        public Step3Res(Some<AuthKey> authKey, int timeOffset) {
-            AuthKey = authKey;
-            TimeOffset = timeOffset;
-        }
-    }
+    record Step3Res(
+        AuthKey AuthKey,
+        int TimeOffset
+    );
 
     static class Step3 {
         static Func<BinaryReader, T> WithHashSumCheck<T>(Func<BinaryReader, T> func) => br => {
@@ -50,11 +43,10 @@ namespace Telega.Auth {
         });
 
         public static async Task<Step3Res> Do(
-            Some<ServerDhParams.OkTag> someServerDhParams,
+            ServerDhParams.OkTag dhParams,
             Int256 newNonce,
-            Some<MtProtoPlainTransport> transport
+            MtProtoPlainTransport transport
         ) {
-            var dhParams = someServerDhParams.Value;
             var key = Aes.GenerateKeyDataFromNonces(dhParams.ServerNonce.ToBytes(true), newNonce.ToBytes(true));
             var plaintextAnswer = Aes.DecryptAES(key, dhParams.EncryptedAnswer.ToArrayUnsafe());
             var dh = plaintextAnswer.Apply(Deserialize(WithHashSumCheck(ServerDhInnerData.Deserialize)));
@@ -84,13 +76,13 @@ namespace Telega.Auth {
             var dhInnerDataHashedBts = WithHashAndPadding(dhInnerDataBts);
             var dhInnerDataHashedEncryptedBytes = Aes.EncryptAES(key, dhInnerDataHashedBts);
 
-            var resp = await transport.Value.Call(new SetClientDhParams(
+            var resp = await transport.Call(new SetClientDhParams(
                 nonce: dh.Nonce,
                 serverNonce: dh.ServerNonce,
                 encryptedData: dhInnerDataHashedEncryptedBytes.ToBytesUnsafe()
             )).ConfigureAwait(false);
             var res = resp.Match(
-                dhGenOkTag: identity,
+                dhGenOkTag: x => x,
                 dhGenFailTag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_fail"),
                 dhGenRetryTag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_retry")
             );

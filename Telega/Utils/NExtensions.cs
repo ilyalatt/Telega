@@ -29,6 +29,15 @@ namespace Telega.Utils {
         public static IEnumerable<Y> NChoose<X, Y>(this IEnumerable<X> seq, Func<X, Y?> mapper) where Y : class =>
             seq.Select(x => mapper(x)!).Where(y => y != null);
         
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<Y> NChoose<X, Y>(this IEnumerable<X> seq, Func<X, int, Y?> mapper) where Y : struct =>
+            seq.Select(mapper).Where(y => y.HasValue).Select(x => x!.Value);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<Y> NChoose<X, Y>(this IEnumerable<X> seq, Func<X, int, Y?> mapper) where Y : class =>
+            seq.Select((x, i) => mapper(x, i)!).Where(y => y != null);
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void NIter<X>(this X? x, Action<X> iterator) where X : struct {
             if (x.HasValue) {

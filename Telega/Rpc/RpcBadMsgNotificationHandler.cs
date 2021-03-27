@@ -1,12 +1,10 @@
-using LanguageExt;
 using Telega.Rpc.Dto.Types;
-using static LanguageExt.Prelude;
 
 namespace Telega.Rpc {
     class TgRpcBadMsgException : TgRpcException {
         public int ErrorCode { get; }
 
-        public TgRpcBadMsgException(int errorCode, Some<string> msg) : base(msg, None) {
+        public TgRpcBadMsgException(int errorCode, string msg) : base(msg, null) {
             ErrorCode = errorCode;
         }
     }

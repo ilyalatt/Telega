@@ -1,5 +1,4 @@
 using System;
-using LanguageExt;
 using Telega.CallMiddleware;
 using Telega.Rpc.Dto.Types;
 using Telega.Utils;
@@ -10,7 +9,7 @@ namespace Telega.Connect {
         public TgCustomizedTransport Transport { get; }
         public Config Config { get; }
 
-        public TgConnection(Some<Var<Session>> session, Some<TgCustomizedTransport> transport, Some<Config> config) {
+        public TgConnection(Var<Session> session, TgCustomizedTransport transport, Config config) {
             Session = session;
             Transport = transport;
             Config = config;

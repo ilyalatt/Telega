@@ -10,7 +10,6 @@ using Telega.Rpc.Dto.Functions.Help;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 
 namespace Telega.Connect {
     static class TgConnectionEstablisher {

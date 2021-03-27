@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Rpc.Dto;
 using Telega.Utils;
 
@@ -8,7 +7,7 @@ namespace Telega.Rpc.ServiceTransport {
         long _lastMessageId;
         readonly TcpTransport _transport;
 
-        public MtProtoPlainTransport(Some<TcpTransport> transport) => _transport = transport;
+        public MtProtoPlainTransport(TcpTransport transport) => _transport = transport;
 
         long GetNewMessageId() =>
             _lastMessageId = Helpers.GetNewMessageId(_lastMessageId, timeOffset: 0);
@@ -36,7 +35,8 @@ namespace Telega.Rpc.ServiceTransport {
 
         public async Task<T> Call<T>(ITgFunc<T> func) {
             await BtHelpers.UsingMemBinWriter(func.Serialize).Apply(Send).ConfigureAwait(false);
-            return await Receive().Map(BtHelpers.Deserialize(func.DeserializeResult)).ConfigureAwait(false);
+            var bytes = await Receive().ConfigureAwait(false);
+            return bytes.Apply(BtHelpers.Deserialize(func.DeserializeResult));
         }
     }
 }

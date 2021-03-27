@@ -5,21 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Client;
 using Telega.Rpc.Dto.Functions.Contacts;
 using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
-using static LanguageExt.Prelude;
 using Telega.Utils;
 
 namespace Telega.Playground {
-    static class Exts {
-        public static T AssertSome<T>(this Option<T> opt) =>
-            opt.IfNone(() => throw new ApplicationException("Should be Some, but got None."));
-    }
-
     static class Program {
         static async Task DownloadFirstChannelPictureExample(TelegramClient tg) {
             var chatsType = await tg.Messages.GetDialogs();
@@ -99,16 +92,14 @@ namespace Telega.Playground {
             var chats = chatsType.Default!;
             var channels = chats.Chats.NChoose(x => x.Channel);
 
-            var firstChannel = channels
-               .HeadOrNone()
-               .IfNone(() => throw new Exception("A channel is not found"));
+            var firstChannel = channels.FirstOrDefault() ?? throw new Exception("A channel is not found");
 
             var inputPeer = new InputPeer.ChannelTag(
                 channelId: firstChannel.Id,
                 accessHash: firstChannel.AccessHash!.Value
             );
             var top100Messages = await tg.Messages.GetHistory(inputPeer, limit: 100);
-            top100Messages.Channel!.Messages.Iter(msg => {
+            top100Messages.Channel!.Messages.NIter(msg => {
                 Console.WriteLine(msg);
                 Console.WriteLine();
             });
@@ -207,7 +198,7 @@ namespace Telega.Playground {
                         ),
                         _: () => null
                     );
-                    messageText.Iter(Console.WriteLine);
+                    messageText.NIter(Console.WriteLine);
                 },
                 onError: Console.WriteLine
             );
@@ -226,7 +217,7 @@ namespace Telega.Playground {
                         ),
                         _: () => null
                     );
-                    messageText.Iter(Console.WriteLine);
+                    messageText.NIter(Console.WriteLine);
                 },
                 onError: Console.WriteLine
             );
@@ -239,12 +230,12 @@ namespace Telega.Playground {
             IEnumerable<(string phone, string firstName, string lastName)> users
         ) {
             var resp = await tg.Call(new ImportContacts(
-                contacts: users.Map((userIdx, user) => new InputContact(
+                contacts: users.Select((user, userIdx) => new InputContact(
                     clientId: userIdx,
                     phone: user.phone,
                     firstName: user.firstName,
                     lastName: user.lastName
-                )).ToArr()
+                )).ToList()
             ));
             var usersMap = resp.Users.NChoose(x => x.Default).ToDictionary(x => x.Id);
             return resp.Imported.Select(x => ((int) x.ClientId, usersMap[x.UserId])).ToList();
@@ -260,7 +251,7 @@ namespace Telega.Playground {
 
             const int batchLimit = 100;
 
-            async Task<IEnumerable<Photo.DefaultTag>> GetHistory(int offset = 0) {
+            async Task<IReadOnlyList<Photo.DefaultTag>> GetHistory(int offset = 0) {
                 var resp = await tg.Call(new GetHistory(
                     peer: chatPeer,
                     addOffset: offset,
@@ -280,12 +271,12 @@ namespace Telega.Playground {
                    .NChoose(x => x.Photo)
                    .NChoose(x => x.Default);
                 return messages.Count == 0
-                    ? photos
-                    : (await GetHistory(offset + batchLimit)).Concat(photos);
+                    ? photos.ToList()
+                    : (await GetHistory(offset + batchLimit)).Concat(photos).ToList();
             }
 
             Console.WriteLine("Scraping chat messages");
-            var allPhotos = (await GetHistory()).ToArr();
+            var allPhotos = await GetHistory();
 
             const string photosDir = groupName;
             if (!Directory.Exists(photosDir)) {

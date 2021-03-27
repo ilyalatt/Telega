@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Utils;
 
 namespace Telega {
@@ -35,14 +34,14 @@ namespace Telega {
             await _store.Save(_session.Get()).ConfigureAwait(false);
         }
 
-        SessionStoreSync(Some<IVarGetter<Session>> session, Some<ISessionStore> store) {
-            _session = session.Value;
-            _store = store.Value;
+        SessionStoreSync(IVarGetter<Session> session, ISessionStore store) {
+            _session = session;
+            _store = store;
 
             _task = SaveLoop();
         }
 
-        public static SessionStoreSync Init(Some<IVarGetter<Session>> session, Some<ISessionStore> store) =>
+        public static SessionStoreSync Init(IVarGetter<Session> session, ISessionStore store) =>
             new(session, store);
 
         public void Stop() {

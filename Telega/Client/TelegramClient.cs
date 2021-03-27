@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using LanguageExt;
-using LanguageExt.SomeHelp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Telega.CallMiddleware;
@@ -33,7 +31,7 @@ namespace Telega.Client {
             ISessionStore sessionStore
         ) {
             _bellhop = bellhop;
-            _storeSync = SessionStoreSync.Init(_bellhop.SessionVar.ToSome(), sessionStore.ToSome());
+            _storeSync = SessionStoreSync.Init(_bellhop.SessionVar, sessionStore);
 
             Auth = new TelegramClientAuth(logger, _bellhop);
             Contacts = new TelegramClientContacts(_bellhop);
@@ -75,15 +73,16 @@ namespace Telega.Client {
         ) {
             store ??= new FileSessionStore(DefaultSessionName);
             var ep = endpoint ?? DefaultEndpoint;
-            var connectInfo = (await store.Load().ConfigureAwait(false))
-               .Map(SomeExt.ToSome).Map(ConnectInfo.FromSession)
-               .IfNone(ConnectInfo.FromInfo(apiId, ep));
+            var session = await store.Load().ConfigureAwait(false);
+            var connectInfo = session != null
+                ? ConnectInfo.FromSession(session)
+                : ConnectInfo.FromInfo(apiId, ep);
 
             return await Connect(connectInfo, store, callMiddlewareChain, tcpClientConnectionHandler).ConfigureAwait(false);
         }
 
         public static async Task<TelegramClient> Connect(
-            Some<Session> session,
+            Session session,
             ISessionStore? store = null,
             TgCallMiddlewareChain? callMiddlewareChain = null,
             TcpClientConnectionHandler? tcpClientConnectionHandler = null

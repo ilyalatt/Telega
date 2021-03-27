@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Rpc.Dto;
 using Telega.Utils;
 
@@ -35,9 +34,11 @@ namespace Telega.Rpc.ServiceTransport {
 
         static byte[] Concat(params ArraySegment<byte>[] btsArr) {
             var res = new byte[btsArr.Sum(x => x.Count)];
-            btsArr.Scan(0, (a, x) => a + x.Count).Zip(btsArr).Iter(t =>
-                Buffer.BlockCopy(t.Item2.Array, t.Item2.Offset, res, t.Item1, t.Item2.Count)
-            );
+            var offset = 0;
+            foreach (var x in btsArr) {
+                Buffer.BlockCopy(x.Array!, x.Offset, res, offset, x.Count);
+                offset += x.Count;
+            }
             return res;
         }
 

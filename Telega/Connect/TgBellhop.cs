@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using LanguageExt;
 using Microsoft.Extensions.Logging;
 using Telega.CallMiddleware;
 using Telega.Rpc;
@@ -39,9 +38,9 @@ namespace Telega.Connect {
             return newConn;
         }
 
-        public TgBellhop(Some<TgConnectionPool> connectionPool, Some<TgConnection> currentConnection) {
+        public TgBellhop(TgConnectionPool connectionPool, TgConnection currentConnection) {
             ConnectionPool = connectionPool;
-            CurrentConnection = currentConnection.Value.AsVar();
+            CurrentConnection = currentConnection.AsVar();
             MirrorUpdates(currentConnection);
         }
 

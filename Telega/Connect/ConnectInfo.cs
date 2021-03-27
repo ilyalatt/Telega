@@ -1,5 +1,4 @@
 using System.Net;
-using LanguageExt;
 using Telega.Auth;
 
 namespace Telega.Connect {
@@ -13,12 +12,13 @@ namespace Telega.Connect {
             _original = original;
             _apiId = apiId;
             _endpoint = endpoint;
+            _auth = null!; // TODO: fix
         }
 
-        public static ConnectInfo FromSession(Some<Session> session) =>
+        public static ConnectInfo FromSession(Session session) =>
             new(session, 0, null);
 
-        public static ConnectInfo FromInfo(int apiId, Some<IPEndPoint> endpoint) =>
+        public static ConnectInfo FromInfo(int apiId, IPEndPoint endpoint) =>
             new(null, apiId, endpoint);
 
         public bool NeedsInAuth => _original == null || !_original.IsAuthorized;

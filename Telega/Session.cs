@@ -1,11 +1,9 @@
 using System.IO;
 using System.Net;
-using LanguageExt;
 using Telega.Auth;
 using Telega.Rpc;
 using Telega.Rpc.Dto;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 
 namespace Telega {
     public sealed class Session {
@@ -24,13 +22,13 @@ namespace Telega {
         public Session(
             int apiId,
             long id,
-            Some<AuthKey> authKey,
+            AuthKey authKey,
             bool isAuthorized,
             int sequence,
             long salt,
             int timeOffset,
             long lastMessageId,
-            Some<IPEndPoint> endpoint
+            IPEndPoint endpoint
         ) {
             ApiId = apiId;
             Id = id;
@@ -65,7 +63,7 @@ namespace Telega {
             endpoint ?? Endpoint
         );
 
-        public static Session New(int apiId, Some<IPEndPoint> endpoint, Some<AuthKey> authKey, int timeOffset) => new(
+        public static Session New(int apiId, IPEndPoint endpoint, AuthKey authKey, int timeOffset) => new(
             apiId: apiId,
             id: Rnd.NextInt64(),
             authKey: authKey,
@@ -101,7 +99,7 @@ namespace Telega {
         public static Session Deserialize(BinaryReader br) {
             var version = TgMarshal.ReadInt(br);
             if (version != Version) {
-                throw new TgInternalException($"Invalid session file version, got {version}, expected {Version}.", None);
+                throw new TgInternalException($"Invalid session file version, got {version}, expected {Version}.", null);
             }
 
             var apiId = TgMarshal.ReadInt(br);

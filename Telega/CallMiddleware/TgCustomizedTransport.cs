@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using LanguageExt;
 using Telega.Rpc;
 using Telega.Rpc.Dto;
 
@@ -9,7 +8,7 @@ namespace Telega.CallMiddleware {
         public TgTransport Transport { get; }
         public TgCallMiddlewareChain CallMiddlewareChain { get; }
 
-        public TgCustomizedTransport(Some<TgTransport> transport, Some<TgCallMiddlewareChain> callMiddlewareChain) {
+        public TgCustomizedTransport(TgTransport transport, TgCallMiddlewareChain callMiddlewareChain) {
             Transport = transport;
             CallMiddlewareChain = callMiddlewareChain;
         }

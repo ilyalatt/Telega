@@ -2,13 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using LanguageExt;
 using Microsoft.Extensions.Logging;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 
 namespace Telega.Rpc {
     class TgTransport : IDisposable {
@@ -27,17 +25,17 @@ namespace Telega.Rpc {
                 var msgBody = await _transport.Receive().ConfigureAwait(false);
                 var msg = TgSystemMessageHandler.ReadMsg(msgBody);
                 var ctx = new TgSystemMessageHandlerContext(logger);
-                msg.Apply(TgSystemMessageHandler.Handle(ctx));
+                msg.With(TgSystemMessageHandler.Handle(ctx));
 
-                ctx.NewSalt.Iter(salt =>
+                ctx.NewSalt.NIter(salt =>
                     _session.SetWith(x => x.With(salt: salt))
                 );
                 ctx.Ack.Iter(_unconfirmedMsgIds.Push);
 
-                Option<TaskCompletionSource<RpcResult>> CaptureFlow(long id) =>
-                    _rpcFlow.TryRemove(id, out var flow) ? Some(flow) : None;
+                TaskCompletionSource<RpcResult>? CaptureFlow(long id) =>
+                    _rpcFlow.TryRemove(id, out var flow) ? flow : null;
 
-                ctx.RpcResults.Iter(res => CaptureFlow(res.Id).Match(
+                ctx.RpcResults.Iter(res => CaptureFlow(res.Id).NMatch(
                     flow => flow.SetResult(res),
                     () => ctx.Logger.LogTrace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
                 ));
@@ -85,14 +83,14 @@ namespace Telega.Rpc {
         */
 
 
-        Arr<long> PopUnconfirmedMsgIds() {
+        IReadOnlyList<long> PopUnconfirmedMsgIds() {
             const int magic = 3;
             var ids = new List<long>(_unconfirmedMsgIds.Count + magic);
             while (_unconfirmedMsgIds.TryPop(out var id)) {
                 ids.Add(id);
             }
 
-            return ids.ToArr();
+            return ids;
         }
 
 
@@ -126,7 +124,7 @@ namespace Telega.Rpc {
                 return (CreateMsg(dto, isContentRelated: true, msgId: singleDtoMsgId), singleDtoMsgId);
             }
 
-            var ackBts = CreateMsg(new MsgsAck(unconfirmedIds.ToArr()), isContentRelated: false);
+            var ackBts = CreateMsg(new MsgsAck(unconfirmedIds), isContentRelated: false);
             var msgId = Session.GetNewMessageId(_session);
             var dtoBts = CreateMsg(dto, isContentRelated: true, msgId: msgId);
 

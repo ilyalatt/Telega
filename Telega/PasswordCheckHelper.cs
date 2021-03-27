@@ -5,7 +5,6 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using BigMath;
-using LanguageExt;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Functions.Auth;
 using Telega.Rpc.Dto.Types;
@@ -222,7 +221,7 @@ namespace Telega {
             );
 
             return new CheckPassword(password: new InputCheckPasswordSrp.DefaultTag(
-                srpId: pwdInfo.SrpId.IfNone(0),
+                srpId: pwdInfo.SrpId ?? 0,
                 a: bigABytes.ToBytesUnsafe(),
                 m1: bigM1.ToBytesUnsafe()
             ));

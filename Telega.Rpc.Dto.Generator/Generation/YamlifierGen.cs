@@ -31,9 +31,6 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             static bool IsTypeRef(Arg x) =>
                 x.Type.Match(typeRef: _ => true, _: () => false);
 
-            static bool IsOptional(Arg x) =>
-                x.Kind.Match(optional: _ => true, _: () => false);
-
             Option<Text> GenNonFlagArgYamlifier(Arg arg) =>
                 arg.Kind.Match(
                     _: () => throw new("WTF"),

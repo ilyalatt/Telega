@@ -1,17 +1,16 @@
 using System;
 using System.Text.RegularExpressions;
-using LanguageExt;
 using Telega.Rpc.Dto.Types;
-using static LanguageExt.Prelude;
+using Telega.Utils;
 
 namespace Telega.Rpc {
     class TgRpcResultUnknownErrorException : TgRpcException {
         public int ErrorCode { get; }
         public string ErrorMessage { get; }
 
-        public TgRpcResultUnknownErrorException(int errorCode, Some<string> errorMessage) : base(
+        public TgRpcResultUnknownErrorException(int errorCode, string errorMessage) : base(
             $"Unknown rpc error ({errorCode}, '{errorMessage}').",
-            None
+            null
         ) {
             ErrorCode = errorCode;
             ErrorMessage = errorMessage;

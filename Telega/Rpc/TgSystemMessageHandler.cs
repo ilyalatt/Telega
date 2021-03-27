@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using LanguageExt;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Utils;
-using static LanguageExt.Prelude;
 
 namespace Telega.Rpc {
     static class TgSystemMessageHandler {
@@ -57,13 +56,13 @@ namespace Telega.Rpc {
             var bodyLength = br.ReadInt32();
             var body = br.ReadBytes(bodyLength);
 
-            return new Message(id, seqNo, body.Apply(BtHelpers.Deserialize(identity)));
+            return new Message(id, seqNo, body.Apply(BtHelpers.Deserialize(x => x)));
         }
 
         static IEnumerable<Message> ReadContainer(BinaryReader br) {
             EnsureTypeNumber(br, MsgContainerTypeNumber);
             var count = br.ReadInt32();
-            return Range(0, count).Map(_ => ReadMsg(br));
+            return Enumerable.Range(0, count).Select(_ => ReadMsg(br));
         }
 
         static BinaryReader ReadGZipPacked(BinaryReader br) {
@@ -126,52 +125,54 @@ namespace Telega.Rpc {
         }
 
 
-        public static Func<Message, Unit> Handle(TgSystemMessageHandlerContext ctx) => message => {
+        public static Action<Message> Handle(TgSystemMessageHandlerContext ctx) => message => {
             var br = message.Body;
             var msgId = message.Id;
             var typeNumber = PeekTypeNumber(br);
 
             switch (typeNumber) {
                 case GZipPackedTypeNumber:
-                    return message.Apply(ReadGZipPacked(br).Apply(Message.WithBody)).Apply(Handle(ctx));
+                    message.Apply(ReadGZipPacked(br).Apply(Message.WithBody)).With(Handle(ctx));
+                    return;
                 case MsgContainerTypeNumber:
-                    return ReadContainer(br).Iter(Handle(ctx));
+                    ReadContainer(br).Iter(Handle(ctx));
+                    return;
 
                 case RpcResultTypeNumber:
                     ctx.Ack.Add(msgId);
                     ctx.RpcResults.Add(HandleRpcResult(br));
-                    return unit;
+                    return;
                 case BadMsgNotification.DefaultTag.TypeNumber:
                     ctx.RpcResults.Add(HandleBadMsgNotification(br));
-                    return unit;
+                    return;
                 case BadMsgNotification.ServerSaltTag.TypeNumber:
                     ctx.RpcResults.Add(HandleBadServerSalt(br, ctx));
-                    return unit;
+                    return;
                 case Pong.TypeNumber:
                     ctx.RpcResults.Add(HandlePong(br));
-                    return unit;
+                    return;
 
                 case NewSession.TypeNumber:
                     ctx.Ack.Add(msgId);
                     HandleNewSessionCreated(br, ctx);
-                    return unit;
+                    return;
 
                 case MsgsAck.TypeNumber:
                     // var msg = br.Apply(MsgsAck.Deserialize);
                     // var ids = msg.MsgIds.Apply(xs => string.Join(", ", xs));
                     // TlTrace.Trace("Ack: " + ids);
-                    return unit;
+                    return;
 
                 case FutureSalts.TypeNumber:
-                    return unit;
+                    return;
 
                 case MsgDetailedInfo.DefaultTag.TypeNumber:
-                    return unit;
+                    return;
 
                 case MsgDetailedInfo.NewTag.TypeNumber:
                     EnsureTypeNumber(br, typeNumber);
                     MsgDetailedInfo.NewTag.DeserializeTag(br).AnswerMsgId.With(ctx.Ack.Add);
-                    return unit;
+                    return;
 
 
                 default:
@@ -185,7 +186,7 @@ namespace Telega.Rpc {
                         () => { ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8")); }
                     );
 
-                    return unit;
+                    return;
             }
         };
     }
