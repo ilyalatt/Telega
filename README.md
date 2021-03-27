@@ -1,25 +1,21 @@
 # Telega
 
-[![NuGet version](https://badge.fury.io/nu/Telega.svg)](https://www.nuget.org/packages/Telega)
+[![NuGet version](https://shields.io/nuget/vpre/Telega)](https://www.nuget.org/packages/Telega)
 
 A simple Telegram MTProto client that keeps up with latest layers.
 Check out [documentation prototype](https://ilyalatt.github.io/Telega/docs).
-You can see the a lot of examples [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Playground/Program.cs).
+You can see the a lot of examples [here](https://github.com/ilyalatt/Telega/tree/master/Telega.Playground).
 
 ## Quick start
 
-* Clone the repository.
-* Run `Telega.Playground`
+* Clone the repository
+* Run `Telega.Playground` (NET 5.0 needs to be installed)
 * Sign in to your account
-* Explore snippets
-
-If you are not familiar with functional programming you can read [LanguageExt introduction](https://github.com/louthy/language-ext/wiki/Thinking-Functionally:-Introduction).
-If you are not familiar with LanguageExt you can read [LanguageExt readme](https://github.com/louthy/language-ext).
-Also you can read my [introduction to functional concepts](https://github.com/ilyalatt/Telega/wiki/Introduction).
+* Explore `Snippets`
 
 ## TLSharp
 
-The reason of Telega existence are TLSharp issues. Here are pros of Telega:
+The reasons of Telega existence are TLSharp issues. Here are pros of Telega:
 
 * Layer 124 generated directly from Telegram Desktop .tl scheme
 * Netstandard 2.0 and 2.1 targets
