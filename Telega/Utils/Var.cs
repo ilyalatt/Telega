@@ -1,31 +1,49 @@
 using System;
+using System.Collections.Generic;
 
 namespace Telega.Utils {
     interface IVarGetter<out T> {
         T Get();
+        IDisposable Subscribe(Action<T> subscription);
     }
 
-    interface IVarSetter<in T> {
-        void Set(T value);
+    interface IVarUpdater<T> {
+        T Update(Func<T, T> mapper);
     }
 
-    sealed class Var<T> : IVarGetter<T>, IVarSetter<T> where T : class {
-        volatile T _value;
-        Var(T value) => _value = value;
+    sealed class Disposable : IDisposable {
+        readonly Action _onDispose;
 
-        public static Var<T> Create(T value) => new(value);
+        public Disposable(Action onDispose) {
+            _onDispose = onDispose;
+        }
+
+        public void Dispose() => _onDispose();
+    }
+
+    sealed class Var<T> : IVarGetter<T>, IVarUpdater<T> {
+        T _value;
+        readonly List<Action<T>> _subscriptions = new();
+
+        public Var(T value) => _value = value;
 
         public T Get() => _value;
-        public void Set(T value) => _value = value;
+        
+        public T Update(Func<T, T> mapper) {
+            lock (this) {
+                _value = mapper(_value);
+                _subscriptions.ForEach(x => x(_value));
+                return _value;
+            }
+        }
+
+        public IDisposable Subscribe(Action<T> subscription) {
+            _subscriptions.Add(subscription);
+            return new Disposable(() => _subscriptions.Remove(subscription));
+        }
     }
 
     static class VarExtensions {
-        public static Var<T> AsVar<T>(this T value) where T : class =>
-            Var<T>.Create(value);
-
-        public static T SetWith<T>(this Var<T> var, Func<T, T> func) where T : class =>
-            var.Get().Apply(func).With(var.Set);
-
         sealed class VarGetterMapping<X, Y> : IVarGetter<Y> {
             readonly IVarGetter<X> _var;
             readonly Func<X, Y> _mapper;
@@ -37,6 +55,9 @@ namespace Telega.Utils {
 
             public Y Get() =>
                 _var.Get().Apply(_mapper);
+
+            public IDisposable Subscribe(Action<Y> subscription) =>
+                _var.Subscribe(x => subscription(_mapper(x)));
         }
 
         public static IVarGetter<Y> Map<X, Y>(this IVarGetter<X> var, Func<X, Y> mapper) =>

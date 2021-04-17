@@ -8,12 +8,13 @@ using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Functions;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
+using Telega.Session;
 using Telega.Utils;
 using static Telega.Utils.BtHelpers;
 
 namespace Telega.Auth {
     record Step3Res(
-        AuthKey AuthKey,
+        TgAuthKey AuthKey,
         int TimeOffset
     );
 
@@ -87,7 +88,7 @@ namespace Telega.Auth {
                 dhGenRetryTag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_retry")
             );
 
-            var authKey = AuthKey.FromGab(gab);
+            var authKey = TgAuthKey.FromGab(gab);
             var newNonceHash = authKey.CalcNewNonceHash(newNonce.ToBytes(true), 1).ToInt128();
             Helpers.Assert(res.Nonce == dh.Nonce, "auth step3: invalid nonce");
             Helpers.Assert(res.ServerNonce == dh.ServerNonce, "auth step3: invalid server nonce");

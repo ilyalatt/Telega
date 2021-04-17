@@ -3,17 +3,17 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Telega.Rpc.Dto;
+using Telega.Session;
 using Telega.Utils;
 
 namespace Telega.Rpc.ServiceTransport {
     class MtProtoCipherTransport : IDisposable {
         readonly TcpTransport _transport;
-        readonly IVarGetter<Session> _session;
+        readonly IVarGetter<TgRpcState> _state;
 
-        public MtProtoCipherTransport(TcpTransport transport, IVarGetter<Session> session) {
+        public MtProtoCipherTransport(TcpTransport transport, IVarGetter<TgRpcState> state) {
             _transport = transport;
-            _session = session;
+            _state = state;
         }
 
         public void Dispose() => _transport.Dispose();
@@ -61,11 +61,10 @@ namespace Telega.Rpc.ServiceTransport {
         }
 
         public async Task Send(byte[] msg) {
-            var session = _session.Get();
-
+            var rpcState = _state.Get();
             var plainText = BtHelpers.UsingMemBinWriter(bw => {
-                bw.Write(session.Salt);
-                bw.Write(session.Id);
+                bw.Write(rpcState!.Salt);
+                bw.Write(rpcState!.Id);
                 bw.Write(msg);
 
                 var bs = bw.BaseStream;
@@ -75,13 +74,13 @@ namespace Telega.Rpc.ServiceTransport {
                 bw.Write(Rnd.NextBytes(padding));
             });
 
-            var authKey = session.AuthKey.Key.ToArrayUnsafe();
+            var authKey = rpcState.AuthKey.Key;
             var msgKey = CalcMsgKey(authKey, plainText, true);
             var aesKey = CalcAesKey(authKey, msgKey, true);
             var cipherText = Aes.EncryptAES(aesKey, plainText);
 
             await BtHelpers.UsingMemBinWriter(bw => {
-                bw.Write(session.AuthKey.KeyId);
+                bw.Write(rpcState.AuthKey.KeyId);
                 bw.Write(msgKey);
                 bw.Write(cipherText);
             }).Apply(_transport.Send).ConfigureAwait(false);
@@ -89,11 +88,12 @@ namespace Telega.Rpc.ServiceTransport {
 
 
         async Task<byte[]> ReceivePlainText() {
+            var rpcState = _state.Get();
             var body = await _transport.Receive().ConfigureAwait(false);
             return body.Apply(BtHelpers.Deserialize(br => {
                 var authKeyId = br.ReadUInt64(); // TODO: check auth key id
                 var msgKey = br.ReadBytes(16); // TODO: check msg_key correctness
-                var keyData = CalcAesKey(_session.Get().AuthKey.Key.ToArrayUnsafe(), msgKey, false);
+                var keyData = CalcAesKey(rpcState.AuthKey.Key, msgKey, false);
 
                 var bs = br.BaseStream;
                 var cipherTextLen = (int) (bs.Length - bs.Position);

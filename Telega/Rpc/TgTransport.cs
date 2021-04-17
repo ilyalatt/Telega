@@ -6,11 +6,13 @@ using Microsoft.Extensions.Logging;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
+using Telega.Session;
 using Telega.Utils;
 
 namespace Telega.Rpc {
     class TgTransport : IDisposable {
-        readonly Var<Session> _session;
+        readonly ILogger _logger;
+        readonly Var<TgRpcState> _state;
         readonly MtProtoCipherTransport _transport;
         readonly TaskQueue _rpcQueue = new();
         readonly ConcurrentStack<long> _unconfirmedMsgIds = new(); // such a bad design
@@ -20,15 +22,15 @@ namespace Telega.Rpc {
 
         public CustomObservable<UpdatesType> Updates { get; } = new();
 
-        async Task ReceiveLoopImpl(ILogger logger) {
+        async Task ReceiveLoopImpl() {
             while (true) {
                 var msgBody = await _transport.Receive().ConfigureAwait(false);
                 var msg = TgSystemMessageHandler.ReadMsg(msgBody);
-                var ctx = new TgSystemMessageHandlerContext(logger);
+                var ctx = new TgSystemMessageHandlerContext(_logger);
                 msg.With(TgSystemMessageHandler.Handle(ctx));
 
                 ctx.NewSalt.NIter(salt =>
-                    _session.SetWith(x => x.With(salt: salt))
+                    _state.Update(x => x with { Salt = salt })
                 );
                 ctx.Ack.Iter(_unconfirmedMsgIds.Push);
 
@@ -44,19 +46,20 @@ namespace Telega.Rpc {
             }
         }
 
-        async Task ReceiveLoop(ILogger logger) {
+        async Task ReceiveLoop() {
             //            try //            {
-            await ReceiveLoopImpl(logger).ConfigureAwait(false);
+            await ReceiveLoopImpl().ConfigureAwait(false);
             //            }
             //            catch (TgTransportException e) //            {
             //                // Updates.OnError(e);
             //            }
         }
 
-        public TgTransport(ILogger logger, MtProtoCipherTransport transport, Var<Session> session) {
+        public TgTransport(ILogger logger, MtProtoCipherTransport transport, Var<TgRpcState> state) {
+            _logger = logger;
             _transport = transport;
-            _session = session;
-            _receiveLoopTask = Task.Run(() => ReceiveLoop(logger));
+            _state = state;
+            _receiveLoopTask = Task.Run(ReceiveLoop);
         }
 
         public void Dispose() => _transport.Dispose();
@@ -95,16 +98,16 @@ namespace Telega.Rpc {
 
 
         int GetSeqNum(bool inc) {
-            var seqNum = _session.Get().Sequence * 2 + (inc ? 1 : 0);
+            var seqNum = _state.Get().Sequence * 2 + (inc ? 1 : 0);
             if (inc) {
-                _session.SetWith(x => x.With(sequence: x.Sequence + 1));
+                _state.Update(x => x with { Sequence = x.Sequence + 1 });
             }
 
             return seqNum;
         }
 
         byte[] CreateMsg(byte[] msg, bool isContentRelated, long? msgId = null) => BtHelpers.UsingMemBinWriter(bw => {
-            bw.Write(msgId ?? Session.GetNewMessageId(_session));
+            bw.Write(msgId ?? _state.Update(TgRpcState.NextMessageId).LastMessageId);
             bw.Write(GetSeqNum(isContentRelated));
             bw.Write(msg.Length);
             bw.Write(msg);
@@ -119,13 +122,12 @@ namespace Telega.Rpc {
         (byte[], long) WithAck(ITgSerializable dto) {
             var unconfirmedIds = PopUnconfirmedMsgIds();
             var shouldNotAck = unconfirmedIds.Count == 0;
+            var msgId = _state.Update(TgRpcState.NextMessageId).LastMessageId;
             if (shouldNotAck) {
-                var singleDtoMsgId = Session.GetNewMessageId(_session);
-                return (CreateMsg(dto, isContentRelated: true, msgId: singleDtoMsgId), singleDtoMsgId);
+                return (CreateMsg(dto, isContentRelated: true, msgId: msgId), msgId);
             }
 
             var ackBts = CreateMsg(new MsgsAck(unconfirmedIds), isContentRelated: false);
-            var msgId = Session.GetNewMessageId(_session);
             var dtoBts = CreateMsg(dto, isContentRelated: true, msgId: msgId);
 
             return BtHelpers.UsingMemBinWriter(bw => {

@@ -41,6 +41,13 @@ namespace Telega.Rpc.Dto.Generator {
             var files = Gen.GenTypes(scheme).Concat(Gen.GenFunctions(scheme))
                 .Concat(new[] { Gen.GenSchemeInfo(scheme) });
 
+            // var ctx = FileSyncContext.Extract("/home/ilyalatt/dev/Telega/Telega");
+            // FileSync.Clear(ctx);
+            // foreach (var file in files.AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount)) {
+            //     FileSync.Sync(ctx, file);
+            // }
+            //
+            // return;
 
             if (contextOption == null) {
                 return;

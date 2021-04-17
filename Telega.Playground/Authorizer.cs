@@ -6,10 +6,6 @@ using Telega.Utils;
 
 namespace Telega.Playground {
     public static class Authorizer {
-        // public test api credentials
-        public const int ApiId = 17349;
-        const string ApiHash = "344583e45741c457fe1862106095a5eb";
-        
         static T ReadString<T>(
             Func<string, T?> mapper
         ) {
@@ -54,7 +50,7 @@ namespace Telega.Playground {
             );
             
             Console.WriteLine("Requesting login code.");
-            var codeHash = await tg.Auth.SendCode(ApiHash, phone);
+            var codeHash = await tg.Auth.SendCode(phone);
 
             while (true) {
                 try {
@@ -87,7 +83,7 @@ namespace Telega.Playground {
         }
 
         public static async Task Authorize(TelegramClient tg) {
-            if (tg.Auth.IsAuthorized) {
+            if (await tg.Auth.IsAuthorized()) {
                 Console.WriteLine("You're already authorized.");
                 return;
             }

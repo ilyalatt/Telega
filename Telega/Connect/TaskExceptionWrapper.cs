@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Telega {
-    static class TaskWrapper {
+namespace Telega.Connect {
+    static class TaskExceptionWrapper {
         static bool ShouldWrapExc(Exception exc) =>
             !(exc is TgException) && !(exc is OutOfMemoryException);
 

@@ -1,42 +1,43 @@
 using System;
 using System.Security;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Account;
 using Telega.Rpc.Dto.Functions.Auth;
+using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Account;
 
 namespace Telega.Client {
     public sealed class TelegramClientAuth {
-        readonly ILogger _logger;
         readonly TgBellhop _tg;
 
         internal TelegramClientAuth(
-            ILogger logger,
             TgBellhop tg
         ) {
-            _logger = logger;
             _tg = tg;
         }
 
+        public async Task<bool> IsAuthorized() {
+            if (_tg.Session?.RpcState == null) {
+                return false;
+            }
 
-        User SetAuthorized(User user) {
-            _logger.LogTrace("Authorized: " + user);
-            _tg.SetSession(x => x.With(isAuthorized: true));
-            return user;
+            try {
+                await _tg.Call(new GetFullUser(new InputUser.SelfTag())).ConfigureAwait(false);
+                return true;
+            }
+            catch (TgNotAuthenticatedException) {
+                return false;
+            }
         }
 
-        public bool IsAuthorized =>
-            _tg.Session.IsAuthorized;
-
-
-        public async Task<string> SendCode(string apiHash, string phoneNumber) {
+        public async Task<string> SendCode(string phoneNumber) {
+            var (id, hash) = _tg.Session?.RpcConfig?.Credentials!;
             var res = await _tg.Call(new SendCode(
                 phoneNumber: phoneNumber,
-                apiId: _tg.Session.ApiId,
-                apiHash: apiHash,
+                apiId: id,
+                apiHash: hash,
                 new CodeSettings(
                     allowFlashcall: false,
                     currentNumber: false,
@@ -46,20 +47,19 @@ namespace Telega.Client {
             return res.PhoneCodeHash;
         }
 
-        public async Task<User> SignIn(string phoneNumber, string phoneCodeHash, string code) {
+        public async Task<User.DefaultTag> SignIn(string phoneNumber, string phoneCodeHash, string code) {
             var res = await _tg.Call(new SignIn(
                 phoneNumber: phoneNumber,
                 phoneCodeHash: phoneCodeHash,
                 phoneCode: code
             )).ConfigureAwait(false);
-
-            return SetAuthorized(res.Default!.User);
+            return res.Default!.User.Default!;
         }
 
         public async Task<Password> GetPasswordInfo() =>
             await _tg.Call(new GetPassword()).ConfigureAwait(false);
 
-        public async Task<User> CheckPassword(SecureString password) {
+        public async Task<User.DefaultTag> CheckPassword(SecureString password) {
             var passwordInfo = await GetPasswordInfo().ConfigureAwait(false);
             if (!passwordInfo.HasPassword) {
                 throw new ArgumentException("the account does not have a password", nameof(passwordInfo));
@@ -71,11 +71,11 @@ namespace Telega.Client {
                .Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow
                ?? throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo));
 
-            var request = await TaskWrapper.Wrap(() =>
+            var request = await TaskExceptionWrapper.Wrap(() =>
                 PasswordCheckHelper.GenRequest(passwordInfo, algo, password)
             ).ConfigureAwait(false);
             var res = await _tg.Call(request).ConfigureAwait(false);
-            return SetAuthorized(res.Default!.User);
+            return res.Default!.User.Default!;
         }
 
         public async Task<User> CheckPassword(string password) {
@@ -86,7 +86,7 @@ namespace Telega.Client {
             return await CheckPassword(ss).ConfigureAwait(false);
         }
 
-        public async Task<User> SignUp(
+        public async Task<User.DefaultTag> SignUp(
             string phoneNumber,
             string phoneCodeHash,
             string firstName,
@@ -98,7 +98,11 @@ namespace Telega.Client {
                 firstName: firstName,
                 lastName: lastName
             )).ConfigureAwait(false);
-            return SetAuthorized(res.Default!.User);
+            return res.Default!.User.Default!;
+        }
+
+        public async Task SignOut() {
+            await _tg.Call(new LogOut()).ConfigureAwait(false);
         }
     }
 }
