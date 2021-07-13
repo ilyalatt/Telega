@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Telega.Connect;
@@ -48,10 +49,9 @@ namespace Telega.Client {
             var md5 = isBigFileUpload ? null : MD5.Create();
 
             var totalReceived = 0;
-            var chunkIdx = 0;
             var chunksCount = 1 + (fileLength - 1) / ChunkSize;
 
-            while (chunkIdx < chunksCount) {
+            for (var chunkIdx = 0; chunkIdx < chunksCount; chunkIdx++) {
                 var chunkSize = Math.Min(ChunkSize, fileLength - totalReceived);
                 await ReadToBuffer(buffer, 0, chunkSize, stream).ConfigureAwait(false);
                 totalReceived += chunkSize;
@@ -60,13 +60,13 @@ namespace Telega.Client {
                 var res = await tg.Call(isBigFileUpload
                     ? (ITgFunc<bool>) new SaveBigFilePart(
                         fileId: fileId,
-                        filePart: chunkIdx++,
+                        filePart: chunkIdx,
                         bytes: buffer.Take(chunkSize).ToArray().ToBytesUnsafe(),
                         fileTotalParts: chunksCount
                     )
                     : new SaveFilePart(
                         fileId: fileId,
-                        filePart: chunkIdx++,
+                        filePart: chunkIdx,
                         bytes: buffer.Take(chunkSize).ToArray().ToBytesUnsafe()
                     )
                 ).ConfigureAwait(false);

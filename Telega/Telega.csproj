@@ -21,7 +21,7 @@
     <Authors>ilyalatt</Authors>
 
     <VersionPrefix>0.5.0</VersionPrefix>
-    <VersionSuffix>preview001</VersionSuffix>
+    <VersionSuffix>preview003</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
