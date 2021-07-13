@@ -61,13 +61,13 @@ namespace Telega.Client {
                     ? (ITgFunc<bool>) new SaveBigFilePart(
                         fileId: fileId,
                         filePart: chunkIdx++,
-                        bytes: buffer.ToBytesUnsafe(),
+                        bytes: buffer.Take(chunkSize).ToArray().ToBytesUnsafe(),
                         fileTotalParts: chunksCount
                     )
                     : new SaveFilePart(
                         fileId: fileId,
                         filePart: chunkIdx++,
-                        bytes: buffer.ToBytesUnsafe()
+                        bytes: buffer.Take(chunkSize).ToArray().ToBytesUnsafe()
                     )
                 ).ConfigureAwait(false);
                 Helpers.Assert(res, "chunk send failed");
