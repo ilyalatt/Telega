@@ -13,7 +13,22 @@ using Telega.Rpc.Dto.Generator.TgScheme;
 namespace Telega.Rpc.Dto.Generator {
     [Generator]
     public sealed class Generator : ISourceGenerator {
-        // https://github.com/telegramdesktop/tdesktop/commits/dev/Telegram/Resources
+        // This generator is called when you try to build Telega project
+        // It is a [source generator](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/)
+        // It is called each time some file in Telega changes
+        // If you change the generator code but there are no Telega changes and you try to rebuild Telega usually it WILL NOT run the update generator
+        // Because of that usually you need to change some Telega file (you can just insert a new line for example)
+        
+        // To update API layer you need to change `Layer` and `CommitHash` constants below
+        // 1. Open https://github.com/telegramdesktop/tdesktop/commits/dev/Telegram/Resources
+        // 2. Find the latest commit that looks like `Update API scheme on layer 135`
+        // 3. Replace `Layer` and `CommitHash` with the found commit hash
+        // 4. Make some change in `Telega` project to make a trigger for the generator
+        // 5. Run `dotnet build Telega`
+        
+        // Sometimes you want to see the generated code
+        // If you use Rider then you can press Ctrl and click on the needed class
+        // Also you can debug the generator via `Telega.Rpc.Dto.Generator.Debug`
 
         static readonly int Layer = 135;
         static readonly string CommitHash = "b634ebab78d3e0322faa9927bdcc47f0c2c1e1b9";
@@ -23,7 +38,7 @@ namespace Telega.Rpc.Dto.Generator {
         static string[] DownloadLatestTgScheme() =>
             SchemeUrls.AsParallel().Select(x => new WebClient().DownloadString(x)).ToArray();
 
-        // TODO: Tru to use caching interface when it become public
+        // TODO: Try to use caching interface when it become public
         // https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md#participate-in-the-ide-experience
         public static void Sync(GeneratorExecutionContext? contextOption = null) {
             var rawScheme = DownloadLatestTgScheme();
