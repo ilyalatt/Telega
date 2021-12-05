@@ -185,7 +185,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                     Line("return typeNumber switch {"),
                     IndentedScope(1,
                         typeTags.Map(x => Line($"{x.Name}.TypeNumber => ({typeName}) {x.Name}.DeserializeTag(br),")).Scope(),
-                        Line("_ => default,")
+                        Line($"_ => default({typeName}?),")
                     ),
                     Line("};")
                 ),
@@ -312,7 +312,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                 Indent(1, Line(Concat(
                     "typeNumber == TypeNumber",
                     " ? DeserializeTag(br)",
-                    " : default;"
+                    $" : default({typeName}?);"
                 )))
             );
 

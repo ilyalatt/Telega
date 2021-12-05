@@ -11,7 +11,7 @@ namespace Telega.Utils {
                 }
             }
 
-            return default;
+            return default(T?);
         }
 
         public static IEnumerable<T> SkipLast<T>(this IReadOnlyList<T> seq, int count) {

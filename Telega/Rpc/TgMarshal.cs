@@ -170,14 +170,14 @@ namespace Telega.Rpc {
             int mask,
             int bit,
             Func<BinaryReader, T> deserializer
-        ) where T : struct => br => (mask & (1 << bit)) == 0 ? default : deserializer(br);
+        ) where T : struct => br => (mask & (1 << bit)) == 0 ? default(T?) : deserializer(br);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Func<BinaryReader, T?> ReadOptionClass<T>(
             int mask,
             int bit,
             Func<BinaryReader, T> deserializer
-        ) where T : class => br => (mask & (1 << bit)) == 0 ? default : deserializer(br);
+        ) where T : class => br => (mask & (1 << bit)) == 0 ? default(T?) : deserializer(br);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Func<BinaryReader, bool> ReadOptionStruct(
@@ -201,7 +201,7 @@ namespace Telega.Rpc {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteSerializable<T>(BinaryWriter bw, T value) where T : ITgSerializable =>
             value.Serialize(bw);
-
+    
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Read<T>(
