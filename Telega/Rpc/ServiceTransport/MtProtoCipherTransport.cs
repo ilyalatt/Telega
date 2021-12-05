@@ -70,8 +70,7 @@ namespace Telega.Rpc.ServiceTransport {
 
                 var bs = bw.BaseStream;
                 var requiredPadding = (16 - (int) bs.Position % 16).Apply(x => x == 16 ? 0 : x);
-                var randomPadding = (Rnd.NextInt32() & 15) * 16;
-                var padding = 16 + requiredPadding + randomPadding;
+                var padding = 16 + requiredPadding;
                 bw.Write(Rnd.NextBytes(padding));
             });
 
