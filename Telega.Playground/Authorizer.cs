@@ -7,8 +7,8 @@ using Telega.Utils;
 namespace Telega.Playground {
     public static class Authorizer {
         // public test api credentials
-        public const int ApiId = 17349;
-        const string ApiHash = "344583e45741c457fe1862106095a5eb";
+        public const int ApiId = 611335;
+        const string ApiHash = "d524b414d21f4d37f08684c1df41ac9c";
         
         static T ReadString<T>(
             Func<string, T?> mapper
