@@ -9,7 +9,7 @@ You can see the a lot of examples [here](https://github.com/ilyalatt/Telega/tree
 ## Quick start
 
 * Clone the repository
-* Run `Telega.Playground` (NET 5.0 needs to be installed)
+* Run `Telega.Playground` (NET 6 is needed)
 * Sign in to your account
 * Explore `Snippets`
 
