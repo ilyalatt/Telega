@@ -29,6 +29,9 @@ namespace Telega.Rpc.Dto.Generator {
         // Sometimes you want to see the generated code
         // If you use Rider then you can press Ctrl and click on the needed class
         // Also you can debug the generator via `Telega.Rpc.Dto.Generator.Debug`
+        
+        // TODO: Transform into an incremental generator
+        // https://andrewlock.net/exploring-dotnet-6-part-9-source-generator-updates-incremental-generators/
 
         static readonly int Layer = 135;
         static readonly string CommitHash = "b634ebab78d3e0322faa9927bdcc47f0c2c1e1b9";
@@ -38,8 +41,6 @@ namespace Telega.Rpc.Dto.Generator {
         static string[] DownloadLatestTgScheme() =>
             SchemeUrls.AsParallel().Select(x => new WebClient().DownloadString(x)).ToArray();
 
-        // TODO: Try to use caching interface when it become public
-        // https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md#participate-in-the-ide-experience
         public static void Sync(GeneratorExecutionContext? contextOption = null) {
             var rawScheme = DownloadLatestTgScheme();
             var scheme = rawScheme
