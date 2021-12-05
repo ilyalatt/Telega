@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Client;
 using Telega.Rpc.Dto.Types;
-using Telega.Utils;
 
 namespace Telega.Playground.Snippets {
     static class PrintFirstChannelTop100Messages {
@@ -21,7 +21,7 @@ namespace Telega.Playground.Snippets {
             
             var top100Messages = await tg.Messages.GetHistory(channelPeer, limit: 100);
             Console.WriteLine("Here are top 100 messages from the first channel:");
-            top100Messages.Channel!.Messages.NIter(msg => {
+            top100Messages.Channel!.Messages.NForEach(msg => {
                 Console.WriteLine(msg);
                 Console.WriteLine();
             });

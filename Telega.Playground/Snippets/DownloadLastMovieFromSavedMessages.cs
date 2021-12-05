@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Client;
 using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Functions.Users;
 using Telega.Rpc.Dto.Types;
-using Telega.Utils;
 
 namespace Telega.Playground.Snippets {
     static class DownloadLastMovieFromSavedMessages {

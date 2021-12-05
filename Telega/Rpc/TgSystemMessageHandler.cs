@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using NullExtensions;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Utils;
@@ -178,12 +179,12 @@ namespace Telega.Rpc {
                 default:
                     EnsureTypeNumber(br, typeNumber);
 
-                    UpdatesType.TryDeserialize(typeNumber, br).NMatch(
-                        updates => {
+                    UpdatesType.TryDeserialize(typeNumber, br).NSwitch(
+                        some: updates => {
                             ctx.Ack.Add(msgId);
                             ctx.Updates.Add(updates);
                         },
-                        () => { ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8")); }
+                        none: () => { ctx.Logger.LogTrace("TgSystemMessageHandler: Unhandled msg " + typeNumber.ToString("x8")); }
                     );
 
                     return;

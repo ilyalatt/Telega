@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using BigMath;
+using NullExtensions;
 using Telega.Utils;
 
 namespace Telega.Rpc.Dto {
@@ -135,7 +136,7 @@ namespace Telega.Rpc.Dto {
             Stringifier<T> stringify,
             T? v
         ) where T : struct => ctx => {
-            v.NMatch(
+            v.NSwitch(
                 some: x => {
                     Write(ctx, stringify(x));
                 },
@@ -149,7 +150,7 @@ namespace Telega.Rpc.Dto {
             Stringifier<T> stringifier,
             T? v
         ) where T : class => ctx => {
-            v.NMatch(
+            v.NSwitch(
                 some: x => {
                     Write(ctx, stringifier(x));
                 },

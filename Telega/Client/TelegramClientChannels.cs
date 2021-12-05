@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Channels;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Messages;
-using Telega.Utils;
 
 namespace Telega.Client {
     public sealed class TelegramClientChannels {
@@ -46,7 +47,7 @@ namespace Telega.Client {
             var messagesResponse = await GetMessages(channel, messageIds).ConfigureAwait(false);
             var messages = messagesResponse.Channel?.Messages.NChoose(x => x.Default).ToList();
             if (messages == null) {
-                return new Message.DefaultTag[0];
+                return Array.Empty<Message.DefaultTag>();
             }
 
             var mainMessage = messages.FirstOrDefault(x => x.Id == messageId);

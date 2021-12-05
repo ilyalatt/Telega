@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Client;
 using Telega.Rpc.Dto.Types;
-using Telega.Utils;
 
 namespace Telega.Playground.Snippets {
     static class DownloadFirstChannelPicture {

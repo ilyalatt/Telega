@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NullExtensions;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.ServiceTransport;
@@ -27,7 +29,7 @@ namespace Telega.Rpc {
                 var ctx = new TgSystemMessageHandlerContext(logger);
                 msg.With(TgSystemMessageHandler.Handle(ctx));
 
-                ctx.NewSalt.NIter(salt =>
+                ctx.NewSalt.NForEach(salt =>
                     _session.SetWith(x => x.With(salt: salt))
                 );
                 ctx.Ack.Iter(_unconfirmedMsgIds.Push);
@@ -35,9 +37,9 @@ namespace Telega.Rpc {
                 TaskCompletionSource<RpcResult>? CaptureFlow(long id) =>
                     _rpcFlow.TryRemove(id, out var flow) ? flow : null;
 
-                ctx.RpcResults.Iter(res => CaptureFlow(res.Id).NMatch(
-                    flow => flow.SetResult(res),
-                    () => ctx.Logger.LogTrace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
+                ctx.RpcResults.Iter(res => CaptureFlow(res.Id).NSwitch(
+                    some: flow => flow.SetResult(res),
+                    none: () => ctx.Logger.LogTrace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
                 ));
 
                 ctx.Updates.Iter(Updates.OnNext);

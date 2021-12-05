@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Telega.Utils;
+using NullExtensions;
 
 namespace Telega.Rpc.Dto {
     static class OptionCmp {
@@ -41,9 +41,9 @@ namespace Telega.Rpc.Dto {
             new((value.HasValue, value.GetValueOrDefault()));
 
         public static Wrapper<ListCmp.Wrapper<T>> WrapListStruct<T>(IReadOnlyList<T>? value) where T : struct, IEquatable<T>, IComparable<T> =>
-            Wrap(value.NMap(ListCmp.Wrap));
+            Wrap(value.NSelect(ListCmp.Wrap));
         
         public static Wrapper<ListCmp.Wrapper<T>> WrapListClass<T>(IReadOnlyList<T>? value) where T : class, IEquatable<T>, IComparable<T> =>
-            Wrap(value.NMap(ListCmp.Wrap));
+            Wrap(value.NSelect(ListCmp.Wrap));
     }
 }

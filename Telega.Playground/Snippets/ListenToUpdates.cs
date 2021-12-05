@@ -1,8 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Client;
-using Telega.Utils;
+using Telega.Rpc.Dto.Functions;
 
 namespace Telega.Playground.Snippets {
     static class ListenToUpdates {
@@ -14,34 +15,15 @@ namespace Telega.Playground.Snippets {
                         updateShortMessageTag: x => "updateShortMessageTag: " + x.Message,
                         updateShortChatMessageTag: x => "updateShortChatMessageTag: " + x.Message,
                         updateShortTag: update => update.Update.Match(
-                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message),
-                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message),
+                            newMessageTag: msg => msg.Message.Default.NSelect(x => "newMessageTag: " + x.Message),
+                            editMessageTag: msg => msg.Message.Default.NSelect(x => "editMessageTag: " + x.Message),
                             editChannelMessageTag: msg =>
-                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message),
+                                msg.Message.Default.NSelect(x => "editChannelMessageTag: " + x.Message),
                             _: () => null
                         ),
                         _: () => null
                     );
-                    messageText.NIter(Console.WriteLine);
-                },
-                onError: Console.WriteLine
-            );
-
-            tg.Updates.Stream.Subscribe(
-                onNext: updatesType => {
-                    var messageText = updatesType.Match(
-                        updateShortMessageTag: x => "updateShortMessageTag: " + x.Message,
-                        updateShortChatMessageTag: x => "updateShortChatMessageTag: " + x.Message,
-                        updateShortTag: update => update.Update.Match(
-                            newMessageTag: msg => msg.Message.Default.NMap(x => "newMessageTag: " + x.Message),
-                            editMessageTag: msg => msg.Message.Default.NMap(x => "editMessageTag: " + x.Message),
-                            editChannelMessageTag: msg =>
-                                msg.Message.Default.NMap(x => "editChannelMessageTag: " + x.Message),
-                            _: () => null
-                        ),
-                        _: () => null
-                    );
-                    messageText.NIter(Console.WriteLine);
+                    messageText.NForEach(Console.WriteLine);
                 },
                 onError: Console.WriteLine
             );

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Messages;
 using Telega.Rpc.Dto.Types;

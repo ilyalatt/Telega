@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using BigMath;
 using BigMath.Utils;
+using NullExtensions;
 using Telega.Rpc.Dto;
 using Telega.Utils;
 
@@ -221,13 +222,13 @@ namespace Telega.Rpc {
             T? option,
             BinaryWriter bw,
             Action<BinaryWriter, T> serializer
-        ) where T : struct => option.NIter(x => serializer(bw, x));
+        ) where T : struct => option.NForEach(x => serializer(bw, x));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteOption<T>(
             T? option,
             BinaryWriter bw,
             Action<BinaryWriter, T> serializer
-        ) where T : class => option.NIter(x => serializer(bw, x));
+        ) where T : class => option.NForEach(x => serializer(bw, x));
     }
 }

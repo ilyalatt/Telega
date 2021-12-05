@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NullExtensions;
 using Telega.Connect;
 using Telega.Rpc.Dto.Functions.Contacts;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Contacts;
-using Telega.Utils;
 
 namespace Telega.Client {
     public sealed class TelegramClientContacts {
