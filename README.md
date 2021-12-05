@@ -17,7 +17,7 @@ You can see the a lot of examples [here](https://github.com/ilyalatt/Telega/tree
 
 The reasons of Telega existence are TLSharp issues. Here are pros of Telega:
 
-* Layer 124 generated directly from Telegram Desktop .tl scheme
+* Layer 135 generated directly from Telegram Desktop .tl scheme
 * Netstandard 2.0 and 2.1 targets
 * Lack of reflection at all (even in deserialization)
 * RPC backround receive (vs pull after sending in TLSharp)
@@ -29,7 +29,7 @@ The reasons of Telega existence are TLSharp issues. Here are pros of Telega:
 
 ## Status
 
-Telega is not actively developed. But I support it my free time. Feel free to open issues :)
+Telega is not actively developed. I support it in my free time. Feel free to open issues :)
 
 ## Versioning
 

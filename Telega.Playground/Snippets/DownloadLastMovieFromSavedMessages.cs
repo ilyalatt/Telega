@@ -42,7 +42,7 @@ namespace Telega.Playground.Snippets {
 
         public static async Task Run(TelegramClient tg) {
             var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
-            var userInfo = fullUserInfo.User.Default!;
+            var userInfo = fullUserInfo.Users.Single().Default!;
 
             var chatPeer = (InputPeer) new InputPeer.UserTag(
                 userId: userInfo.Id,

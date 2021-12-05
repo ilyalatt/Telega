@@ -40,7 +40,9 @@ namespace Telega.Client {
                 new CodeSettings(
                     allowFlashcall: false,
                     currentNumber: false,
-                    allowAppHash: false
+                    allowAppHash: false,
+                    allowMissedCall: false,
+                    logoutTokens: null
                 )
             )).ConfigureAwait(false);
             return res.PhoneCodeHash;

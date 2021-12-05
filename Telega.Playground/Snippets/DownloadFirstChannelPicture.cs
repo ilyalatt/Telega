@@ -16,13 +16,11 @@ namespace Telega.Playground.Snippets {
             var firstChannel = channels.FirstOrDefault() ?? throw new Exception("A channel is not found.");
             var photo = firstChannel.Photo
                 .Default ?? throw new Exception("The first channel does not have a photo.");
-            var bigPhotoFile = photo.PhotoBig;
 
             var photoLoc = new InputFileLocation.PeerPhotoTag(
                 peer: new InputPeer.ChannelTag(firstChannel.Id, firstChannel.AccessHash!.Value),
-                volumeId: bigPhotoFile.VolumeId,
-                localId: bigPhotoFile.LocalId,
-                big: true
+                big: true,
+                photoId: photo.PhotoId
             );
             var fileType = await tg.Upload.GetFileType(photoLoc);
             var fileTypeExt = fileType.Match(

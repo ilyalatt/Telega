@@ -15,8 +15,8 @@ namespace Telega.Rpc.Dto.Generator {
     public sealed class Generator : ISourceGenerator {
         // https://github.com/telegramdesktop/tdesktop/commits/dev/Telegram/Resources
 
-        static readonly int Layer = 124;
-        static readonly string CommitHash = "1fc24398a03818a8fa228e9c4dba0966b30055bd";
+        static readonly int Layer = 135;
+        static readonly string CommitHash = "b634ebab78d3e0322faa9927bdcc47f0c2c1e1b9";
         static readonly string RepoPath = $"https://raw.githubusercontent.com/telegramdesktop/tdesktop/{CommitHash}/Telegram/Resources/tl";
         static readonly string[] SchemeUrls = { $"{RepoPath}/api.tl", $"{RepoPath}/mtproto.tl" };
 
