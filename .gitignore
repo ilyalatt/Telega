@@ -1,13 +1,12 @@
-# Build artefacts
+# Build
 bin
 obj
 
-# VS
+# IDE
 .vs
 *.user
-
-# Rider
 .idea
+.ionide
 
 # macOS
 .DS_Store
@@ -21,4 +20,3 @@ Telega.Playground/*.dat
 /build
 .docusaurus
 .cache-loader
-
