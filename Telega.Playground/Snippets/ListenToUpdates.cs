@@ -1,4 +1,5 @@
 using System;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NullExtensions;
@@ -7,9 +8,19 @@ using Telega.Rpc.Dto.Functions;
 
 namespace Telega.Playground.Snippets {
     static class ListenToUpdates {
+        // pings each 10 seconds and ignores exceptions
+        // tg.Call tries to reconnect if the connection is broken
+        // so this construction should keep TelegramClient alive
+        static IDisposable KeepAlive(TelegramClient tg) => Observable
+            .Timer(dueTime: TimeSpan.Zero, period: TimeSpan.FromSeconds(10))
+            .Select(_ => Observable.FromAsync(() => tg.Call(new Ping(pingId: 0))).Materialize())
+            .Concat()
+            .Subscribe();
+        
         public static async Task Run(TelegramClient tg) {
-            Console.WriteLine("Listening to updates until exit.");
-            tg.Updates.Stream.Subscribe(
+            Console.WriteLine("Listening to updates until exit");
+            using var _keepAliveSub = KeepAlive(tg);
+            using var _updateSub = tg.Updates.Stream.Subscribe(
                 onNext: updatesType => {
                     var messageText = updatesType.Match(
                         updateShortMessageTag: x => "updateShortMessageTag: " + x.Message,
@@ -27,7 +38,6 @@ namespace Telega.Playground.Snippets {
                 },
                 onError: Console.WriteLine
             );
-
             await Task.Delay(Timeout.Infinite);
         }
     }

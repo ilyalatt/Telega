@@ -1,8 +1,10 @@
 using System;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Telega.CallMiddleware;
-using Telega.Rpc;
 using Telega.Rpc.Dto;
 using Telega.Rpc.Dto.Types;
 using Telega.Utils;
@@ -11,7 +13,8 @@ namespace Telega.Connect {
     sealed class TgBellhop {
         public TgConnectionPool ConnectionPool { get; }
         public Var<TgConnection> CurrentConnection { get; }
-        public CustomObservable<UpdatesType> Updates { get; } = new();
+        public Subject<UpdatesType> Updates { get; } = new();
+        public Subject<Exception> Exceptions { get; } = new();
 
         public IVarGetter<Session> SessionVar =>
             CurrentConnection.Bind(x => x.Session);
@@ -23,11 +26,16 @@ namespace Telega.Connect {
             CurrentConnection.Get().Session.SetWith(func);
 
         void MirrorUpdates(TgConnection conn) {
-            conn.Transport.Transport.Updates.Subscribe(
-                onNext: Updates.OnNext,
-                onError: Updates.OnError,
-                onCompleted: Updates.OnCompleted
-            );
+            conn.Transport.Transport.Updates.Materialize().Subscribe(x => {
+                switch (x.Kind) {
+                    case NotificationKind.OnNext:
+                        Updates.OnNext(x.Value);
+                        break;
+                    case NotificationKind.OnError:
+                        Exceptions.OnNext(x.Exception!);
+                        break;
+                }
+            });
         }
 
         async Task<TgConnection> ChangeConn(Func<TgConnection, Task<TgConnection>> f) {

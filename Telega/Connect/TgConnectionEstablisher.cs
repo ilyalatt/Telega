@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Telega.Auth;
@@ -13,7 +14,7 @@ using Telega.Utils;
 
 namespace Telega.Connect {
     static class TgConnectionEstablisher {
-        static async Task<System.Net.Sockets.TcpClient> CreateTcpClient(
+        static async Task<TcpClient> CreateTcpClient(
             IPEndPoint endpoint,
             TcpClientConnectionHandler? connHandler = null
         ) {
@@ -21,8 +22,14 @@ namespace Telega.Connect {
                 return await connHandler(endpoint).ConfigureAwait(false);
             }
 
-            var res = new System.Net.Sockets.TcpClient(endpoint.AddressFamily);
-            await res.ConnectAsync(endpoint.Address, endpoint.Port).ConfigureAwait(false);
+            var res = new TcpClient(endpoint.AddressFamily);
+            try {
+                await res.ConnectAsync(endpoint.Address, endpoint.Port).ConfigureAwait(false);
+            }
+            catch (SocketException) {
+                // TODO
+                throw new TgBrokenConnectionException();
+            }
             return res;
         }
 

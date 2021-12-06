@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reactive.Subjects;
@@ -20,7 +20,7 @@ namespace Telega.Rpc {
         readonly Task _receiveLoopTask;
         readonly ConcurrentDictionary<long, TaskCompletionSource<RpcResult>> _rpcFlow = new();
 
-        public CustomObservable<UpdatesType> Updates { get; } = new();
+        public Subject<UpdatesType> Updates { get; } = new();
 
         async Task ReceiveLoopImpl(ILogger logger) {
             while (true) {
@@ -47,12 +47,12 @@ namespace Telega.Rpc {
         }
 
         async Task ReceiveLoop(ILogger logger) {
-            //            try //            {
-            await ReceiveLoopImpl(logger).ConfigureAwait(false);
-            //            }
-            //            catch (TgTransportException e) //            {
-            //                // Updates.OnError(e);
-            //            }
+            try {
+                await ReceiveLoopImpl(logger).ConfigureAwait(false);
+            }
+            catch (Exception e) {
+                Updates.OnError(e);
+            }
         }
 
         public TgTransport(ILogger logger, MtProtoCipherTransport transport, Var<Session> session) {
@@ -146,42 +146,34 @@ namespace Telega.Rpc {
                 }
             }
 
-            while (true) {
+            await CheckReceiveLoop().ConfigureAwait(false);
+
+            var respTask = await _rpcQueue.Put(async () => {
+                var (container, msgId) = WithAck(func);
+                var tcs = new TaskCompletionSource<RpcResult>();
+                _rpcFlow[msgId] = tcs;
+
+                await _transport.Send(container).ConfigureAwait(false);
+                return tcs.Task;
+            }).ConfigureAwait(false);
+
+            async Task<T> AwaitResult() {
+                await Task.WhenAny(_receiveLoopTask, respTask).ConfigureAwait(false);
                 await CheckReceiveLoop().ConfigureAwait(false);
 
-                var respTask = await _rpcQueue.Put(async () => {
-                    var (container, msgId) = WithAck(func);
-                    var tcs = new TaskCompletionSource<RpcResult>();
-                    _rpcFlow[msgId] = tcs;
-
-                    //                    try //                    {
-                    await _transport.Send(container).ConfigureAwait(false);
-                    //                    }
-                    //                    catch (TgTransportException e) //                    {
-                    //                        Updates.OnError(e);
-                    //                    }
-
-                    return tcs.Task;
-                }).ConfigureAwait(false);
-
-                async Task<T> AwaitResult() {
-                    await Task.WhenAny(_receiveLoopTask, respTask).ConfigureAwait(false);
-                    await CheckReceiveLoop().ConfigureAwait(false);
-
-                    var resp = await respTask.ConfigureAwait(false);
-                    if (resp.IsSuccess) {
-                        return resp.Body!.Apply(func.DeserializeResult);
-                    }
-
-                    if (!resp.IsFail) {
-                        throw new Exception("WTF");
-                    }
-
-                    throw resp.Exception!;
+                var resp = await respTask.ConfigureAwait(false);
+                if (resp.IsSuccess) {
+                    return resp.Body!.Apply(func.DeserializeResult);
                 }
 
-                return AwaitResult();
+                if (!resp.IsFail) {
+                    throw new Exception("WTF");
+                }
+
+                throw resp.Exception!;
             }
+
+            return AwaitResult();
         }
     }
 }

@@ -1,12 +1,16 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using BigMath.Utils;
 using Telega.Utils;
 
 namespace Telega.Rpc.ServiceTransport {
     class TcpTransport : IDisposable {
+        // TODO: make it configurable
+        static readonly TimeSpan ReceiveTimeout = TimeSpan.FromMinutes(1);
+        
         readonly TcpClient _tcpClient;
         int _sendCounter;
 
@@ -16,12 +20,16 @@ namespace Telega.Rpc.ServiceTransport {
 
         static uint ComputeCrc32(params byte[][] arrays) {
             var crc32 = new Crc32();
-            arrays.Iter(arr => crc32.Update(arr, 0, arr.Length));
+            arrays.ForEach(arr => crc32.Update(arr, 0, arr.Length));
             return crc32.Value;
         }
 
 
         async Task SendImpl(byte[] packet) {
+            if (!_tcpClient.Connected) {
+                throw new TgBrokenConnectionException();
+            }
+            
             // https://core.telegram.org/mtproto#tcp-transport
             /*
                 4 length bytes are added at the front
@@ -63,12 +71,20 @@ namespace Telega.Rpc.ServiceTransport {
 
             var totalReceived = 0;
             while (totalReceived < count) {
-                var received = await stream.ReadAsync(res, totalReceived, count - totalReceived).ConfigureAwait(false);
-                if (received == 0) {
-                    throw new TgBrokenConnectionException();
-                }
+                using var timeoutCts = new CancellationTokenSource(ReceiveTimeout);
+                var timeoutCt = timeoutCts.Token;
+                try {
+                    var received = await stream.ReadAsync(res, totalReceived, count - totalReceived, timeoutCt).ConfigureAwait(false);
+                    if (received == 0) {
+                        throw new TgBrokenConnectionException();
+                    }
 
-                totalReceived += received;
+                    totalReceived += received;
+                }
+                catch (OperationCanceledException) {
+                    // TODO: TgTransportTimeoutException?
+                    throw new TgTransportException("Receive timeout exception.", innerException: null);
+                }
             }
 
             return res;
