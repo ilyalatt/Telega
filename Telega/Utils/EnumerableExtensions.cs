@@ -18,13 +18,13 @@ namespace Telega.Utils {
             return seq.Take(Math.Max(0, seq.Count - count));
         }
 
-        public static void Iter<T>(this IEnumerable<T> seq, Action<T> mutator) {
+        public static void ForEach<T>(this IEnumerable<T> seq, Action<T> mutator) {
             foreach (var x in seq) {
                 mutator(x);
             }
         }
         
-        public static void Iter<T>(this IEnumerable<T> seq, Action<T, int> mutator) {
+        public static void ForEach<T>(this IEnumerable<T> seq, Action<T, int> mutator) {
             var idx = 0;
             foreach (var x in seq) {
                 mutator(x, idx++);

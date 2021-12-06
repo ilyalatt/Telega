@@ -16,14 +16,14 @@ namespace Telega {
     static class PasswordCheckHelper {
         static byte[] Sha256(params byte[][] bts) {
             using var sha = SHA256.Create();
-            bts.SkipLast(1).Iter(x => sha.TransformBlock(x, 0, x.Length, null, 0));
+            bts.SkipLast(1).ForEach(x => sha.TransformBlock(x, 0, x.Length, null, 0));
             bts.Last().With(x => sha.TransformFinalBlock(x, 0, x.Length));
             return sha.Hash;
         }
         
         static byte[] Sha256(params ArraySegment<byte>[] bts) {
             using var sha = SHA256.Create();
-            bts.SkipLast(1).Iter(x => sha.TransformBlock(x.Array, 0, x.Count, null, 0));
+            bts.SkipLast(1).ForEach(x => sha.TransformBlock(x.Array, 0, x.Count, null, 0));
             bts.Last().With(x => sha.TransformFinalBlock(x.Array, 0, x.Count));
             return sha.Hash;
         }

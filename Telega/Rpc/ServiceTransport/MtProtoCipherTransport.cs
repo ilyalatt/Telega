@@ -21,7 +21,7 @@ namespace Telega.Rpc.ServiceTransport {
 
         static byte[] Sha256(params ArraySegment<byte>[] btsArr) {
             using var sha = SHA256.Create();
-            btsArr.SkipLast(1).Iter(bts => sha.TransformBlock(bts.Array, bts.Offset, bts.Count, null, 0));
+            btsArr.SkipLast(1).ForEach(bts => sha.TransformBlock(bts.Array, bts.Offset, bts.Count, null, 0));
             btsArr.Last().Apply(bts => sha.TransformFinalBlock(bts.Array, bts.Offset, bts.Count));
             return sha.Hash;
         }

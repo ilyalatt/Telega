@@ -32,17 +32,17 @@ namespace Telega.Rpc {
                 ctx.NewSalt.NForEach(salt =>
                     _session.SetWith(x => x.With(salt: salt))
                 );
-                ctx.Ack.Iter(_unconfirmedMsgIds.Push);
+                ctx.Ack.ForEach(_unconfirmedMsgIds.Push);
 
                 TaskCompletionSource<RpcResult>? CaptureFlow(long id) =>
                     _rpcFlow.TryRemove(id, out var flow) ? flow : null;
 
-                ctx.RpcResults.Iter(res => CaptureFlow(res.Id).NSwitch(
+                ctx.RpcResults.ForEach(res => CaptureFlow(res.Id).NSwitch(
                     some: flow => flow.SetResult(res),
                     none: () => ctx.Logger.LogTrace($"TgTransport: Unexpected RPC result, the message id is {res.Id}")
                 ));
 
-                ctx.Updates.Iter(Updates.OnNext);
+                ctx.Updates.ForEach(Updates.OnNext);
             }
         }
 

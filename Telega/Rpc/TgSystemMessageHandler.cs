@@ -136,7 +136,7 @@ namespace Telega.Rpc {
                     message.Apply(ReadGZipPacked(br).Apply(Message.WithBody)).With(Handle(ctx));
                     return;
                 case MsgContainerTypeNumber:
-                    ReadContainer(br).Iter(Handle(ctx));
+                    ReadContainer(br).ForEach(Handle(ctx));
                     return;
 
                 case RpcResultTypeNumber:

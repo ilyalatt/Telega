@@ -162,7 +162,7 @@ namespace Telega.Rpc {
         ) => (bw, vector) => {
             WriteUint(bw, VectorNum);
             WriteInt(bw, vector.Count);
-            vector.Iter(x => serializer(bw, x));
+            vector.ForEach(x => serializer(bw, x));
         };
 
 
