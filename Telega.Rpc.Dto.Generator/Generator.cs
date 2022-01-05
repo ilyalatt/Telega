@@ -21,7 +21,7 @@ namespace Telega.Rpc.Dto.Generator {
         
         // To update API layer you need to change `Layer` and `CommitHash` constants below
         // 1. Open https://github.com/telegramdesktop/tdesktop/commits/dev/Telegram/Resources
-        // 2. Find the latest commit that looks like `Update API scheme on layer 135`
+        // 2. Find the latest commit that looks like `Update API scheme on layer 136`
         // 3. Replace `Layer` and `CommitHash` with the found commit hash
         // 4. Make some change in `Telega` project to make a trigger for the generator
         // 5. Run `dotnet build Telega`
@@ -33,8 +33,8 @@ namespace Telega.Rpc.Dto.Generator {
         // TODO: Transform into an incremental generator
         // https://andrewlock.net/exploring-dotnet-6-part-9-source-generator-updates-incremental-generators/
 
-        static readonly int Layer = 135;
-        static readonly string CommitHash = "b634ebab78d3e0322faa9927bdcc47f0c2c1e1b9";
+        static readonly int Layer = 136;
+        static readonly string CommitHash = "118072db77553a070fb740a961aedfef323f72ef";
         static readonly string RepoPath = $"https://raw.githubusercontent.com/telegramdesktop/tdesktop/{CommitHash}/Telegram/Resources/tl";
         static readonly string[] SchemeUrls = { $"{RepoPath}/api.tl", $"{RepoPath}/mtproto.tl" };
 

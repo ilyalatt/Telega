@@ -64,7 +64,8 @@ namespace Telega.Client {
                 replyMarkup: null,
                 entities: null,
                 scheduleDate: scheduleDate,
-                sendAs: null
+                sendAs: null,
+                noforwards: false
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendPhoto(
@@ -89,7 +90,8 @@ namespace Telega.Client {
                 message: message,
                 silent: false,
                 scheduleDate: scheduleDate,
-                sendAs: null
+                sendAs: null,
+                noforwards: false
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendDocument(
@@ -121,7 +123,8 @@ namespace Telega.Client {
                 entities: null,
                 message: message,
                 scheduleDate: scheduleDate,
-                sendAs: null
+                sendAs: null,
+                noforwards: false
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMedia(
@@ -170,7 +173,8 @@ namespace Telega.Client {
                 entities: null,
                 message: message,
                 scheduleDate: scheduleDate,
-                sendAs: null
+                sendAs: null,
+                noforwards: false
             )).ConfigureAwait(false);
 
         public async Task<UpdatesType> SendMultimedia(
@@ -226,7 +230,8 @@ namespace Telega.Client {
                     )
                 ).ToList(),
                 scheduleDate: scheduleDate,
-                sendAs: null
+                sendAs: null,
+                noforwards: false
             )).ConfigureAwait(false);
 
         public async Task<bool> SendTyping(InputPeer peer) =>
