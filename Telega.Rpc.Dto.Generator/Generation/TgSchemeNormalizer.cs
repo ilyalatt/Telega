@@ -69,7 +69,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         static ArgKind Normalize(ArgKind argKind) => argKind.Match(
             required: _ => argKind,
             optional: x => x.Flag.Apply(Normalize).Apply(SomeExt.ToSome).Apply(ArgKind.OfOptional),
-            flags: _ => argKind
+            flags: flags => flags.Name.Apply(NormalizeName).Apply(SomeExt.ToSome).Apply(ArgKind.OfFlags)
         );
 
         static Arg Normalize(Arg arg) => new(
