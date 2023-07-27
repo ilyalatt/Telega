@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,7 +43,7 @@ namespace Telega.Auth {
         });
 
         public static async Task<Step3Res> Do(
-            ServerDhParams.OkTag dhParams,
+            ServerDhParams.Ok_Tag dhParams,
             Int256 newNonce,
             MtProtoPlainTransport transport
         ) {
@@ -82,9 +82,9 @@ namespace Telega.Auth {
                 encryptedData: dhInnerDataHashedEncryptedBytes.ToBytesUnsafe()
             )).ConfigureAwait(false);
             var res = resp.Match(
-                dhGenOkTag: x => x,
-                dhGenFailTag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_fail"),
-                dhGenRetryTag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_retry")
+                dhGenOk_Tag: x => x,
+                dhGenFail_Tag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_fail"),
+                dhGenRetry_Tag: _ => throw Helpers.FailedAssertion("auth step3: dh_gen_retry")
             );
 
             var authKey = AuthKey.FromGab(gab);

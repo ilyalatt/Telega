@@ -18,7 +18,7 @@ namespace Telega.Client {
         public async Task<Dialogs> GetDialogs() =>
             await _tg.Call(new GetDialogs(
                 offsetDate: 0,
-                offsetPeer: new InputPeer.SelfTag(),
+                offsetPeer: new InputPeer.Self_Tag(),
                 limit: 100,
                 excludePinned: false,
                 offsetId: 0,
@@ -60,7 +60,8 @@ namespace Telega.Client {
                 silent: false,
                 background: false,
                 clearDraft: false,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 entities: null,
                 scheduleDate: scheduleDate,
@@ -78,14 +79,16 @@ namespace Telega.Client {
                 randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
-                media: new InputMedia.UploadedPhotoTag(
+                media: new InputMedia.UploadedPhoto_Tag(
                     file: file,
                     stickers: null,
-                    ttlSeconds: null
+                    ttlSeconds: null,
+                    spoiler: false
                 ),
                 peer: peer,
                 entities: null,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 message: message,
                 silent: false,
@@ -106,7 +109,7 @@ namespace Telega.Client {
                 randomId: Rnd.NextInt64(),
                 background: false,
                 clearDraft: false,
-                media: new InputMedia.UploadedDocumentTag(
+                media: new InputMedia.UploadedDocument_Tag(
                     nosoundVideo: false,
                     forceFile: true,
                     file: file,
@@ -114,11 +117,13 @@ namespace Telega.Client {
                     attributes: attributes ?? Array.Empty<DocumentAttribute>(),
                     thumb: null,
                     stickers: null,
-                    ttlSeconds: null
+                    ttlSeconds: null,
+                    spoiler: false
                 ),
                 peer: peer,
                 silent: false,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 entities: null,
                 message: message,
@@ -139,36 +144,39 @@ namespace Telega.Client {
                 clearDraft: false,
                 media: file.Match<InputMedia>(
                     _: () => throw new NotImplementedException(),
-                    photoTag: photoTag => {
+                    photo_Tag: photoTag => {
                         var photoContainer = photoTag.Photo ?? throw new TgInternalException("Unable to get photo", null); 
                         var photo = photoContainer.Default ?? throw new TgInternalException("Unable to get photo tag", null);
-                        return new InputMedia.PhotoTag(
+                        return new InputMedia.Photo_Tag(
                             id: new InputPhoto.DefaultTag(
                                 id: photo.Id,
                                 accessHash: photo.AccessHash,
                                 fileReference: photo.FileReference
                             ),
-                            ttlSeconds: null
+                            ttlSeconds: null,
+                            spoiler: false
                         );
                     },
-                    documentTag: documentTag => {
+                    document_Tag: documentTag => {
                         var documentContainer = documentTag.Document ?? throw new TgInternalException("Unable to get document", null);
                         var document = documentContainer .Default ?? throw new TgInternalException("Unable to get document tag", null);
                         return
-                            new InputMedia.DocumentTag(
+                            new InputMedia.Document_Tag(
                                 id: new InputDocument.DefaultTag(
                                     id: document.Id,
                                     accessHash: document.AccessHash,
                                     fileReference: document.FileReference
                                 ),
                                 ttlSeconds: null,
-                                query: null
+                                query: null,
+                                spoiler: false
                             );
                     }
                 ),
                 peer: peer,
                 silent: false,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 entities: null,
                 message: message,
@@ -188,39 +196,42 @@ namespace Telega.Client {
                 background: false,
                 clearDraft: false,
                 peer: peer,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 multiMedia: attachments.NChoose((x, i) =>
                     x.Match(
                         _: () => throw new NotImplementedException(),
-                        photoTag: photoTag => {
+                        photo_Tag: photoTag => {
                             var photoContainer = photoTag.Photo ?? throw new TgInternalException("Unable to get photo", null);
                             var photo = photoContainer.Default ?? throw new TgInternalException("Unable to get photo tag", null);
                             return new InputSingleMedia(
-                                media: new InputMedia.PhotoTag(
+                                media: new InputMedia.Photo_Tag(
                                     id: new InputPhoto.DefaultTag(
                                         id: photo.Id,
                                         accessHash: photo.AccessHash,
                                         fileReference: photo.FileReference
                                     ),
-                                    ttlSeconds: null
+                                    ttlSeconds: null,
+                                    spoiler: false
                                 ),
                                 randomId: Rnd.NextInt64(),
                                 message: i == 0 ? message ?? string.Empty : string.Empty,
                                 entities: null
                             );
                         },
-                        documentTag: documentTag => {
+                        document_Tag: documentTag => {
                             var documentContainer = documentTag.Document ?? throw new TgInternalException("Unable to get document", null);
                             var document = documentContainer.Default ?? throw new TgInternalException("Unable to get document tag", null);
                             return new InputSingleMedia(
-                                media: new InputMedia.DocumentTag(
+                                media: new InputMedia.Document_Tag(
                                     id: new InputDocument.DefaultTag(
                                         id: document.Id,
                                         accessHash: document.AccessHash,
                                         fileReference: document.FileReference
                                     ),
                                     ttlSeconds: null,
-                                    query: null
+                                    query: null,
+                                    spoiler: false
                                 ),
                                 randomId: Rnd.NextInt64(),
                                 message: i == 0 ? message ?? string.Empty : string.Empty,
@@ -236,7 +247,7 @@ namespace Telega.Client {
 
         public async Task<bool> SendTyping(InputPeer peer) =>
             await _tg.Call(new SetTyping(
-                action: new SendMessageAction.TypingTag(),
+                action: new SendMessageAction.Typing_Tag(),
                 peer: peer,
                 topMsgId: null
             )).ConfigureAwait(false);
@@ -247,10 +258,11 @@ namespace Telega.Client {
         ) =>
             await _tg.Call(new UploadMedia(
                 peer: peer,
-                media: new InputMedia.UploadedPhotoTag(
+                media: new InputMedia.UploadedPhoto_Tag(
                     file: file,
                     stickers: null,
-                    ttlSeconds: null
+                    ttlSeconds: null,
+                    spoiler: false
                 )
             )).ConfigureAwait(false);
 
@@ -262,7 +274,7 @@ namespace Telega.Client {
         ) =>
             await _tg.Call(new UploadMedia(
                 peer: peer,
-                media: new InputMedia.UploadedDocumentTag(
+                media: new InputMedia.UploadedDocument_Tag(
                     nosoundVideo: false,
                     file: file,
                     mimeType: mimeType,
@@ -270,7 +282,8 @@ namespace Telega.Client {
                     thumb: null,
                     stickers: null,
                     ttlSeconds: null,
-                    forceFile: false
+                    forceFile: false,
+                    spoiler: false
                 )
             )).ConfigureAwait(false);
 
@@ -280,9 +293,10 @@ namespace Telega.Client {
         ) =>
             await _tg.Call(new UploadMedia(
                 peer: peer,
-                media: new InputMedia.DocumentExternalTag(
-                    url,
-                    null
+                media: new InputMedia.DocumentExternal_Tag(
+                    spoiler: false,
+                    url: url,
+                    ttlSeconds: null
                 )
             )).ConfigureAwait(false);
     }

@@ -27,7 +27,7 @@ namespace Telega.Playground.Snippets {
                 offsetDate: 0,
                 offsetId: 0
             ));
-            var messages = resp.Slice!.Messages;
+            var messages = resp.Slice_!.Messages;
             var documents = messages
                 .Reverse()
                 .NChoose(x => x.Default)
@@ -41,10 +41,10 @@ namespace Telega.Playground.Snippets {
         }
 
         public static async Task Run(TelegramClient tg) {
-            var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.SelfTag()));
+            var fullUserInfo = await tg.Call(new GetFullUser(new InputUser.Self_Tag()));
             var userInfo = fullUserInfo.Users.Single().Default!;
 
-            var chatPeer = (InputPeer) new InputPeer.UserTag(
+            var chatPeer = (InputPeer) new InputPeer.User_Tag(
                 userId: userInfo.Id,
                 accessHash: userInfo.AccessHash!.Value
             );
@@ -54,7 +54,7 @@ namespace Telega.Playground.Snippets {
             var videoName = video.Attributes.NChoose(x => x.Filename).Single().FileName;
 
             Console.WriteLine($"Downloading the video with name '{videoName}'.");
-            var videoLocation = new InputFileLocation.EncryptedTag(
+            var videoLocation = new InputFileLocation.Encrypted_Tag(
                 id: video.Id,
                 accessHash: video.AccessHash
             );

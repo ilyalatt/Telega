@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using BigMath;
 using Telega.Rpc.Dto;
@@ -10,7 +10,7 @@ using static Telega.Utils.BtHelpers;
 
 namespace Telega.Auth {
     record Step2Result(
-        ServerDhParams.OkTag ServerDhParams,
+        ServerDhParams.Ok_Tag ServerDhParams,
         Int256 NewNonce
     );
 
@@ -48,8 +48,8 @@ namespace Telega.Auth {
                 encryptedData: cipherText.ToBytesUnsafe()
             )).ConfigureAwait(false);
             var res = resp.Match(
-                okTag: x => x,
-                failTag: _ => throw Helpers.FailedAssertion("auth step2: server_DH_params_fail")
+                ok_Tag: x => x,
+                fail_Tag: _ => throw Helpers.FailedAssertion("auth step2: server_DH_params_fail")
             );
 
             Helpers.Assert(res.Nonce == pqInnerData.Nonce, "auth step2: invalid nonce");

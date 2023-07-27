@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,11 +41,11 @@ namespace Telega.Client {
         ) {
             const int idRadius = 10;
             var messageIds = Enumerable.Range(start: -idRadius, count: idRadius * 2 + 1)
-               .Select(x => (InputMessage) new InputMessage.IdTag(id: messageId + x))
+               .Select(x => (InputMessage) new InputMessage.Id_Tag(id: messageId + x))
                .ToList();
 
             var messagesResponse = await GetMessages(channel, messageIds).ConfigureAwait(false);
-            var messages = messagesResponse.Channel?.Messages.NChoose(x => x.Default).ToList();
+            var messages = messagesResponse.Channel_?.Messages.NChoose(x => x.Default).ToList();
             if (messages == null) {
                 return Array.Empty<Message.DefaultTag>();
             }
