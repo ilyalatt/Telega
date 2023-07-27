@@ -141,7 +141,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                                 .IfNone(name)
                         )
                 )
-                .Apply(name => name.Length == 0 ? "DefaultTag" : name + "_Tag") 
+                .Apply(name => name.Length == 0 ? "DefaultTag" : name == "Default" ? "Default_Tag" : name + "Tag") 
         );
 
         static Signature NormalizeFunc(Signature signature) =>
