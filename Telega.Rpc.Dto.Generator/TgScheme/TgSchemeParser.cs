@@ -171,8 +171,8 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                 .GroupBy(t => t.Item1).ToDictionary(g => g.Key, g => g.Bind(x => x.Item2).ToArr());
             return new Scheme(
                 version,
-                signatures[SectionType.Types],
-                signatures[SectionType.Functions]
+                signatures.TryGetValue(SectionType.Types, out var types) ? types : new(),
+                signatures.TryGetValue(SectionType.Functions, out var functions) ? functions : new()
             );
         }
     }
