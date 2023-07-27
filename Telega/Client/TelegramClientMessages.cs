@@ -60,7 +60,8 @@ namespace Telega.Client {
                 silent: false,
                 background: false,
                 clearDraft: false,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 entities: null,
                 scheduleDate: scheduleDate,
@@ -81,11 +82,13 @@ namespace Telega.Client {
                 media: new InputMedia.UploadedPhotoTag(
                     file: file,
                     stickers: null,
-                    ttlSeconds: null
+                    ttlSeconds: null,
+                    spoiler: false
                 ),
                 peer: peer,
                 entities: null,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 message: message,
                 silent: false,
@@ -114,11 +117,13 @@ namespace Telega.Client {
                     attributes: attributes ?? Array.Empty<DocumentAttribute>(),
                     thumb: null,
                     stickers: null,
-                    ttlSeconds: null
+                    ttlSeconds: null,
+                    spoiler: false
                 ),
                 peer: peer,
                 silent: false,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 entities: null,
                 message: message,
@@ -148,7 +153,8 @@ namespace Telega.Client {
                                 accessHash: photo.AccessHash,
                                 fileReference: photo.FileReference
                             ),
-                            ttlSeconds: null
+                            ttlSeconds: null,
+                            spoiler: false
                         );
                     },
                     documentTag: documentTag => {
@@ -162,13 +168,15 @@ namespace Telega.Client {
                                     fileReference: document.FileReference
                                 ),
                                 ttlSeconds: null,
-                                query: null
+                                query: null,
+                                spoiler: false
                             );
                     }
                 ),
                 peer: peer,
                 silent: false,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 replyMarkup: null,
                 entities: null,
                 message: message,
@@ -188,7 +196,8 @@ namespace Telega.Client {
                 background: false,
                 clearDraft: false,
                 peer: peer,
-                replyToMsgId: null,
+                updateStickersetsOrder: false,
+                replyTo: null,
                 multiMedia: attachments.NChoose((x, i) =>
                     x.Match(
                         _: () => throw new NotImplementedException(),
@@ -202,7 +211,8 @@ namespace Telega.Client {
                                         accessHash: photo.AccessHash,
                                         fileReference: photo.FileReference
                                     ),
-                                    ttlSeconds: null
+                                    ttlSeconds: null,
+                                    spoiler: false
                                 ),
                                 randomId: Rnd.NextInt64(),
                                 message: i == 0 ? message ?? string.Empty : string.Empty,
@@ -220,7 +230,8 @@ namespace Telega.Client {
                                         fileReference: document.FileReference
                                     ),
                                     ttlSeconds: null,
-                                    query: null
+                                    query: null,
+                                    spoiler: false
                                 ),
                                 randomId: Rnd.NextInt64(),
                                 message: i == 0 ? message ?? string.Empty : string.Empty,
@@ -250,7 +261,8 @@ namespace Telega.Client {
                 media: new InputMedia.UploadedPhotoTag(
                     file: file,
                     stickers: null,
-                    ttlSeconds: null
+                    ttlSeconds: null,
+                    spoiler: false
                 )
             )).ConfigureAwait(false);
 
@@ -270,7 +282,8 @@ namespace Telega.Client {
                     thumb: null,
                     stickers: null,
                     ttlSeconds: null,
-                    forceFile: false
+                    forceFile: false,
+                    spoiler: false
                 )
             )).ConfigureAwait(false);
 
@@ -281,8 +294,9 @@ namespace Telega.Client {
             await _tg.Call(new UploadMedia(
                 peer: peer,
                 media: new InputMedia.DocumentExternalTag(
-                    url,
-                    null
+                    spoiler: false,
+                    url: url,
+                    ttlSeconds: null
                 )
             )).ConfigureAwait(false);
     }
