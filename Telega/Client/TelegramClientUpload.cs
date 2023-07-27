@@ -76,7 +76,7 @@ namespace Telega.Client {
             var md5Hash = md5?.TransformFinalBlock(buffer, 0, 0);
 
             return isBigFileUpload
-                ? (InputFile) new InputFile.Big_Tag(
+                ? (InputFile) new InputFile.BigTag(
                     id: fileId,
                     name: name,
                     parts: chunksCount
@@ -123,7 +123,7 @@ namespace Telega.Client {
             var resp = await tg.Call(GenSmallestGetFileRequest(location)).ConfigureAwait(false);
             var res = resp.Match(
                 defaultTag: x => x,
-                cdnRedirect_Tag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
+                cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
             );
             return res.Type;
         }
@@ -146,7 +146,7 @@ namespace Telega.Client {
                 )).ConfigureAwait(false);
                 var res = prevFile = resp.Match(
                     defaultTag: x => x,
-                    cdnRedirect_Tag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
+                    cdnRedirectTag: _ => throw Helpers.FailedAssertion("upload.fileCdnRedirect")
                 );
 
                 var bts = res.Bytes.ToArrayUnsafe();

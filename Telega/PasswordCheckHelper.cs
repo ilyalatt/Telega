@@ -10,7 +10,7 @@ using Telega.Rpc.Dto.Functions.Auth;
 using Telega.Rpc.Dto.Types;
 using Telega.Rpc.Dto.Types.Account;
 using Telega.Utils;
-using Algo = Telega.Rpc.Dto.Types.PasswordKdfAlgo.Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow_Tag;
+using Algo = Telega.Rpc.Dto.Types.PasswordKdfAlgo.Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPowTag;
 
 namespace Telega {
     static class PasswordCheckHelper {

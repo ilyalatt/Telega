@@ -42,24 +42,17 @@ namespace Telega.Client {
                     currentNumber: false,
                     allowAppHash: false,
                     allowMissedCall: false,
-                    allowFirebase: false,
-                    logoutTokens: null,
-                    token: null,
-                    appSandbox: false
+                    logoutTokens: null
                 )
             )).ConfigureAwait(false);
-            return res.Match(
-                    defaultTag: x => x.PhoneCodeHash,
-                    success_Tag: _ => throw new NotImplementedException()
-            );
+            return res.PhoneCodeHash;
         }
 
         public async Task<User> SignIn(string phoneNumber, string phoneCodeHash, string code) {
             var res = await _tg.Call(new SignIn(
                 phoneNumber: phoneNumber,
                 phoneCodeHash: phoneCodeHash,
-                phoneCode: code,
-                emailVerification: null
+                phoneCode: code
             )).ConfigureAwait(false);
 
             return SetAuthorized(res.Default!.User);
@@ -77,7 +70,7 @@ namespace Telega.Client {
             var currentAlgo = passwordInfo.CurrentAlgo
                 ?? throw new ArgumentException("there is no CurrentAlgo", nameof(passwordInfo));
             var algo = currentAlgo
-               .Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow_
+               .Sha256Sha256Pbkdf2Hmacsha512Iter100000Sha256ModPow
                ?? throw new ArgumentException("unknown CurrentAlgo", nameof(passwordInfo));
 
             var request = await TaskWrapper.Wrap(() =>

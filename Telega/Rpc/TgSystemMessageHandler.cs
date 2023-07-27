@@ -103,7 +103,7 @@ namespace Telega.Rpc {
 
         static RpcResult HandleBadServerSalt(BinaryReader br, TgSystemMessageHandlerContext ctx) {
             br.ReadInt32();
-            var msg = BadMsgNotification.ServerSalt_Tag.DeserializeTag(br);
+            var msg = BadMsgNotification.ServerSaltTag.DeserializeTag(br);
 
             ctx.NewSalt = msg.NewServerSalt;
 
@@ -146,7 +146,7 @@ namespace Telega.Rpc {
                 case BadMsgNotification.DefaultTag.TypeNumber:
                     ctx.RpcResults.Add(HandleBadMsgNotification(br));
                     return;
-                case BadMsgNotification.ServerSalt_Tag.TypeNumber:
+                case BadMsgNotification.ServerSaltTag.TypeNumber:
                     ctx.RpcResults.Add(HandleBadServerSalt(br, ctx));
                     return;
                 case Pong.TypeNumber:
@@ -170,9 +170,9 @@ namespace Telega.Rpc {
                 case MsgDetailedInfo.DefaultTag.TypeNumber:
                     return;
 
-                case MsgDetailedInfo.New_Tag.TypeNumber:
+                case MsgDetailedInfo.NewTag.TypeNumber:
                     EnsureTypeNumber(br, typeNumber);
-                    MsgDetailedInfo.New_Tag.DeserializeTag(br).AnswerMsgId.With(ctx.Ack.Add);
+                    MsgDetailedInfo.NewTag.DeserializeTag(br).AnswerMsgId.With(ctx.Ack.Add);
                     return;
 
 
