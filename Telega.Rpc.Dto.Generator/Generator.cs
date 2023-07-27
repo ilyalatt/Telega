@@ -34,7 +34,7 @@ namespace Telega.Rpc.Dto.Generator {
         // https://andrewlock.net/exploring-dotnet-6-part-9-source-generator-updates-incremental-generators/
 
         static readonly int Layer = 160;
-        static readonly string CommitHash = "17a5c27658b903ef675024e3524e5caf7c102d2d";
+        static readonly string CommitHash = "ffd691e5565241b530c9a11f4e4649011184c49d";
         static readonly string RepoPath = $"https://raw.githubusercontent.com/telegramdesktop/tdesktop/{CommitHash}/Telegram/SourceFiles/mtproto/scheme";
         static readonly string[] SchemeUrls = { $"{RepoPath}/api.tl", $"{RepoPath}/mtproto.tl", $"{RepoPath}/layer.tl" };
 
