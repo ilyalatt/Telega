@@ -11,7 +11,8 @@ namespace Telega.Rpc.Dto.Generator.Generation {
             "static",
             "true",
             "params",
-            "default"
+            "default",
+            "short"
         };
 
         public static string LowerFirst(string s) => s[0]
