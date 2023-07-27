@@ -51,10 +51,12 @@ namespace Telega.Rpc.Dto.Generator.Generation {
 
             Option<Text> GenArgSerializer(Arg arg) => arg.Kind.Match(
                 _: () => GenNonFlagArgSerializer(arg),
-                flags: _ =>
+                flags: flag =>
                     args.Choose(x => x.Kind.Match(
                         _: () => None,
-                        optional: optional => ($"{x.Name}", optional.Flag.Bit).Apply(Some)
+                        optional: optional => ($"{x.Name}", optional.Flag.Bit)
+                            .Apply(Some)
+                            .Filter(x => optional.Flag.ArgName == flag.Name)
                     )).Apply(GenMaskSerializer)
             );
 
