@@ -69,7 +69,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
         static ArgKind Normalize(ArgKind argKind) => argKind.Match(
             required: _ => argKind,
             optional: x => x.Flag.Apply(Normalize).Apply(SomeExt.ToSome).Apply(ArgKind.OfOptional),
-            flags: _ => argKind
+            flags: flags => flags.Name.Apply(NormalizeName).Apply(SomeExt.ToSome).Apply(ArgKind.OfFlags)
         );
 
         static Arg Normalize(Arg arg) => new(
@@ -141,8 +141,7 @@ namespace Telega.Rpc.Dto.Generator.Generation {
                                 .IfNone(name)
                         )
                 )
-                .Apply(name => name.Length == 0 ? "Default" : name) 
-                .Apply(name => name + "Tag")
+                .Apply(name => name.Length == 0 ? "DefaultTag" : name == "Default" ? "Default_Tag" : name + "Tag") 
         );
 
         static Signature NormalizeFunc(Signature signature) =>

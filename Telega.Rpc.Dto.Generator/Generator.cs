@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -33,10 +33,10 @@ namespace Telega.Rpc.Dto.Generator {
         // TODO: Transform into an incremental generator
         // https://andrewlock.net/exploring-dotnet-6-part-9-source-generator-updates-incremental-generators/
 
-        static readonly int Layer = 136;
-        static readonly string CommitHash = "118072db77553a070fb740a961aedfef323f72ef";
-        static readonly string RepoPath = $"https://raw.githubusercontent.com/telegramdesktop/tdesktop/{CommitHash}/Telegram/Resources/tl";
-        static readonly string[] SchemeUrls = { $"{RepoPath}/api.tl", $"{RepoPath}/mtproto.tl" };
+        static readonly int Layer = 160;
+        static readonly string CommitHash = "ffd691e5565241b530c9a11f4e4649011184c49d";
+        static readonly string RepoPath = $"https://raw.githubusercontent.com/telegramdesktop/tdesktop/{CommitHash}/Telegram/SourceFiles/mtproto/scheme";
+        static readonly string[] SchemeUrls = { $"{RepoPath}/api.tl", $"{RepoPath}/mtproto.tl", $"{RepoPath}/layer.tl" };
 
         static string[] DownloadLatestTgScheme() =>
             SchemeUrls.AsParallel().Select(x => new WebClient().DownloadString(x)).ToArray();

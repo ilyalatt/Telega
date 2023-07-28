@@ -98,7 +98,10 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
             public Optional(Some<Flag> flag) => Flag = flag;
         }
 
-        public record Flags { }
+        public record Flags {
+            public string Name  { get; init; }
+            public Flags(Some<string> name) => Name = name;
+        }
 
         readonly object _tag;
         ArgKind(object tag) => _tag = tag;
@@ -110,7 +113,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
 
         public static ArgKind OfRequired() => new(new Required());
         public static ArgKind OfOptional(Some<Flag> flag) => new(new Optional(flag));
-        public static ArgKind OfFlags() => new(new Flags());
+        public static ArgKind OfFlags(Some<string> name) => new(new Flags(name));
 
 
         public T Match<T>(

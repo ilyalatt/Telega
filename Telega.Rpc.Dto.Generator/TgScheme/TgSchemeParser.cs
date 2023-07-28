@@ -70,23 +70,15 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                 .Map(parseInt)
                 .Map(x => x.GetOrThrow(Ex("can not parse a version of '// LAYER={version}'")));
 
-        // works only with flags variable for now
-        const string FlagMarker = "flags.";
+        const string FlagMarker = @"^([\w\d]+)\.(\d+)\?(.+)$";
 
         static Option<(string, Flag)> ParseFlag(string s) =>
-            s.Apply(Optional).Filter(x => x.StartsWith(FlagMarker))
-               .Map(ss => ss
-                   .Apply(x => x[FlagMarker.Length..])
-                   .Apply(x => x.Split('?'))
-                   .Apply(Optional)
-                   .Filter(x => x.Length == 2)
-                   .GetOrThrow(Ex("bad flag param"))
-                   .Apply(x => (parseInt(x[0]), x[1]))
-                   .Apply(t => t.Item1.Map(Item1 => (Item1, t.Item2)))
-                   .Filter(t => 0 <= t.Item1 && t.Item1 < 32)
-                   .Map(t => (t.Item2, new Flag("flags", t.Item1)))
-                   .GetOrThrow(Ex("can not parse a flag bit"))
-                );
+            s.Apply(Optional)
+                .Map(x => Regex.Match(x, FlagMarker))
+                .Filter(m => m.Success)
+                .Map(m => parseInt(m.Groups[2].Value)
+                        .Map(idx => (m.Groups[3].Value, new Flag(m.Groups[1].Value, idx)))
+                        .GetOrThrow(Ex("can not parse a flag bit")));
 
         static TgType ParseType(string s) {
             const string vector = "vector";
@@ -124,7 +116,7 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
             var type = flag.Map(t => t.Item1).IfNone(typeStr).Apply(ParseType);
             var argKind = flag.Map(t => t.Item2)
                 .Map(SomeExt.ToSome).Map(ArgKind.OfOptional)
-                .IfNone(typeStr == "#" ? ArgKind.OfFlags() : ArgKind.OfRequired());
+                .IfNone(typeStr == "#" ? ArgKind.OfFlags(name) : ArgKind.OfRequired());
             return new Arg(name, type, argKind);
         }
 
@@ -179,8 +171,8 @@ namespace Telega.Rpc.Dto.Generator.TgScheme {
                 .GroupBy(t => t.Item1).ToDictionary(g => g.Key, g => g.Bind(x => x.Item2).ToArr());
             return new Scheme(
                 version,
-                signatures[SectionType.Types],
-                signatures[SectionType.Functions]
+                signatures.TryGetValue(SectionType.Types, out var types) ? types : new(),
+                signatures.TryGetValue(SectionType.Functions, out var functions) ? functions : new()
             );
         }
     }

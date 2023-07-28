@@ -42,17 +42,24 @@ namespace Telega.Client {
                     currentNumber: false,
                     allowAppHash: false,
                     allowMissedCall: false,
-                    logoutTokens: null
+                    allowFirebase: false,
+                    logoutTokens: null,
+                    token: null,
+                    appSandbox: null
                 )
             )).ConfigureAwait(false);
-            return res.PhoneCodeHash;
+            return res.Match(
+                    defaultTag: x => x.PhoneCodeHash,
+                    successTag: _ => throw new NotImplementedException()
+            );
         }
 
         public async Task<User> SignIn(string phoneNumber, string phoneCodeHash, string code) {
             var res = await _tg.Call(new SignIn(
                 phoneNumber: phoneNumber,
                 phoneCodeHash: phoneCodeHash,
-                phoneCode: code
+                phoneCode: code,
+                emailVerification: null
             )).ConfigureAwait(false);
 
             return SetAuthorized(res.Default!.User);
